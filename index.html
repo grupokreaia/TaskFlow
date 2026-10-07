@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#6366f1"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><title>TaskFlow · Control de tareas</title><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta name="theme-color" content="#6366f1"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><title>TaskFlow · Control de tareas</title><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{--bg:#f4f6fb;--card:#fff;--text:#0f172a;--mut:#64748b;--line:#e2e8f0;--acc:#6366f1;--sh:0 4px 20px rgba(15,23,42,.07);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1020;--card:#151b30;--text:#e8ecf8;--mut:#8b96b5;--line:#252d48;--sh:0 4px 24px rgba(0,0,0,.4)}}
@@ -34,7 +34,7 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16p
 .col h3{margin:4px 6px 10px;font-size:14px;display:flex;align-items:center;gap:8px}
 .col h3 em{margin-left:auto;font-style:normal;background:var(--line);padding:1px 9px;border-radius:99px;font-size:12px}
 .dot{width:10px;height:10px;border-radius:50%}
-.card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:var(--sh);border-left:5px solid;cursor:pointer;animation:pop .35s both;transition:.2s}
+.card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:var(--sh);border-left:3px solid;cursor:pointer;animation:pop .35s both;transition:.2s}
 .card:hover{transform:translateY(-2px)}
 @keyframes pop{from{opacity:0;transform:scale(.94) translateY(8px)}}
 .card h4{margin:0 0 4px;font-size:15px}.card p{margin:0 0 8px;color:var(--mut);font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -56,6 +56,7 @@ input[readonly]{opacity:.7}textarea{min-height:90px;resize:vertical}
 .login{max-width:380px;margin:12vh auto;background:var(--card);padding:28px;border-radius:20px;box-shadow:var(--sh)}
 .err{color:#ef4444;font-size:13px;margin-top:8px}.note{color:var(--mut);font-size:13px;text-align:center;padding:40px 10px}
 .vs{width:auto;padding:8px 10px;border-radius:10px}.dr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;color:var(--mut);font-size:13px}.dr input{width:auto}.banner{background:#f59e0b22;border:1px solid #f59e0b;padding:8px 12px;border-radius:10px;margin-bottom:12px;font-size:14px}.banner a{color:var(--acc);font-weight:700}
+.pr{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:20;box-shadow:var(--sh);max-width:90vw;font-size:14px}
 </style></head><body>
 <div id="app"></div><div id="modal" onclick="if(event.target===this)closeM()"></div>
 <script>
@@ -63,7 +64,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const PAL=['#6366f1','#ec4899','#f59e0b','#10b981','#06b6d4','#8b5cf6','#ef4444','#84cc16','#f97316','#14b8a6'];
 const ST={todo:{n:'Por Hacer',c:'#64748b'},doing:{n:'En Progreso',c:'#3b82f6'},done:{n:'Terminado',c:'#10b981'},blocked:{n:'Bloqueado',c:'#ef4444'}};
-let db=null,owner=false,users=[],tasks=[],me=null,uLoaded=false,filter='all',pick=PAL[0],vas=null,from='',to='',ep='';
+let db=null,owner=false,users=[],tasks=[],me=null,uLoaded=false,filter='all',pick=PAL[0],vas=null,from='',to='',ep='',areas=[],area='all',sortP=true;
 const ss={get(){try{return sessionStorage.getItem('tf_me')}catch(e){return null}},set(v){try{v?sessionStorage.setItem('tf_me',v):sessionStorage.removeItem('tf_me')}catch(e){}}};
 async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 const hash=(u,p)=>sha('tf:'+u.toLowerCase()+':'+p);
@@ -78,43 +79,63 @@ const can=t=>{const e=eff();return e&&(e.role==='admin'||t.owner===e.username)};
 
 const SB_URL='https://xlxlvodttebgjkskkkti.supabase.co',SB_KEY='sb_publishable_cVkWbrGXdP0BxiuGWHBpeg_L0jlT_mt';
 const sb=supabase.createClient(SB_URL,SB_KEY);db=sb;
-const TS=['created_at','started_at','done_at','blocked_at'];let uid=null,loadErr='';
+const TS=['created_at','started_at','done_at','blocked_at','due_at'];let uid=null,loadErr='';
+const PR={1:{n:'P1',l:'Urgente',c:'#EF4444',i:'🔥'},2:{n:'P2',l:'Alta',c:'#F97316',i:'↑'},3:{n:'P3',l:'Media',c:'#3B82F6',i:'–'},4:{n:'P4',l:'Baja',c:'#6B7280',i:'↓'}};
+const pill=p=>{const x=PR[p]||PR[3];return`<span class="pr" style="color:${x.c};background:${x.c}1f">${x.i} ${x.n}</span>`};
+const inR=t=>{const a=from?new Date(from+'T00:00:00').getTime():0,b=to?new Date(to+'T23:59:59').getTime():1e15;return[t.created_at,t.started_at,t.done_at,t.blocked_at].some(x=>x&&x>=a&&x<=b)};
+const fl=x=>x?new Date(x).toLocaleString('es',{dateStyle:'short',timeStyle:'short'}):'-';
+const toLocal=x=>new Date(x-new Date(x).getTimezoneOffset()*6e4).toISOString().slice(0,16);
+const anm=u=>{const a=areas.find(x=>x.id===u.area_id);return a?' · '+esc(a.name):''};
+const gen=()=>{const c='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';crypto.getRandomValues(new Uint8Array(10)).forEach(x=>r+=c[x%c.length]);return r};
+function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),5000)}
+let curVis=[],curName='',escB=false;
 async function loadAll(){
  if(!uid){me=null;uLoaded=true;render();return}
- const [p,t]=await Promise.all([sb.from('profiles').select('*'),sb.from('tasks').select('*')]);
+ const [p,t,ar]=await Promise.all([sb.from('profiles').select('*'),sb.from('tasks').select('*'),sb.from('areas').select('*').order('name')]);
  if(p.error||!p.data){loadErr=p.error?p.error.message:'sin datos';uLoaded=true;render();return}loadErr='';
- users=p.data;
- tasks=(t.data||[]).map(x=>{const o={...x};TS.forEach(k=>o[k]=x[k]?Date.parse(x[k]):null);o.owner=(users.find(u=>u.id===x.owner)||{}).username;return o});
- me=users.find(u=>u.id===uid)||null;uLoaded=true;render();
+ areas=ar.data||[];users=p.data;
+ tasks=(t.data||[]).map(x=>{const o={...x};TS.forEach(k=>o[k]=x[k]?Date.parse(x[k]):null);o.priority=x.priority||3;o.owner=(users.find(u=>u.id===x.owner)||{}).username;return o});
+ me=users.find(u=>u.id===uid)||null;uLoaded=true;render();escalate();
 }
+async function escalate(){if(!me||escB)return;const lim=Date.now()+864e5;
+ const l=tasks.filter(t=>t.priority===2&&t.due_at&&t.due_at<=lim&&['todo','doing'].includes(t.status)&&!t.escalated&&(me.role==='admin'||t.owner===me.username));
+ if(!l.length)return;escB=true;const r=await sb.from('tasks').update({priority:1,escalated:true}).in('id',l.map(t=>t.id));escB=false;
+ if(!r.error){toast('⚡ '+l.length+' tarea(s) P2 pasaron a P1 por vencer en menos de 24 h');loadAll()}}
 (async()=>{
  const {data:{session}}=await sb.auth.getSession();uid=session?session.user.id:null;
  await loadAll();
- sb.channel('tf').on('postgres_changes',{event:'*',schema:'public',table:'tasks'},loadAll).on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadAll).subscribe();
+ sb.channel('tf').on('postgres_changes',{event:'*',schema:'public',table:'tasks'},loadAll).on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadAll).on('postgres_changes',{event:'*',schema:'public',table:'areas'},loadAll).subscribe();
 })();
 
 function render(){
  const a=$('#app');
- if(!db){a.innerHTML='<div class="note">Abre esta app con tu sesión de claude.ai para conectarte al tablero del equipo.</div>';return}
+ if(!db){a.innerHTML='<div class="note">No se pudo conectar.</div>';return}
  if(!uLoaded){a.innerHTML='<div class="note">Cargando…</div>';return}
  if(!me){a.innerHTML=`<div class="login"><div class="logo" style="margin-bottom:14px"><i>✓</i>TaskFlow</div><label>Usuario</label><input id="u" autocapitalize="none"><label>Contraseña</label><input id="p" type="password" onkeydown="if(event.key==='Enter')login()"><div class="err" id="e"></div><div class="row"><button class="btn p" onclick="login()">Entrar</button></div></div>`;return}
- const e=eff(),adm=isAdmin(),f0=from?new Date(from+'T00:00:00').getTime():0,f1=to?new Date(to+'T23:59:59').getTime():1e15;
- const vis=tasks.filter(t=>(adm?(filter==='all'||t.owner===filter):t.owner===e.username)&&[t.created_at,t.started_at,t.done_at,t.blocked_at].some(x=>x&&x>=f0&&x<=f1)).sort((x,y)=>(y.created_at||0)-(x.created_at||0));
+ const e=eff(),adm=isAdmin();
+ const vis=tasks.filter(t=>(adm?((filter==='all'||t.owner===filter)&&(area==='all'||(U(t.owner)||{}).area_id===area)):t.owner===e.username)&&inR(t)).sort((x,y)=>(sortP?x.priority-y.priority:0)||(y.created_at||0)-(x.created_at||0));
+ curVis=vis;curName=!adm?e.name:filter!=='all'?(U(filter)||{}).name:area!=='all'?((areas.find(x=>x.id===area)||{}).name||'Área'):'Todos los colaboradores';
  const cnt=s=>vis.filter(t=>t.status===s).length,tot=vis.length,pc=tot?Math.round(cnt('done')/tot*100):0;
+ const wip=users.map(u=>[u,tasks.filter(t=>t.owner===u.username&&t.priority===1&&['todo','doing'].includes(t.status)).length]).filter(x=>x[1]>3&&(adm||x[0].username===e.username));
  a.innerHTML=`<div class="wrap"><header><div class="logo"><i>✓</i>TaskFlow</div>
- <button class="btn p" onclick="newTask()">+ Nueva tarea</button>${isReal()&&!vas?'<button class="btn" onclick="team()">👥 Equipo</button>':''}${isReal()?`<select class="vs" onchange="setVas(this.value)"><option value="">👁 Vista administrador</option>${users.filter(u=>u.role!=='admin').map(u=>`<option value="${u.username}" ${vas===u.username?'selected':''}>Ver como ${esc(u.name)}</option>`).join('')}</select>`:''}
- <div class="chip">${av(me)}<b>${esc(me.name)}</b></div><button class="btn" onclick="logout()">Salir</button></header>
+ <button class="btn p" onclick="newTask()">+ Nueva tarea</button>${isReal()&&!vas?'<button class="btn" onclick="team()">👥 Equipo</button><button class="btn" onclick="areasM()">🏷 Áreas</button>':''}${isReal()?`<select class="vs" onchange="setVas(this.value)"><option value="">👁 Vista administrador</option>${users.filter(u=>u.role!=='admin').map(u=>`<option value="${u.username}" ${vas===u.username?'selected':''}>Ver como ${esc(u.name)}</option>`).join('')}</select>`:''}
+ <button class="btn" onclick="report()">📄 Reporte PDF</button><div class="chip">${av(me)}<b>${esc(me.name)}</b></div><button class="btn" onclick="logout()">Salir</button></header>
  ${vas?`<div class="banner">Estás viendo la app como <b>${esc(e.name)}</b> · <a href="#" onclick="setVas('');return false">Volver a administrador</a></div>`:''}
+ ${wip.length?`<div class="banner" style="background:#ef444418;border-color:#ef4444">⚠ ${wip.map(x=>`<b>${esc(x[0].name)}</b>: ${x[1]} tareas P1 activas`).join(' · ')} (máximo recomendado: 3)</div>`:''}
  <div class="stats">${Object.keys(ST).map(s=>`<div class="stat" style="border-color:${ST[s].c}"><b>${cnt(s)}</b><span>${ST[s].n}</span></div>`).join('')}</div>
  <div class="prog" title="${pc}% completado"><div style="width:${pc}%"></div></div>
- <div class="dr"><span>📅 Rango</span><input type="date" value="${from}" onchange="from=this.value;render()"><span>a</span><input type="date" value="${to}" onchange="to=this.value;render()">${from||to?'<button class="btn s" onclick="from=\'\';to=\'\';render()">Limpiar</button>':''}</div>
- ${adm?`<div class="filters"><button class="f ${filter==='all'?'on':''}" onclick="setF('all')">Todos</button>${users.map(u=>`<button class="f ${filter===u.username?'on':''}" onclick="setF('${u.username}')">${av(u)}${esc(u.name)}</button>`).join('')}</div>`:''}
+ <div class="dr"><span>📅 Rango</span><input type="date" value="${from}" onchange="from=this.value;render()"><span>a</span><input type="date" value="${to}" onchange="to=this.value;render()">${from||to?'<button class="btn s" onclick="clrR()">Limpiar</button>':''}<button class="btn s" onclick="sortP=!sortP;render()">${sortP?'↕ Por prioridad':'↕ Más recientes'}</button></div>
+ ${adm&&areas.length?`<div class="filters"><button class="f ${area==='all'?'on':''}" onclick="setArea('all')">Todas las áreas</button>${areas.map(x=>`<button class="f ${area===x.id?'on':''}" onclick="setArea('${x.id}')">🏷 ${esc(x.name)}</button>`).join('')}</div>`:''}
+ ${adm?`<div class="filters"><button class="f ${filter==='all'?'on':''}" onclick="setF('all')">Todos</button>${users.filter(u=>area==='all'||u.area_id===area).map(u=>`<button class="f ${filter===u.username?'on':''}" onclick="setF('${u.username}')">${av(u)}${esc(u.name)}</button>`).join('')}</div>`:''}
  <div class="board">${Object.keys(ST).map(s=>{const l=vis.filter(t=>t.status===s);return`<div class="col"><h3><span class="dot" style="background:${ST[s].c}"></span>${ST[s].n}<em>${l.length}</em></h3>${l.map(card).join('')||'<div class="empty">Sin tareas</div>'}</div>`}).join('')}</div></div>`;
 }
-function card(t){const o=U(t.owner),c=can(t);
- return`<div class="card" style="border-color:${o?o.color:'#94a3b8'}" onclick="openT('${t.id}')">
- ${t.status==='blocked'?'<span class="tag">INCOMPLETA</span>':''}<h4>${esc(t.title)}</h4>${t.descr?`<p>${esc(t.descr)}</p>`:''}
+function card(t){const o=U(t.owner),c=can(t),p=PR[t.priority]||PR[3];
+ return`<div class="card" style="border-color:${p.c}" onclick="openT('${t.id}')">
+ <div class="meta" style="justify-content:space-between;margin-bottom:6px">${pill(t.priority)}<span>${t.escalated?'<span class="tag" style="margin:0 4px 0 0;background:#f9731622;color:#f97316">⚡ Escalada</span>':''}${t.status==='blocked'?'<span class="tag" style="margin:0">INCOMPLETA</span>':''}</span></div>
+ <h4>${esc(t.title)}</h4>${t.descr?`<p>${esc(t.descr)}</p>`:''}
  <div class="meta">${av(o)}${esc(o?o.name:t.owner)}</div>
+ <div class="meta">🕒 Creada ${fmt(t.created_at)}</div>
+ ${t.due_at?`<div class="meta" ${t.due_at<Date.now()&&t.status!=='done'?'style="color:#ef4444"':''}>⏰ Vence ${fmt(t.due_at)}</div>`:''}
  ${t.started_at?`<div class="meta">▶ Inició ${fmt(t.started_at)}</div>`:''}${t.done_at?`<div class="meta">✓ Terminó ${fmt(t.done_at)}</div>`:''}${t.blocked_at?`<div class="meta">⛔ Bloqueó ${fmt(t.blocked_at)}</div>`:''}
  ${c&&t.status==='todo'?`<div class="acts"><button class="btn s p" onclick="event.stopPropagation();start('${t.id}')">▶ Iniciar</button></div>`:''}
  ${c&&t.status==='doing'?`<div class="acts"><button class="btn s g" onclick="event.stopPropagation();complete('${t.id}')">✓ Completar</button><button class="btn s r" onclick="event.stopPropagation();blockAsk('${t.id}')">⛔ Bloqueado</button></div>`:''}</div>`}
@@ -129,22 +150,29 @@ async function login(){const u=$('#u').value.trim().toLowerCase(),e=$('#e');if(!
  if(!me){const m=loadErr?'Error de base de datos: '+loadErr:'Tu usuario existe en Supabase pero no tiene perfil. Pide al administrador que lo cree.';await sb.auth.signOut();uid=null;await loadAll();const e2=$('#e');if(e2)e2.textContent=m}}
 async function logout(){await sb.auth.signOut();uid=null;vas=null;me=null;users=[];tasks=[];render()}
 function newTask(){showM(`<h2>Nueva tarea</h2><label>Título</label><input id="t"><label>Descripción</label><textarea id="d"></textarea>
+ <label>Prioridad</label><select id="pr">${[1,2,3,4].map(n=>`<option value="${n}" ${n===3?'selected':''}>${PR[n].i} ${PR[n].n} · ${PR[n].l}</option>`).join('')}</select>
+ <label>Vencimiento (opcional)</label><input id="due" type="datetime-local">
  ${isAdmin()?`<label>Asignar a</label><select id="o">${users.map(u=>`<option value="${u.username}" ${u.username===me.username?'selected':''}>${esc(u.name)}</option>`).join('')}</select>`:''}
  <div class="row"><button class="btn" onclick="closeM()">Cancelar</button><button class="btn p" onclick="addTask()">Crear</button></div>`)}
 async function addTask(){const t=$('#t').value.trim();if(!t){$('#t').focus();return}
- const o=isAdmin()?U($('#o').value):eff();
- const {error}=await sb.from('tasks').insert({title:t,descr:$('#d').value.trim(),owner:o.id});if(error)alert('No se pudo crear la tarea');closeM();loadAll()}
-function openT(id){const t=T(id);if(!t)return;const c=can(t),o=U(t.owner);
- const h=`<h2>${ST[t.status].n}</h2><label>Título ${t.status==='todo'?'':'(no editable)'}</label><input id="t" value="${esc(t.title)}" ${t.status==='todo'&&c?'':'readonly'}>
+ const o=isAdmin()?U($('#o').value):eff(),pr=+$('#pr').value,v=$('#due').value;
+ const n1=tasks.filter(x=>x.owner===o.username&&x.priority===1&&['todo','doing'].includes(x.status)).length;
+ if(pr===1&&n1>=3&&!confirm(o.name+' ya tiene '+n1+' tareas P1 activas (máximo recomendado: 3). ¿Crear de todos modos?'))return;
+ const {error}=await sb.from('tasks').insert({title:t,descr:$('#d').value.trim(),owner:o.id,priority:pr,due_at:v?new Date(v).toISOString():null});
+ if(error)alert('No se pudo crear la tarea: '+error.message);closeM();loadAll()}
+function openT(id){const t=T(id);if(!t)return;const c=can(t),o=U(t.owner),td=t.status==='todo'&&c;
+ showM(`<h2>${ST[t.status].n}</h2><label>Título ${t.status==='todo'?'':'(no editable)'}</label><input id="t" value="${esc(t.title)}" ${td?'':'readonly'}>
  <label>Descripción ${t.status==='doing'||t.status==='todo'?'':'(solo lectura)'}</label><textarea id="d" ${c&&(t.status==='todo'||t.status==='doing')?'':'readonly'}>${esc(t.descr)}</textarea>
- <div class="meta" style="margin-top:10px">${av(o)}${esc(o?o.name:t.owner)}</div>
+ <label>Prioridad</label>${td?`<select id="pr">${[1,2,3,4].map(n=>`<option value="${n}" ${n===t.priority?'selected':''}>${PR[n].i} ${PR[n].n} · ${PR[n].l}</option>`).join('')}</select>`:`<div>${pill(t.priority)}${t.escalated?' <span class="tag" style="background:#f9731622;color:#f97316">⚡ Escalada por vencimiento</span>':''}</div>`}
+ <label>Vencimiento</label>${td?`<input id="due" type="datetime-local" value="${t.due_at?toLocal(t.due_at):''}">`:`<div class="meta">${t.due_at?fmt(t.due_at):'Sin fecha'}</div>`}
+ <div class="meta" style="margin-top:10px">${av(o)}${esc(o?o.name:t.owner)}</div><div class="meta">🕒 Creada: ${fmt(t.created_at)}</div>
  ${t.started_at?`<div class="meta">▶ Inicio: ${fmt(t.started_at)}</div>`:''}${t.done_at?`<div class="meta">✓ Terminado: ${fmt(t.done_at)}</div>`:''}
  ${t.blocked_at?`<div class="meta">⛔ Bloqueado: ${fmt(t.blocked_at)}</div><label>Motivo del bloqueo</label><textarea readonly>${esc(t.block_reason)}</textarea>`:''}
  <div class="row"><button class="btn" onclick="closeM()">Cerrar</button>
  ${c&&t.status==='todo'?`<button class="btn" onclick="saveT('${id}')">Guardar</button><button class="btn p" onclick="saveT('${id}',1)">▶ Iniciar</button>`:''}
- ${c&&t.status==='doing'?`<button class="btn" onclick="saveT('${id}')">Guardar descripción</button><button class="btn g" onclick="saveT('${id}',2)">✓ Completar</button><button class="btn r" onclick="blockAsk('${id}')">⛔ Bloqueado</button>`:''}</div>`;showM(h)}
+ ${c&&t.status==='doing'?`<button class="btn" onclick="saveT('${id}')">Guardar descripción</button><button class="btn g" onclick="saveT('${id}',2)">✓ Completar</button><button class="btn r" onclick="blockAsk('${id}')">⛔ Bloqueado</button>`:''}</div>`)}
 async function saveT(id,go){const t=T(id);if(!t||!can(t))return;const d={descr:$('#d').value.trim()};
- if(t.status==='todo'){const n=$('#t').value.trim();if(!n)return;d.title=n}
+ if(t.status==='todo'){const n=$('#t').value.trim();if(!n)return;d.title=n;d.priority=+$('#pr').value;const v=$('#due').value;d.due_at=v?new Date(v).toISOString():null;if(d.priority!==t.priority)d.escalated=false}
  if(go===1&&t.status==='todo'){d.status='doing';d.started_at=Date.now()}
  if(go===2&&t.status==='doing'){d.status='done';d.done_at=Date.now()}
  await upd(id,d);closeM()}
@@ -156,29 +184,56 @@ function blockAsk(id){showM(`<h2>⛔ Bloquear tarea</h2><p style="color:var(--mu
  <div class="row"><button class="btn" onclick="closeM()">Cancelar</button><button class="btn r" onclick="block('${id}')">Bloquear</button></div>`)}
 async function block(id){const r=$('#r').value.trim(),t=T(id);if(!r){$('#e').textContent='Debes indicar el motivo';return}
  if(t&&can(t)&&t.status==='doing')await upd(id,{status:'blocked',blocked_at:Date.now(),block_reason:r});closeM()}
-function team(){showM(`<h2>Equipo</h2>${users.map(u=>`<div class="ur">${av(u)}<div style="flex:1"><b>${esc(u.name)}</b><div style="font-size:12px;color:var(--mut)">@${esc(u.username)}${u.role==='admin'?' · admin':` · ${tasks.filter(t=>t.owner===u.username&&t.status==='done').length}/${tasks.filter(t=>t.owner===u.username).length} terminadas`}</div></div><button class="btn s" onclick="editU('${u.username}')">Ver / Editar</button></div>`).join('')}
- <h2 style="margin-top:18px">Agregar colaborador</h2><label>Nombre</label><input id="n"><label>Usuario</label><input id="u" autocapitalize="none"><label>Contraseña</label><input id="p" type="password">
- <label>Color</label><div class="pal" id="pp">${PAL.map(c=>`<span class="sw ${c===pick?'on':''}" style="background:${c}" onclick="pick='${c}';document.querySelectorAll('#pp .sw').forEach(s=>s.classList.toggle('on',s.style.background===this.style.background))"></span>`).join('')}</div>
+function team(){showM(`<h2>Colaboradores</h2>${users.map(u=>{const m=tasks.filter(t=>t.owner===u.username);return`<div class="ur">${av(u)}<div style="flex:1"><b>${esc(u.name)}</b><div style="font-size:12px;color:var(--mut)">@${esc(u.username)}${u.role==='admin'?' · admin':` · ${m.filter(t=>t.status==='done').length}/${m.length} terminadas`}${anm(u)}</div></div><button class="btn s" onclick="editU('${u.username}')">Ver / Editar</button></div>`}).join('')}
+ <h2 style="margin-top:18px">Agregar colaborador</h2><label>Nombre</label><input id="n"><label>Usuario</label><input id="u" autocapitalize="none">
+ <label>Contraseña (6+ caracteres)</label><div style="display:flex;gap:6px"><input id="p"><button class="btn s" onclick="$('#p').value=gen()">🎲</button></div>
+ <label>Área</label><select id="ar"><option value="">Sin área</option>${areas.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('')}</select>
+ <label>Color</label><div class="pal" id="pp">${PAL.map(c=>`<span class="sw ${c===pick?'on':''}" style="background:${c}" data-c="${c}" onclick="pick=this.dataset.c;document.querySelectorAll('#pp .sw').forEach(s=>s.classList.toggle('on',s.dataset.c===pick))"></span>`).join('')}</div>
  <div class="err" id="e"></div><div class="row"><button class="btn" onclick="closeM()">Cerrar</button><button class="btn p" onclick="addUser()">Agregar</button></div>`)}
+function areasM(){const rows=areas.map(a=>{const m=users.filter(u=>u.area_id===a.id),ids=m.map(u=>u.username),ts=tasks.filter(t=>ids.includes(t.owner)&&inR(t)),c=s=>ts.filter(t=>t.status===s).length,pc=ts.length?Math.round(c('done')/ts.length*100):0;
+ return`<div class="ur" style="flex-wrap:wrap"><div style="flex:1;min-width:160px"><b>${esc(a.name)}</b><div style="font-size:12px;color:var(--mut)">${m.length} colaboradores · ${ts.length} tareas · ${c('doing')} en progreso · ${c('blocked')} bloqueadas</div><div class="prog" style="margin:6px 0 0"><div style="width:${pc}%"></div></div></div><b>${pc}%</b><button class="btn s" onclick="closeM();setArea('${a.id}')">Ver</button><button class="btn s r" onclick="delArea('${a.id}')">✕</button></div>`}).join('')||'<div class="empty">Aún no hay áreas</div>';
+ showM(`<h2>Áreas y rendimiento</h2><div class="meta">El rendimiento respeta el rango de fechas del tablero.</div>${rows}<label>Nueva área</label><div style="display:flex;gap:6px"><input id="an" placeholder="Ej. Ventas"><button class="btn p s" onclick="addArea()">Crear</button></div><div class="row"><button class="btn" onclick="closeM()">Cerrar</button></div>`)}
+async function addArea(){const n=$('#an').value.trim();if(!n)return;const r=await sb.from('areas').insert({name:n});if(r.error){alert('No se pudo crear (¿nombre repetido?)');return}await loadAll();areasM()}
+async function delArea(id){if(!confirm('¿Eliminar esta área? Los colaboradores quedan sin área.'))return;await sb.from('areas').delete().eq('id',id);if(area===id)area='all';await loadAll();areasM()}
+function setArea(id){area=id;filter='all';render()}
+function clrR(){from='';to='';render()}
 async function addUser(){const n=$('#n').value.trim(),u=$('#u').value.trim().toLowerCase(),p=$('#p').value;
  if(!n||!/^[a-z0-9._-]+$/.test(u)||p.length<6){$('#e').textContent='Revisa los datos (usuario sin espacios, contraseña de 6+ caracteres)';return}
  if(U(u)){$('#e').textContent='Ese usuario ya existe';return}
  const sb2=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'tf2'}});
  const {data,error}=await sb2.auth.signUp({email:u+'@taskflow.app',password:p});
  if(error||!data.user){$('#e').textContent='No se pudo crear'+(error?': '+error.message:'');return}
- const r=await sb.from('profiles').insert({id:data.user.id,username:u,name:n,color:pick,role:'user'});
+ const r=await sb.from('profiles').insert({id:data.user.id,username:u,name:n,color:pick,role:'user',area_id:$('#ar').value||null});
  if(r.error){$('#e').textContent='No se pudo guardar el perfil';return}
  await loadAll();team()}
 function setVas(u){vas=u||null;filter='all';render()}
 function editU(u){const x=U(u);if(!x)return;ep=x.color;const ts=tasks.filter(t=>t.owner===u).sort((a,b)=>(b.created_at||0)-(a.created_at||0));
  showM(`<h2>${esc(x.name)}</h2><div class="stats" style="grid-template-columns:repeat(4,1fr);gap:6px">${Object.keys(ST).map(s=>`<div class="stat" style="padding:8px;border-color:${ST[s].c}"><b style="font-size:18px">${ts.filter(t=>t.status===s).length}</b><span style="font-size:11px">${ST[s].n}</span></div>`).join('')}</div>
  <label>Nombre</label><input id="n" value="${esc(x.name)}"><label>Usuario</label><input value="${esc(u)}" readonly>
+ <label>Área</label><select id="ar"><option value="">Sin área</option>${areas.map(a=>`<option value="${a.id}" ${a.id===x.area_id?'selected':''}>${esc(a.name)}</option>`).join('')}</select>
  <label>Color</label><div class="pal" id="ep">${PAL.map(c=>`<span class="sw ${c===ep?'on':''}" style="background:${c}" data-c="${c}" onclick="ep=this.dataset.c;document.querySelectorAll('#ep .sw').forEach(s=>s.classList.toggle('on',s.dataset.c===ep))"></span>`).join('')}</div>
+ <label>Restablecer contraseña</label><div style="display:flex;gap:6px"><input id="np" placeholder="Nueva contraseña (6+)"><button class="btn s" onclick="$('#np').value=gen()">🎲</button><button class="btn s p" onclick="resetPw('${u}')">Aplicar</button></div>
+ <div class="meta" style="margin-top:4px">Por seguridad las contraseñas actuales no se pueden consultar; solo restablecer.</div>
  <label>Tareas recientes</label>${ts.slice(0,6).map(t=>`<div class="meta"><span class="dot" style="background:${ST[t.status].c}"></span>${esc(t.title)}</div>`).join('')||'<div class="meta">Sin tareas</div>'}
  <div class="err" id="e"></div><div class="row"><button class="btn" onclick="team()">← Volver</button>${x.role!=='admin'?`<button class="btn" onclick="closeM();setVas('${u}')">👁 Ver como</button>`:''}<button class="btn p" onclick="saveU('${u}')">Guardar</button>${x.role!=='admin'?`<button class="btn r" onclick="delU('${u}')">Eliminar</button>`:''}</div>`)}
 async function saveU(u){const x=U(u),n=$('#n').value.trim();if(!n){$('#e').textContent='El nombre es obligatorio';return}
- const r=await sb.from('profiles').update({name:n,color:ep}).eq('id',x.id);if(r.error){$('#e').textContent='No se pudo guardar';return}
+ const r=await sb.from('profiles').update({name:n,color:ep,area_id:$('#ar').value||null}).eq('id',x.id);if(r.error){$('#e').textContent='No se pudo guardar';return}
  await loadAll();team()}
-async function delU(u){if(!confirm('¿Eliminar a este colaborador? Se borrarán también sus tareas.'))return;await sb.from('profiles').delete().eq('id',U(u).id);await loadAll();team()}
+async function resetPw(u){const p=$('#np').value,e=$('#e');if(p.length<6){e.style.color='';e.textContent='La contraseña debe tener 6 o más caracteres';return}
+ const r=await sb.rpc('admin_set_password',{target:U(u).id,new_password:p});
+ if(r.error){e.style.color='';e.textContent='No se pudo: '+r.error.message;return}
+ e.style.color='#10b981';e.textContent='Contraseña actualizada. Entrégasela al colaborador: '+p}
+async function delU(u){if(!confirm('¿Eliminar a este colaborador? Se borrarán también sus tareas.'))return;const r=await sb.rpc('admin_delete_user',{target:U(u).id});if(r.error){alert('No se pudo eliminar: '+r.error.message);return}await loadAll();team()}
+function report(){
+ if(!window.jspdf){alert('No se pudo cargar el generador de PDF. Revisa tu conexión.');return}
+ const {jsPDF}=window.jspdf,d=new jsPDF({orientation:'landscape'}),ord={done:0,doing:1,blocked:2};
+ const rows=curVis.filter(t=>t.status in ord).sort((a,b)=>ord[a.status]-ord[b.status]||a.priority-b.priority||a.created_at-b.created_at);
+ d.setFontSize(16);d.text('Reporte de tareas - '+curName,14,16);d.setFontSize(10);
+ d.text('Generado: '+fl(Date.now())+(from||to?'   Rango: '+(from||'...')+' a '+(to||'...'):'')+'   Orden: Terminado, En Progreso, Bloqueado',14,23);
+ d.autoTable({startY:28,theme:'grid',head:[['Estado','Prior.','Responsable','Tarea','Descripción','Creada','Inicio','Fin / Bloqueo','Motivo']],
+  body:rows.map(t=>{const o=U(t.owner);return[ST[t.status].n,PR[t.priority].n,o?o.name:'',t.title,t.descr||'',fl(t.created_at),fl(t.started_at),fl(t.done_at||t.blocked_at),t.block_reason||'']}),
+  styles:{fontSize:8,cellPadding:2,overflow:'linebreak'},headStyles:{fillColor:[99,102,241]},
+  columnStyles:{0:{cellWidth:20},1:{cellWidth:12},2:{cellWidth:26},3:{cellWidth:38},4:{cellWidth:62},5:{cellWidth:25},6:{cellWidth:25},7:{cellWidth:25},8:{cellWidth:36}}});
+ d.save('reporte-tareas-'+new Date().toISOString().slice(0,10)+'.pdf')}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script></body></html>
