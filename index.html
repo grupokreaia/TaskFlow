@@ -78,11 +78,11 @@ const can=t=>{const e=eff();return e&&(e.role==='admin'||t.owner===e.username)};
 
 const SB_URL='https://xlxlvodttebgjkskkkti.supabase.co',SB_KEY='sb_publishable_cVkWbrGXdP0BxiuGWHBpeg_L0jlT_mt';
 const sb=supabase.createClient(SB_URL,SB_KEY);db=sb;
-const TS=['created_at','started_at','done_at','blocked_at'];let uid=null;
+const TS=['created_at','started_at','done_at','blocked_at'];let uid=null,loadErr='';
 async function loadAll(){
  if(!uid){me=null;uLoaded=true;render();return}
  const [p,t]=await Promise.all([sb.from('profiles').select('*'),sb.from('tasks').select('*')]);
- if(p.error||!p.data){return}
+ if(p.error||!p.data){loadErr=p.error?p.error.message:'sin datos';uLoaded=true;render();return}loadErr='';
  users=p.data;
  tasks=(t.data||[]).map(x=>{const o={...x};TS.forEach(k=>o[k]=x[k]?Date.parse(x[k]):null);o.owner=(users.find(u=>u.id===x.owner)||{}).username;return o});
  me=users.find(u=>u.id===uid)||null;uLoaded=true;render();
@@ -121,10 +121,12 @@ function card(t){const o=U(t.owner),c=can(t);
 const setF=f=>{filter=f;render()};
 function showM(h){const m=$('#modal');m.innerHTML=`<div class="mb">${h}</div>`;m.classList.add('on')}
 function closeM(){$('#modal').classList.remove('on')}
-async function login(){const u=$('#u').value.trim().toLowerCase();
- const {data,error}=await sb.auth.signInWithPassword({email:u+'@taskflow.app',password:$('#p').value});
- if(error){$('#e').textContent='Usuario o contraseña incorrectos';return}
- uid=data.user.id;await loadAll();if(!me){await sb.auth.signOut();uid=null;await loadAll();alert('Tu usuario no tiene acceso. Contacta al administrador.')}}
+async function login(){const u=$('#u').value.trim().toLowerCase(),e=$('#e');if(!u){e.textContent='Escribe tu usuario';return}
+ e.textContent='Entrando…';
+ const {data,error}=await sb.auth.signInWithPassword({email:u.includes('@')?u:u+'@taskflow.app',password:$('#p').value});
+ if(error){e.textContent=(/confirm/i.test(error.message)?'Correo sin confirmar en Supabase. ':/invalid login/i.test(error.message)?'Usuario o contraseña incorrectos, o el usuario no existe. ':'')+'['+error.message+']';return}
+ uid=data.user.id;await loadAll();
+ if(!me){const m=loadErr?'Error de base de datos: '+loadErr:'Tu usuario existe en Supabase pero no tiene perfil. Pide al administrador que lo cree.';await sb.auth.signOut();uid=null;await loadAll();const e2=$('#e');if(e2)e2.textContent=m}}
 async function logout(){await sb.auth.signOut();uid=null;vas=null;me=null;users=[];tasks=[];render()}
 function newTask(){showM(`<h2>Nueva tarea</h2><label>Título</label><input id="t"><label>Descripción</label><textarea id="d"></textarea>
  ${isAdmin()?`<label>Asignar a</label><select id="o">${users.map(u=>`<option value="${u.username}" ${u.username===me.username?'selected':''}>${esc(u.name)}</option>`).join('')}</select>`:''}
