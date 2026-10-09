@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F94C1B"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><title>Grupo Krea Capital · Control de tareas</title><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<meta name="theme-color" content="#F94C1B"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><title>Grupo Krea Capital · Control de tareas</title><link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><script>try{var _t=localStorage.getItem("tf_theme");if(_t==="light"||_t==="dark")document.documentElement.dataset.theme=_t}catch(e){}</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{--bg:#f6f5f4;--card:#fff;--text:#2b2a2a;--mut:#706f6f;--line:#e6e3e1;--acc:#F94C1B;--acc2:#F5B731;--gr:#706F6F;--sh:0 4px 20px rgba(60,40,30,.08);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161515;--card:#232120;--text:#f1eeec;--mut:#a5a09d;--line:#38342f;--sh:0 4px 24px rgba(0,0,0,.45)}}
@@ -12,7 +12,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 .wrap{max-width:1300px;margin:0 auto;padding:16px}
 header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 .logo{font-weight:800;font-size:20px;display:flex;align-items:center;gap:8px;margin-right:auto}
-.logo img{height:38px;width:auto;display:block}.logo b{font-size:15px;line-height:1.1;color:var(--gr)}.logo b span{display:block;color:var(--acc);font-weight:800}.brandbar{height:4px;background:linear-gradient(90deg,var(--acc),var(--acc2));position:fixed;top:0;left:0;right:0;z-index:5}.loginlogo{display:block;margin:0 auto 14px;width:200px;max-width:70%;background:#fff;border-radius:12px;padding:6px}
+.logo img{height:38px;width:auto;display:block}.logo b{font-size:15px;line-height:1.1;color:var(--gr)}.logo b span{display:block;color:var(--acc);font-weight:800}.brandbar{height:4px;background:linear-gradient(90deg,var(--acc),var(--acc2));position:fixed;top:0;left:0;right:0;z-index:5}.loginlogo{display:block;margin:0 auto 14px;width:230px;max-width:80%}
 .btn{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:600;transition:.15s}
 .btn:hover{transform:translateY(-1px);box-shadow:var(--sh)}
 .btn.p{background:var(--acc);border-color:var(--acc);color:#fff}
@@ -57,6 +57,14 @@ input[readonly]{opacity:.7}textarea{min-height:90px;resize:vertical}
 .err{color:#ef4444;font-size:13px;margin-top:8px}.note{color:var(--mut);font-size:13px;text-align:center;padding:40px 10px}
 .vs{width:auto;padding:8px 10px;border-radius:10px}.dr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;color:var(--mut);font-size:13px}.dr input{width:auto}.banner{background:#f59e0b22;border:1px solid #f59e0b;padding:8px 12px;border-radius:10px;margin-bottom:12px;font-size:14px}.banner a{color:var(--acc);font-weight:700}
 .pr{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:20;box-shadow:var(--sh);max-width:90vw;font-size:14px}
+.mw{position:relative}.chip{cursor:pointer;user-select:none}
+.menu{position:absolute;right:0;top:calc(100% + 8px);min-width:250px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);padding:6px;z-index:15}
+.menu>button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;padding:10px 12px;border-radius:9px;cursor:pointer;font-weight:600}
+.menu>button:hover{background:var(--bg)}.menu hr{border:0;border-top:1px solid var(--line);margin:6px 0}.menu select{margin:4px 0;width:100%}
+.mt{font-size:11px;color:var(--mut);padding:8px 12px 2px;font-weight:700;text-transform:uppercase}
+.seg{display:flex;gap:4px;padding:4px 6px}.seg button{flex:1;border:1px solid var(--line);background:var(--bg);padding:6px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}.seg button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.opt{border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px;cursor:pointer}.opt b{display:block}.opt span{color:var(--mut);font-size:13px}.opt.on{border-color:var(--acc);background:#F94C1B12}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
 </style></head><body>
 <div id="app"></div><div id="modal" onclick="if(event.target===this)closeM()"></div>
 <script>
@@ -64,7 +72,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const PAL=['#F94C1B','#F5B731','#706F6F','#10b981','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#84cc16','#0ea5e9'];
 const ST={todo:{n:'Por Hacer',c:'#706F6F'},doing:{n:'En Progreso',c:'#F5B731'},done:{n:'Terminado',c:'#10b981'},blocked:{n:'Bloqueado',c:'#ef4444'}};
-let db=null,owner=false,users=[],tasks=[],me=null,uLoaded=false,filter='all',pick=PAL[0],vas=null,from='',to='',ep='',areas=[],area='all',sortP=true;
+let db=null,owner=false,users=[],tasks=[],me=null,uLoaded=false,filter='all',pick=PAL[0],vas=null,from='',to='',ep='',areas=[],area='all',menuOpen=false,theme=(()=>{try{return localStorage.getItem('tf_theme')||'auto'}catch(e){return'auto'}})(),rpMode='',rpFrom='',rpTo='';
 const ss={get(){try{return sessionStorage.getItem('tf_me')}catch(e){return null}},set(v){try{v?sessionStorage.setItem('tf_me',v):sessionStorage.removeItem('tf_me')}catch(e){}}};
 async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 const hash=(u,p)=>sha('tf:'+u.toLowerCase()+':'+p);
@@ -75,13 +83,14 @@ const U=n=>users.find(u=>u.username===n);const T=id=>tasks.find(t=>t.id===id);
 const eff=()=>(vas&&U(vas))||me;
 const isReal=()=>me&&me.role==='admin';
 const isAdmin=()=>{const e=eff();return e&&e.role==='admin'};
-const canStart=t=>!!(me&&!vas&&t.status==='todo'&&t.owner===me.username);
+const canAct=t=>!!(me&&!vas&&t.owner===me.username);
+const canStart=t=>canAct(t)&&t.status==='todo';
 const can=t=>{const e=eff();return e&&(e.role==='admin'||t.owner===e.username)};
 
 const SB_URL='https://xlxlvodttebgjkskkkti.supabase.co',SB_KEY='sb_publishable_cVkWbrGXdP0BxiuGWHBpeg_L0jlT_mt';
 const sb=supabase.createClient(SB_URL,SB_KEY);db=sb;
 const TS=['created_at','started_at','done_at','blocked_at','due_at'];let uid=null,loadErr='';
-const PR={1:{n:'P1',l:'Urgente',c:'#EF4444',i:'🔥'},2:{n:'P2',l:'Alta',c:'#F97316',i:'↑'},3:{n:'P3',l:'Media',c:'#3B82F6',i:'–'},4:{n:'P4',l:'Baja',c:'#6B7280',i:'↓'}};
+const PR={1:{n:'P1',l:'Urgente',c:'#EF4444',i:'🔴'},2:{n:'P2',l:'Alta',c:'#F97316',i:'🟠'},3:{n:'P3',l:'Media',c:'#EAB308',i:'🟡'},4:{n:'P4',l:'Baja',c:'#22C55E',i:'🟢'}};
 const pill=p=>{const x=PR[p]||PR[3];return`<span class="pr" style="color:${x.c};background:${x.c}1f">${x.i} ${x.n}</span>`};
 const inR=t=>{const a=from?new Date(from+'T00:00:00').getTime():0,b=to?new Date(to+'T23:59:59').getTime():1e15;return[t.created_at,t.started_at,t.done_at,t.blocked_at].some(x=>x&&x>=a&&x<=b)};
 const fl=x=>x?new Date(x).toLocaleString('es',{dateStyle:'short',timeStyle:'short'}):'-';
@@ -89,46 +98,75 @@ const toLocal=x=>new Date(x-new Date(x).getTimezoneOffset()*6e4).toISOString().s
 const anm=u=>{const a=areas.find(x=>x.id===u.area_id);return a?' · '+esc(a.name):''};
 const gen=()=>{const c='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';crypto.getRandomValues(new Uint8Array(10)).forEach(x=>r+=c[x%c.length]);return r};
 function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),5000)}
-let curVis=[],curName='',escB=false;
+let escB=false;
 async function loadAll(){
  if(!uid){me=null;uLoaded=true;render();return}
  const [p,t,ar]=await Promise.all([sb.from('profiles').select('*'),sb.from('tasks').select('*'),sb.from('areas').select('*').order('name')]);
  if(p.error||!p.data){loadErr=p.error?p.error.message:'sin datos';uLoaded=true;render();return}loadErr='';
  areas=ar.data||[];users=p.data;
  tasks=(t.data||[]).map(x=>{const o={...x};TS.forEach(k=>o[k]=x[k]?Date.parse(x[k]):null);o.priority=x.priority||3;o.owner=(users.find(u=>u.id===x.owner)||{}).username;return o});
- me=users.find(u=>u.id===uid)||null;uLoaded=true;render();escalate();
+ me=users.find(u=>u.id===uid)||null;uLoaded=true;render();escalate();checkDue();
 }
-async function escalate(){if(!me||escB)return;const lim=Date.now()+864e5;
+async function escalate(){if(!me||escB)return;const lim=Date.now()+5*36e5;
  const l=tasks.filter(t=>t.priority===2&&t.due_at&&t.due_at<=lim&&['todo','doing'].includes(t.status)&&!t.escalated&&(me.role==='admin'||t.owner===me.username));
  if(!l.length)return;escB=true;const r=await sb.from('tasks').update({priority:1,escalated:true}).in('id',l.map(t=>t.id));escB=false;
- if(!r.error){toast('⚡ '+l.length+' tarea(s) P2 pasaron a P1 por vencer en menos de 24 h');loadAll()}}
+ if(!r.error){toast('⚡ '+l.length+' tarea(s) P2 pasaron a P1 por vencer en menos de 5 h');loadAll()}}
+const seenT=new Set();
+const human=ms=>{const m=Math.max(0,Math.round(ms/6e4));return m>=60?Math.floor(m/60)+' h '+(m%60)+' min':m+' min'};
+async function showN(title,body,tag){try{const reg=await navigator.serviceWorker.ready;await reg.showNotification(title,{body,tag,icon:'icon-192.png',badge:'icon-192.png',requireInteraction:true,data:{url:location.href}});return true}catch(e){try{new Notification(title,{body,tag,icon:'icon-192.png'});return true}catch(e2){return false}}}
+function checkDue(){if(!me)return;const now=Date.now(),g='Notification' in window&&Notification.permission==='granted';
+ tasks.filter(t=>t.owner===me.username&&t.due_at&&['todo','doing'].includes(t.status)&&t.due_at-now<=3*36e5).forEach(t=>{
+  const k='tf_n:'+t.id+':'+t.due_at;let done=false;try{done=!!localStorage.getItem(k)}catch(e){}if(done)return;
+  const left=t.due_at-now,txt=left<=0?'Venció '+fmt(t.due_at):'Vence '+fmt(t.due_at)+' (en '+human(left)+')';
+  if(!seenT.has(k)){seenT.add(k);toast('⏰ '+t.title+' · '+txt)}
+  if(g){showN('⏰ Tarea por vencer',t.title+'\n'+txt,'due-'+t.id).then(ok=>{if(ok)try{localStorage.setItem(k,'1')}catch(e){}})}})}
+function enableNotif(){if(!('Notification' in window)){alert('Este navegador no admite notificaciones.');return}Notification.requestPermission().then(()=>{render();checkDue()})}
+setInterval(checkDue,6e4);
+document.addEventListener('click',()=>{if(menuOpen){menuOpen=false;render()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&menuOpen){menuOpen=false;render()}});
 (async()=>{
  const {data:{session}}=await sb.auth.getSession();uid=session?session.user.id:null;
  await loadAll();
  sb.channel('tf').on('postgres_changes',{event:'*',schema:'public',table:'tasks'},loadAll).on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadAll).on('postgres_changes',{event:'*',schema:'public',table:'areas'},loadAll).subscribe();
 })();
 
+const scope=()=>{const e=eff(),adm=isAdmin();return tasks.filter(t=>adm?((filter==='all'||t.owner===filter)&&(area==='all'||(U(t.owner)||{}).area_id===area)):t.owner===e.username)};
+const scopeName=()=>{const e=eff();return !isAdmin()?e.name:filter!=='all'?(U(filter)||{}).name:area!=='all'?((areas.find(x=>x.id===area)||{}).name||'Área'):'Todos los colaboradores'};
+const cmpP=(x,y)=>x.priority-y.priority||(x.due_at||9e15)-(y.due_at||9e15)||(x.created_at||0)-(y.created_at||0);
+const SORT={todo:cmpP,doing:cmpP,done:(x,y)=>(y.done_at||0)-(x.done_at||0),blocked:(x,y)=>(y.blocked_at||0)-(x.blocked_at||0)};
+function toggleMenu(ev){ev.stopPropagation();menuOpen=!menuOpen;render()}
+function menuGo(f){menuOpen=false;render();f()}
+function setTheme(v){theme=v;try{localStorage.setItem('tf_theme',v)}catch(e){}if(v==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=v;render()}
+function menuHtml(){const adm=isReal(),np='Notification' in window?Notification.permission:'none';
+ return`<div class="menu" onclick="event.stopPropagation()">
+ ${adm&&!vas?`<button onclick="menuGo(team)">👥 Equipo</button><button onclick="menuGo(areasM)">🏷 Áreas</button>`:''}
+ ${adm?`<div class="mt">Ver como</div><div style="padding:0 6px"><select onchange="setVas(this.value)"><option value="">👁 Vista administrador</option>${users.filter(u=>u.role!=='admin').map(u=>`<option value="${u.username}" ${vas===u.username?'selected':''}>${esc(u.name)}</option>`).join('')}</select></div>`:''}
+ <button onclick="menuGo(reportM)">📄 Reporte PDF</button>
+ ${np==='default'?'<button onclick="enableNotif()">🔔 Activar notificaciones</button>':np==='granted'?'<button style="cursor:default">🔔 Notificaciones activas</button>':np==='denied'?'<button style="cursor:default">🔕 Bloqueadas en el navegador</button>':''}
+ <div class="mt">Tema</div><div class="seg">${[['auto','Auto'],['light','Claro'],['dark','Oscuro']].map(x=>`<button class="${theme===x[0]?'on':''}" onclick="setTheme('${x[0]}')">${x[1]}</button>`).join('')}</div>
+ <hr><button onclick="menuGo(logout)">⎋ Salir</button></div>`}
 function render(){
  const a=$('#app');
  if(!db){a.innerHTML='<div class="note">No se pudo conectar.</div>';return}
  if(!uLoaded){a.innerHTML='<div class="note">Cargando…</div>';return}
  if(!me){a.innerHTML=`<div class="login"><img class="loginlogo" src="logo.png" alt="Grupo Krea Capital Inmobiliaria"><div style="text-align:center;font-weight:700;color:var(--gr);margin-bottom:6px">Control de tareas</div><label>Usuario</label><input id="u" autocapitalize="none"><label>Contraseña</label><input id="p" type="password" onkeydown="if(event.key==='Enter')login()"><div class="err" id="e"></div><div class="row"><button class="btn p" onclick="login()">Entrar</button></div></div>`;return}
  const e=eff(),adm=isAdmin();
- const vis=tasks.filter(t=>(adm?((filter==='all'||t.owner===filter)&&(area==='all'||(U(t.owner)||{}).area_id===area)):t.owner===e.username)&&inR(t)).sort((x,y)=>(sortP?x.priority-y.priority:0)||(y.created_at||0)-(x.created_at||0));
- curVis=vis;curName=!adm?e.name:filter!=='all'?(U(filter)||{}).name:area!=='all'?((areas.find(x=>x.id===area)||{}).name||'Área'):'Todos los colaboradores';
+ const vis=scope().filter(inR);
  const cnt=s=>vis.filter(t=>t.status===s).length,tot=vis.length,pc=tot?Math.round(cnt('done')/tot*100):0;
  const wip=users.map(u=>[u,tasks.filter(t=>t.owner===u.username&&t.priority===1&&['todo','doing'].includes(t.status)).length]).filter(x=>x[1]>3&&(adm||x[0].username===e.username));
+ const nd='Notification' in window&&Notification.permission==='default'&&!vas&&tasks.some(t=>t.owner===me.username&&t.due_at&&['todo','doing'].includes(t.status));
  a.innerHTML=`<div class="wrap"><div class="brandbar"></div><header><div class="logo"><img src="logo-mark.png" alt="Krea"><b>Grupo Krea Capital<span>Control de tareas</span></b></div>
- <button class="btn p" onclick="newTask()">+ Nueva tarea</button>${isReal()&&!vas?'<button class="btn" onclick="team()">👥 Equipo</button><button class="btn" onclick="areasM()">🏷 Áreas</button>':''}${isReal()?`<select class="vs" onchange="setVas(this.value)"><option value="">👁 Vista administrador</option>${users.filter(u=>u.role!=='admin').map(u=>`<option value="${u.username}" ${vas===u.username?'selected':''}>Ver como ${esc(u.name)}</option>`).join('')}</select>`:''}
- <button class="btn" onclick="report()">📄 Reporte PDF</button><div class="chip">${av(me)}<b>${esc(me.name)}</b></div><button class="btn" onclick="logout()">Salir</button></header>
- ${vas?`<div class="banner">Estás viendo la app como <b>${esc(e.name)}</b> · <a href="#" onclick="setVas('');return false">Volver a administrador</a></div>`:''}
+ <button class="btn p" onclick="newTask()">+ Nueva tarea</button>
+ <div class="mw"><div class="chip" onclick="toggleMenu(event)">${av(me)}<b>${esc(me.name)}</b><span style="color:var(--mut)">▾</span></div>${menuOpen?menuHtml():''}</div></header>
+ ${vas?`<div class="banner">Estás viendo la app como <b>${esc(e.name)}</b> (solo lectura: Iniciar, Completar y Bloquear son del colaborador) · <a href="#" onclick="setVas('');return false">Volver a administrador</a></div>`:''}
+ ${nd?`<div class="banner">🔔 Activa las notificaciones para recibir un aviso 3 horas antes de que venza una tarea. <a href="#" onclick="enableNotif();return false">Activar</a></div>`:''}
  ${wip.length?`<div class="banner" style="background:#ef444418;border-color:#ef4444">⚠ ${wip.map(x=>`<b>${esc(x[0].name)}</b>: ${x[1]} tareas P1 activas`).join(' · ')} (máximo recomendado: 3)</div>`:''}
  <div class="stats">${Object.keys(ST).map(s=>`<div class="stat" style="border-color:${ST[s].c}"><b>${cnt(s)}</b><span>${ST[s].n}</span></div>`).join('')}</div>
  <div class="prog" title="${pc}% completado"><div style="width:${pc}%"></div></div>
- <div class="dr"><span>📅 Rango</span><input type="date" value="${from}" onchange="from=this.value;render()"><span>a</span><input type="date" value="${to}" onchange="to=this.value;render()">${from||to?'<button class="btn s" onclick="clrR()">Limpiar</button>':''}<button class="btn s" onclick="sortP=!sortP;render()">${sortP?'↕ Por prioridad':'↕ Más recientes'}</button></div>
+ <div class="dr"><span>📅 Rango</span><input type="date" value="${from}" onchange="from=this.value;render()"><span>a</span><input type="date" value="${to}" onchange="to=this.value;render()">${from||to?'<button class="btn s" onclick="clrR()">Limpiar</button>':''}</div>
  ${adm&&areas.length?`<div class="filters"><button class="f ${area==='all'?'on':''}" onclick="setArea('all')">Todas las áreas</button>${areas.map(x=>`<button class="f ${area===x.id?'on':''}" onclick="setArea('${x.id}')">🏷 ${esc(x.name)}</button>`).join('')}</div>`:''}
  ${adm?`<div class="filters"><button class="f ${filter==='all'?'on':''}" onclick="setF('all')">Todos</button>${users.filter(u=>area==='all'||u.area_id===area).map(u=>`<button class="f ${filter===u.username?'on':''}" onclick="setF('${u.username}')">${av(u)}${esc(u.name)}</button>`).join('')}</div>`:''}
- <div class="board">${Object.keys(ST).map(s=>{const l=vis.filter(t=>t.status===s);return`<div class="col"><h3><span class="dot" style="background:${ST[s].c}"></span>${ST[s].n}<em>${l.length}</em></h3>${l.map(card).join('')||'<div class="empty">Sin tareas</div>'}</div>`}).join('')}</div></div>`;
+ <div class="board">${Object.keys(ST).map(s=>{const l=vis.filter(t=>t.status===s).sort(SORT[s]);return`<div class="col"><h3><span class="dot" style="background:${ST[s].c}"></span>${ST[s].n}<em>${l.length}</em></h3>${l.map(card).join('')||'<div class="empty">Sin tareas</div>'}</div>`}).join('')}</div></div>`;
 }
 function card(t){const o=U(t.owner),c=can(t),p=PR[t.priority]||PR[3];
  return`<div class="card" style="border-color:${p.c}" onclick="openT('${t.id}')">
@@ -139,7 +177,7 @@ function card(t){const o=U(t.owner),c=can(t),p=PR[t.priority]||PR[3];
  ${t.due_at?`<div class="meta" ${t.due_at<Date.now()&&t.status!=='done'?'style="color:#ef4444"':''}>⏰ Vence ${fmt(t.due_at)}</div>`:''}
  ${t.started_at?`<div class="meta">▶ Inició ${fmt(t.started_at)}</div>`:''}${t.done_at?`<div class="meta">✓ Terminó ${fmt(t.done_at)}</div>`:''}${t.blocked_at?`<div class="meta">⛔ Bloqueó ${fmt(t.blocked_at)}</div>`:''}
  ${canStart(t)?`<div class="acts"><button class="btn s p" onclick="event.stopPropagation();start('${t.id}')">▶ Iniciar</button></div>`:t.status==='todo'?`<div class="meta" style="margin-top:8px;font-style:italic">⏳ Pendiente: la inicia ${o?esc(o.name):'su responsable'}</div>`:''}
- ${c&&t.status==='doing'?`<div class="acts"><button class="btn s g" onclick="event.stopPropagation();complete('${t.id}')">✓ Completar</button><button class="btn s r" onclick="event.stopPropagation();blockAsk('${t.id}')">⛔ Bloqueado</button></div>`:''}</div>`}
+ ${canAct(t)&&t.status==='doing'?`<div class="acts"><button class="btn s g" onclick="event.stopPropagation();complete('${t.id}')">✓ Completar</button><button class="btn s r" onclick="event.stopPropagation();blockAsk('${t.id}')">⛔ Bloqueado</button></div>`:t.status==='doing'?`<div class="meta" style="margin-top:8px;font-style:italic">⏳ En curso: la completa o bloquea ${o?esc(o.name):'su responsable'}</div>`:''}</div>`}
 const setF=f=>{filter=f;render()};
 function showM(h){const m=$('#modal');m.innerHTML=`<div class="mb">${h}</div>`;m.classList.add('on')}
 function closeM(){$('#modal').classList.remove('on')}
@@ -171,20 +209,20 @@ function openT(id){const t=T(id);if(!t)return;const c=can(t),o=U(t.owner),td=t.s
  ${t.blocked_at?`<div class="meta">⛔ Bloqueado: ${fmt(t.blocked_at)}</div><label>Motivo del bloqueo</label><textarea readonly>${esc(t.block_reason)}</textarea>`:''}
  <div class="row"><button class="btn" onclick="closeM()">Cerrar</button>
  ${c&&t.status==='todo'?`<button class="btn" onclick="saveT('${id}')">Guardar</button>${canStart(t)?`<button class="btn p" onclick="saveT('${id}',1)">▶ Iniciar</button>`:''}`:''}
- ${c&&t.status==='doing'?`<button class="btn" onclick="saveT('${id}')">Guardar descripción</button><button class="btn g" onclick="saveT('${id}',2)">✓ Completar</button><button class="btn r" onclick="blockAsk('${id}')">⛔ Bloqueado</button>`:''}</div>`)}
+ ${c&&t.status==='doing'?`<button class="btn" onclick="saveT('${id}')">Guardar descripción</button>${canAct(t)?`<button class="btn g" onclick="saveT('${id}',2)">✓ Completar</button><button class="btn r" onclick="blockAsk('${id}')">⛔ Bloqueado</button>`:''}`:''}</div>`)}
 async function saveT(id,go){const t=T(id);if(!t||!can(t))return;const d={descr:$('#d').value.trim()};
  if(t.status==='todo'){const n=$('#t').value.trim();if(!n)return;d.title=n;d.priority=+$('#pr').value;const v=$('#due').value;d.due_at=v?new Date(v).toISOString():null;if(d.priority!==t.priority)d.escalated=false}
  if(go===1&&canStart(t)){d.status='doing';d.started_at=Date.now()}
- if(go===2&&t.status==='doing'){d.status='done';d.done_at=Date.now()}
+ if(go===2&&canAct(t)&&t.status==='doing'){d.status='done';d.done_at=Date.now()}
  await upd(id,d);closeM()}
 async function upd(id,d){d={...d};['started_at','done_at','blocked_at'].forEach(k=>{if(d[k])d[k]=new Date(d[k]).toISOString()});
  const {error}=await sb.from('tasks').update(d).eq('id',id);if(error)alert('No se pudo guardar el cambio');loadAll()}
 function start(id){const t=T(id);if(t&&canStart(t))upd(id,{status:'doing',started_at:Date.now()})}
-function complete(id){const t=T(id);if(t&&can(t)&&t.status==='doing')upd(id,{status:'done',done_at:Date.now()})}
+function complete(id){const t=T(id);if(t&&canAct(t)&&t.status==='doing')upd(id,{status:'done',done_at:Date.now()})}
 function blockAsk(id){showM(`<h2>⛔ Bloquear tarea</h2><p style="color:var(--mut);margin:0">La tarea quedará como incompleta. Explica por qué se bloquea.</p><label>Motivo (obligatorio)</label><textarea id="r"></textarea><div class="err" id="e"></div>
  <div class="row"><button class="btn" onclick="closeM()">Cancelar</button><button class="btn r" onclick="block('${id}')">Bloquear</button></div>`)}
 async function block(id){const r=$('#r').value.trim(),t=T(id);if(!r){$('#e').textContent='Debes indicar el motivo';return}
- if(t&&can(t)&&t.status==='doing')await upd(id,{status:'blocked',blocked_at:Date.now(),block_reason:r});closeM()}
+ if(t&&canAct(t)&&t.status==='doing')await upd(id,{status:'blocked',blocked_at:Date.now(),block_reason:r});closeM()}
 function team(){showM(`<h2>Colaboradores</h2>${users.map(u=>{const m=tasks.filter(t=>t.owner===u.username);return`<div class="ur">${av(u)}<div style="flex:1"><b>${esc(u.name)}</b><div style="font-size:12px;color:var(--mut)">@${esc(u.username)}${u.role==='admin'?' · admin':` · ${m.filter(t=>t.status==='done').length}/${m.length} terminadas`}${anm(u)}</div></div><button class="btn s" onclick="editU('${u.username}')">Ver / Editar</button></div>`}).join('')}
  <h2 style="margin-top:18px">Agregar colaborador</h2><label>Nombre</label><input id="n"><label>Usuario</label><input id="u" autocapitalize="none">
  <label>Contraseña (6+ caracteres)</label><div style="display:flex;gap:6px"><input id="p"><button class="btn s" onclick="$('#p').value=gen()">🎲</button></div>
@@ -207,7 +245,7 @@ async function addUser(){const n=$('#n').value.trim(),u=$('#u').value.trim().toL
  const r=await sb.from('profiles').insert({id:data.user.id,username:u,name:n,color:pick,role:'user',area_id:$('#ar').value||null});
  if(r.error){$('#e').textContent='No se pudo guardar el perfil';return}
  await loadAll();team()}
-function setVas(u){vas=u||null;filter='all';render()}
+function setVas(u){vas=u||null;filter='all';menuOpen=false;render()}
 function editU(u){const x=U(u);if(!x)return;ep=x.color;const ts=tasks.filter(t=>t.owner===u).sort((a,b)=>(b.created_at||0)-(a.created_at||0));
  showM(`<h2>${esc(x.name)}</h2><div class="stats" style="grid-template-columns:repeat(4,1fr);gap:6px">${Object.keys(ST).map(s=>`<div class="stat" style="padding:8px;border-color:${ST[s].c}"><b style="font-size:18px">${ts.filter(t=>t.status===s).length}</b><span style="font-size:11px">${ST[s].n}</span></div>`).join('')}</div>
  <label>Nombre</label><input id="n" value="${esc(x.name)}"><label>Usuario</label><input value="${esc(u)}" readonly>
@@ -226,17 +264,37 @@ async function resetPw(u){const p=$('#np').value,e=$('#e');if(p.length<6){e.styl
  e.style.color='#10b981';e.textContent='Contraseña actualizada. Entrégasela al colaborador: '+p}
 async function delU(u){if(!confirm('¿Eliminar a este colaborador? Se borrarán también sus tareas.'))return;const r=await sb.rpc('admin_delete_user',{target:U(u).id});if(r.error){alert('No se pudo eliminar: '+r.error.message);return}await loadAll();team()}
 async function logoData(){try{const i=new Image();i.src='logo.png';await i.decode();const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;c.getContext('2d').drawImage(i,0,0);return{u:c.toDataURL('image/png'),w:i.naturalWidth,h:i.naturalHeight}}catch(e){return null}}
-async function report(){
+function reportM(){rpMode='';rpFrom='';rpTo='';drawRp()}
+function rpSet(m){rpMode=m;drawRp()}
+function drawRp(){const bad=rpFrom&&rpTo&&rpFrom>rpTo,ok=rpMode==='all'||(rpMode==='range'&&rpFrom&&rpTo&&!bad);
+ showM(`<h2>📄 Generar reporte PDF</h2><div class="meta">Elige una opción para poder generarlo.</div>
+ <div class="opt ${rpMode==='all'?'on':''}" onclick="rpSet('all')"><b>Reporte completo</b><span>Todas las tareas, sin filtro de fechas</span></div>
+ <div class="opt ${rpMode==='range'?'on':''}" onclick="rpSet('range')"><b>Rango de fechas</b><span>Tareas con actividad (creación, inicio, fin o bloqueo) dentro del rango</span></div>
+ ${rpMode==='range'?`<div class="dr" style="margin-top:10px"><input type="date" value="${rpFrom}" onchange="rpFrom=this.value;drawRp()"><span>a</span><input type="date" value="${rpTo}" onchange="rpTo=this.value;drawRp()"></div>${bad?'<div class="err">La fecha inicial no puede ser mayor que la final</div>':''}`:''}
+ <div class="row"><button class="btn" onclick="closeM()">Cancelar</button><button class="btn p" ${ok?'':'disabled'} onclick="makeReport()">Generar PDF</button></div>`)}
+async function logoData(){try{const i=new Image();i.src='logo.png';await i.decode();const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;c.getContext('2d').drawImage(i,0,0);return{u:c.toDataURL('image/png'),w:i.naturalWidth,h:i.naturalHeight}}catch(e){return null}}
+const dmy=v=>v.split('-').reverse().join('/');
+async function makeReport(){
  if(!window.jspdf){alert('No se pudo cargar el generador de PDF. Revisa tu conexión.');return}
- const {jsPDF}=window.jspdf,d=new jsPDF({orientation:'landscape'}),ord={done:0,doing:1,blocked:2};
- const rows=curVis.filter(t=>t.status in ord).sort((a,b)=>ord[a.status]-ord[b.status]||a.priority-b.priority||a.created_at-b.created_at);
- const lg=await logoData();let x0=14;if(lg){const h=20,w=h*lg.w/lg.h;d.addImage(lg.u,'PNG',14,6,w,h);x0=14+w+8}
- d.setFontSize(16);d.text('Reporte de tareas - '+curName,x0,15);d.setFontSize(10);
- d.text('Generado: '+fl(Date.now())+(from||to?'   Rango: '+(from||'...')+' a '+(to||'...'):'')+'   Orden: Terminado, En Progreso, Bloqueado',x0,22);
- d.autoTable({startY:30,theme:'grid',head:[['Estado','Prior.','Responsable','Tarea','Descripción','Creada','Inicio','Fin / Bloqueo','Motivo']],
-  body:rows.map(t=>{const o=U(t.owner);return[ST[t.status].n,PR[t.priority].n,o?o.name:'',t.title,t.descr||'',fl(t.created_at),fl(t.started_at),fl(t.done_at||t.blocked_at),t.block_reason||'']}),
+ const range=rpMode==='range';if(!(rpMode==='all'||(range&&rpFrom&&rpTo&&rpFrom<=rpTo)))return;
+ const A=range?new Date(rpFrom+'T00:00:00').getTime():0,B=range?new Date(rpTo+'T23:59:59').getTime():1e15;
+ const list=scope().filter(t=>['done','doing','blocked'].includes(t.status)&&(!range||[t.created_at,t.started_at,t.done_at,t.blocked_at].some(x=>x&&x>=A&&x<=B)));
+ const G=[['done','Terminado',[16,185,129],[255,255,255]],['doing','En Progreso',[245,183,49],[40,40,40]],['blocked','Bloqueado',[239,68,68],[255,255,255]]];
+ const grp=s=>list.filter(t=>t.status===s).sort(SORT[s]);
+ const {jsPDF}=window.jspdf,d=new jsPDF({orientation:'landscape'});
+ const lg=await logoData();let x0=14;if(lg){const h=24,w=h*lg.w/lg.h;d.addImage(lg.u,'PNG',14,6,w,h);x0=14+w+8}
+ d.setFontSize(16);d.text('Reporte de tareas - '+scopeName(),x0,15);d.setFontSize(10);
+ d.text('Generado: '+fl(Date.now())+'   Tipo: '+(range?'Rango de fechas del '+dmy(rpFrom)+' al '+dmy(rpTo):'Reporte completo'),x0,22);
+ d.setTextColor(110);d.text('Orden: Terminado, En Progreso, Bloqueado',x0,27);d.setTextColor(0);
+ d.autoTable({startY:34,theme:'grid',head:[G.map(g=>g[1]).concat(['Total'])],body:[G.map(g=>String(grp(g[0]).length)).concat([String(list.length)])],
+  styles:{fontSize:14,halign:'center',cellPadding:3,fontStyle:'bold'},headStyles:{fillColor:[112,111,111],fontSize:9},tableWidth:140,margin:{left:14}});
+ const body=[];G.forEach(g=>{const l=grp(g[0]);
+  body.push([{content:g[1]+' - '+l.length+(l.length===1?' tarea':' tareas'),colSpan:8,styles:{fillColor:g[2],textColor:g[3],fontStyle:'bold',fontSize:9}}]);
+  if(!l.length)body.push([{content:'Sin tareas',colSpan:8,styles:{fontStyle:'italic',textColor:[120,120,120]}}]);
+  l.forEach(t=>{const o=U(t.owner);body.push([PR[t.priority].n,o?o.name:'',t.title,t.descr||'',fl(t.created_at),fl(t.started_at),fl(t.done_at||t.blocked_at),t.block_reason||''])})});
+ d.autoTable({startY:d.lastAutoTable.finalY+6,theme:'grid',head:[['Prior.','Responsable','Tarea','Descripción','Creada','Inicio','Fin / Bloqueo','Motivo']],body,
   styles:{fontSize:8,cellPadding:2,overflow:'linebreak'},headStyles:{fillColor:[249,76,27]},
-  columnStyles:{0:{cellWidth:20},1:{cellWidth:12},2:{cellWidth:26},3:{cellWidth:38},4:{cellWidth:62},5:{cellWidth:25},6:{cellWidth:25},7:{cellWidth:25},8:{cellWidth:36}}});
- d.save('reporte-tareas-'+new Date().toISOString().slice(0,10)+'.pdf')}
+  columnStyles:{0:{cellWidth:14},1:{cellWidth:28},2:{cellWidth:42},3:{cellWidth:68},4:{cellWidth:27},5:{cellWidth:27},6:{cellWidth:27},7:{cellWidth:36}}});
+ d.save('reporte-tareas-'+(range?rpFrom+'_a_'+rpTo:'completo')+'.pdf');closeM()}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script></body></html>
