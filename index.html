@@ -64,6 +64,7 @@ input[readonly]{opacity:.7}textarea{min-height:90px;resize:vertical}
 .mt{font-size:11px;color:var(--mut);padding:8px 12px 2px;font-weight:700;text-transform:uppercase}
 .seg{display:flex;gap:4px;padding:4px 6px}.seg button{flex:1;border:1px solid var(--line);background:var(--bg);padding:6px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}.seg button.on{background:var(--acc);border-color:var(--acc);color:#fff}
 .opt{border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px;cursor:pointer}.opt b{display:block}.opt span{color:var(--mut);font-size:13px}.opt.on{border-color:var(--acc);background:#F94C1B12}
+@media(max-width:560px){header{flex-wrap:nowrap;gap:8px}.logo b{display:none}.chip>b{display:none}.chip{padding:4px 8px 4px 4px}.menu{min-width:230px;max-width:calc(100vw - 24px)}}
 .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
 </style></head><body>
 <div id="app"></div><div id="modal" onclick="if(event.target===this)closeM()"></div>
