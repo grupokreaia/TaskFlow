@@ -115,7 +115,11 @@ const fin=t=>t.done_at||t.blocked_at;
 const workMs=t=>{if(t.status!=='done'&&t.status!=='blocked')return null;if(t.work_seconds!=null)return t.work_seconds*1000;const f=fin(t);return f&&t.started_at?Math.max(0,f-t.started_at):null};
 const dur=ms=>{if(ms==null)return'—';const m=Math.round(ms/6e4);if(m<1)return ms>0?'< 1 min':'0 min';return m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+(m%60)+' min':'')};
 const dayLabel=k=>{const q=k.split('-').map(Number);return new Date(q[0],q[1]-1,q[2]).toLocaleDateString('es',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})};
-function hoursByDay(list,a,b){const m={};list.forEach(t=>{const w=workMs(t),f=fin(t);if(w==null||!f||f<a||f>b)return;const k=dkey(new Date(f));(m[k]=m[k]||{n:0,ms:0});m[k].n++;m[k].ms+=w});return m}
+function hoursByDay(list,a,b){const seg={},all=new Set();
+ list.forEach(t=>{const f=fin(t),st=t.started_at;if(!st||!f||(t.status!=='done'&&t.status!=='blocked'))return;const lo=Math.max(st,a),hi=Math.min(f,b);if(hi<lo)return;
+  let cur=lo;do{const d=new Date(cur),nx=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime(),e=Math.min(hi,nx);(seg[dkey(d)]=seg[dkey(d)]||[]).push([cur,e,t.id]);cur=nx}while(cur<hi)});
+ const m={};Object.keys(seg).forEach(k=>{const v=seg[k].sort((x,y)=>x[0]-y[0]);let ms=0,c0=null,c1=null;v.forEach(x=>{if(c0===null){c0=x[0];c1=x[1]}else if(x[0]<=c1){if(x[1]>c1)c1=x[1]}else{ms+=c1-c0;c0=x[0];c1=x[1]}});if(c0!==null)ms+=c1-c0;const ids=new Set(v.map(x=>x[2]));ids.forEach(i=>all.add(i));m[k]={n:ids.size,ms}});
+ Object.defineProperty(m,'ids',{value:all});return m}
 const fl=x=>x?new Date(x).toLocaleString('es',{dateStyle:'short',timeStyle:'short'}):'-';
 const toLocal=x=>new Date(x-new Date(x).getTimezoneOffset()*6e4).toISOString().slice(0,16);
 const anm=u=>{const a=areas.find(x=>x.id===u.area_id);return a?' · '+esc(a.name):''};
@@ -133,7 +137,7 @@ async function loadAll(){
  me=users.find(u=>u.id===uid)||null;
  if(!me){try{await sb.auth.signOut()}catch(e){}dropSession()}
  uLoaded=true;render();
- if(me){escalate();checkDue();if(!nLoaded){nLoaded=true;loadNotifs()}}
+ if(me){escalate();checkDue();if(!nLoaded){nLoaded=true;loadNotifs();pushSync()}if(pwLock()&&!$('#modal').dataset.pw)pwM()}
 }
 async function checkAccess(){if(!uid)return;const r=await sb.from('profiles').select('id').eq('id',uid);
  if(!r.error&&r.data&&!r.data.length){try{await sb.auth.signOut()}catch(e){}dropSession();render()}}
@@ -150,6 +154,33 @@ function checkDue(){if(!me)return;const now=Date.now(),g='Notification' in windo
   const left=t.due_at-now,txt=left<=0?'Venció '+fmt(t.due_at):'Vence '+fmt(t.due_at)+' (en '+human(left)+')';
   if(!seenT.has(k)){seenT.add(k);toast('⏰ '+t.title+' · '+txt)}
   if(g){showN('⏰ Tarea por vencer',t.title+'\n'+txt,'due-'+t.id).then(ok=>{if(ok)try{localStorage.setItem(k,'1')}catch(e){}})}})}
+/* ---------- Avisos con la app cerrada (Web Push) ---------- */
+const pushOk=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isStandalone=()=>(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+const b64u=k=>{const p='='.repeat((4-k.length%4)%4),r=atob((k+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))};
+const pushOff=()=>{try{return localStorage.getItem('tf_push_off')==='1'}catch(e){return false}};
+async function pushSub(){try{if(!pushOk())return null;const reg=await navigator.serviceWorker.ready;return await reg.pushManager.getSubscription()}catch(e){return null}}
+async function pushSave(sub){const j=sub.toJSON();return sb.rpc('save_push_subscription',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth})}
+async function pushSync(){try{if(!uid||!pushOk()||Notification.permission!=='granted'||pushOff())return;const sub=await pushSub();if(sub)await pushSave(sub)}catch(e){}}
+async function pushM(){
+ if(!pushOk()){showM(`<h2>📲 Avisos con la app cerrada</h2><div class="meta">${isIOS()&&!isStandalone()?'En iPhone/iPad primero debes <b>instalar la app</b>: botón Compartir → «Agregar a pantalla de inicio». Luego ábrela desde el ícono y vuelve aquí.':'Este navegador no permite avisos con la app cerrada. Prueba con Chrome, Edge o Safari actualizado, o instala la app.'}</div><div class="row"><button class="btn" onclick="closeM()">Cerrar</button></div>`);return}
+ drawPush(await pushSub())}
+function drawPush(sub){const perm=Notification.permission,on=!!sub&&perm==='granted'&&!pushOff();
+ showM(`<h2>📲 Avisos con la app cerrada</h2><div class="meta">Recibe en este dispositivo un aviso cuando una de tus tareas pase a urgente o esté por vencer, aunque no tengas la app abierta.</div>
+ <div class="ur" style="border:0;margin-top:10px"><div style="flex:1"><b>${on?'✅ Activados en este dispositivo':perm==='denied'?'🔕 Bloqueados en el navegador':'⏸ No activados'}</b><div class="meta">${perm==='denied'?'Permite las notificaciones de este sitio en la configuración del navegador y vuelve a intentar.':'Debes activarlo en cada dispositivo donde quieras recibirlos.'}</div></div>${perm==='denied'?'':on?'<button class="btn s r" onclick="pushDisable()">Desactivar</button>':'<button class="btn s p" onclick="pushEnable()">Activar</button>'}</div>
+ <div class="err" id="e"></div><div class="row"><button class="btn" onclick="closeM()">Cerrar</button></div>`)}
+async function pushEnable(){const e=$('#e');e.style.color='';
+ try{const perm=await Notification.requestPermission();if(perm!=='granted'){drawPush(null);return}
+  const k=await sb.rpc('push_public_key');if(k.error||!k.data){e.textContent='El servicio de avisos aún no está configurado. Avisa al administrador.';return}
+  const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();
+  const opts={userVisibleOnly:true,applicationServerKey:b64u(k.data)};
+  try{if(!sub)sub=await reg.pushManager.subscribe(opts)}catch(x){if(sub){await sub.unsubscribe();sub=await reg.pushManager.subscribe(opts)}else throw x}
+  const r=await pushSave(sub);if(r.error){e.textContent='No se pudo guardar: '+r.error.message;return}
+  try{localStorage.removeItem('tf_push_off')}catch(x){}
+  showN('✅ Avisos activados','Recibirás avisos de tus tareas aunque la app esté cerrada.','push-ok');drawPush(sub)}
+ catch(x){e.textContent='No se pudo activar: '+(x&&x.message||x)}}
+async function pushDisable(){try{const sub=await pushSub();if(sub){await sb.rpc('remove_push_subscription',{p_endpoint:sub.endpoint});await sub.unsubscribe()}localStorage.setItem('tf_push_off','1')}catch(e){}drawPush(null)}
 function enableNotif(){if(!('Notification' in window)){alert('Este navegador no admite notificaciones.');return}Notification.requestPermission().then(()=>{render();checkDue()})}
 setInterval(checkDue,6e4);
 document.addEventListener('click',()=>{if(menuOpen){menuOpen=false;render()}});
@@ -186,6 +217,7 @@ function menuHtml(){const adm=isReal(),np='Notification' in window?Notification.
  ${adm?`<div class="mt">Ver como</div><div style="padding:0 6px"><select onchange="setVas(this.value)"><option value="">👁 Vista administrador</option>${users.filter(u=>u.role!=='admin'&&u.active!==false).map(u=>`<option value="${u.username}" ${vas===u.username?'selected':''}>${esc(u.name)}</option>`).join('')}</select></div>`:''}
  <button onclick="menuGo(photoM)">📷 Mi foto de perfil</button>
  <button onclick="menuGo(reportM)">📄 Reporte PDF</button>
+ <button onclick="menuGo(pushM)">📲 Avisos con la app cerrada</button>
  ${np==='default'?'<button onclick="enableNotif()">🔔 Activar notificaciones</button>':np==='granted'?'<button style="cursor:default">🔔 Notificaciones activas</button>':np==='denied'?'<button style="cursor:default">🔕 Bloqueadas en el navegador</button>':''}
  <div class="mt">Tema</div><div class="seg">${[['auto','Auto'],['light','Claro'],['dark','Oscuro']].map(x=>`<button class="${theme===x[0]?'on':''}" onclick="setTheme('${x[0]}')">${x[1]}</button>`).join('')}</div>
  <hr><button onclick="menuGo(logout)">⎋ Salir</button></div>`}
@@ -226,14 +258,26 @@ function card(t){const o=U(t.owner),c=can(t),p=PR[t.priority]||PR[3];
  ${canAct(t)&&t.status==='doing'?`<div class="acts"><button class="btn s g" onclick="event.stopPropagation();complete('${t.id}')">✓ Completar</button><button class="btn s r" onclick="event.stopPropagation();blockAsk('${t.id}')">⛔ Bloqueado</button></div>`:t.status==='doing'?`<div class="meta" style="margin-top:8px;font-style:italic">⏳ En curso: la completa o bloquea ${o?esc(o.name):'su responsable'}</div>`:''}</div>`}
 const setF=f=>{filter=f;render()};
 function showM(h){const m=$('#modal');m.innerHTML=`<div class="mb">${h}</div>`;m.classList.add('on')}
-function closeM(){$('#modal').classList.remove('on')}
+const pwLock=()=>!!(me&&me.must_change_password);
+function closeM(){if(pwLock()&&$('#modal').dataset.pw)return;delete $('#modal').dataset.pw;$('#modal').classList.remove('on')}
+function pwM(){showM(`<h2>🔐 Crea tu contraseña</h2><div class="meta">Entraste con una contraseña temporal. Elige una nueva para continuar.</div>
+ <label>Nueva contraseña (6+ caracteres)</label><input id="pw1" type="password" autocomplete="new-password"><label>Repite la contraseña</label><input id="pw2" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')savePw()">
+ <div class="err" id="e"></div><div class="row"><button class="btn" onclick="logout()">Salir</button><button class="btn p" onclick="savePw()">Guardar y continuar</button></div>`);$('#modal').dataset.pw='1'}
+async function savePw(){const a=$('#pw1').value,b=$('#pw2').value,e=$('#e');e.style.color='';
+ if(a.length<6){e.textContent='La contraseña debe tener 6 o más caracteres';return}
+ if(a!==b){e.textContent='Las contraseñas no coinciden';return}
+ e.textContent='Guardando…';
+ const r=await sb.auth.updateUser({password:a});
+ if(r.error){e.textContent=/different|same|distint/i.test(r.error.message||'')?'La nueva contraseña debe ser distinta de la temporal':'No se pudo cambiar: '+r.error.message;return}
+ const q=await sb.rpc('password_changed');if(q.error){e.textContent='Se cambió la contraseña, pero no se pudo confirmar. Intenta de nuevo.';return}
+ me.must_change_password=false;delete $('#modal').dataset.pw;closeM();toast('✅ Contraseña actualizada');loadAll()}
 async function login(){const u=$('#u').value.trim().toLowerCase(),e=$('#e'),pw=$('#p').value;if(!u){e.textContent='Escribe tu usuario';return}
  e.textContent='Entrando…';
  const {data,error}=await sb.auth.signInWithPassword({email:u.includes('@')?u:u+'@taskflow.app',password:pw});
  if(error){e.textContent=/fetch|network/i.test(error.message||'')?'No se pudo conectar. Revisa tu conexión.':'Usuario o contraseña incorrectos';return}
  uid=data.user.id;await loadAll();
  if(!me){if(loadErr){try{await sb.auth.signOut()}catch(x){}dropSession();render()}const e2=$('#e');if(e2)e2.textContent=loadErr?'Error de base de datos: '+loadErr:'Usuario o contraseña incorrectos'}}
-async function logout(){await sb.auth.signOut();dropSession();render()}
+async function logout(){try{const sub=await pushSub();if(sub)await sb.rpc('remove_push_subscription',{p_endpoint:sub.endpoint})}catch(e){}await sb.auth.signOut();dropSession();delete $('#modal').dataset.pw;closeM();render()}
 function newTask(){showM(`<h2>Nueva tarea</h2><label>Título</label><input id="t"><label>Descripción</label><textarea id="d"></textarea>
  <label>Prioridad</label><select id="pr">${[1,2,3,4].map(n=>`<option value="${n}" ${n===3?'selected':''}>${PR[n].i} ${PR[n].n} · ${PR[n].l}</option>`).join('')}</select>
  <label>Vencimiento (opcional, solo fecha y hora futuras)</label><input id="due" type="datetime-local" min="${nowLocal()}">
@@ -274,7 +318,7 @@ async function block(id){const r=$('#r').value.trim(),t=T(id);if(!r){$('#e').tex
  if(t&&canAct(t)&&t.status==='doing')await upd(id,{status:'blocked',blocked_at:Date.now(),block_reason:r});closeM()}
 function team(){showM(`<h2>Colaboradores</h2>${users.map(u=>{const m=tasks.filter(t=>t.owner===u.username);return`<div class="ur ${u.active===false?'off':''}">${av(u)}<div style="flex:1"><b>${esc(u.name)}</b><div style="font-size:12px;color:var(--mut)">@${esc(u.username)}${u.role==='admin'?' · admin':` · ${m.filter(t=>t.status==='done').length}/${m.length} terminadas`}${anm(u)}${u.active===false?' · <span class="badge">Inactivo</span>':''}</div></div><button class="btn s" onclick="editU('${u.username}')">Ver / Editar</button></div>`}).join('')}
  <h2 style="margin-top:18px">Agregar colaborador</h2><label>Nombre</label><input id="n"><label>Usuario</label><input id="u" autocapitalize="none">
- <label>Contraseña (6+ caracteres)</label><div style="display:flex;gap:6px"><input id="p"><button class="btn s" onclick="$('#p').value=gen()">🎲</button></div>
+ <label>Contraseña temporal (6+ caracteres)</label><div style="display:flex;gap:6px"><input id="p"><button class="btn s" onclick="$('#p').value=gen()">🎲</button></div><div class="meta" style="margin-top:4px">En su primer ingreso el colaborador deberá elegir su propia contraseña.</div>
  <label>Área</label><select id="ar"><option value="">Sin área</option>${areas.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('')}</select>
  <label>Color</label><div class="pal" id="pp">${PAL.map(c=>`<span class="sw ${c===pick?'on':''}" style="background:${c}" data-c="${c}" onclick="pick=this.dataset.c;document.querySelectorAll('#pp .sw').forEach(s=>s.classList.toggle('on',s.dataset.c===pick))"></span>`).join('')}</div>
  <div class="err" id="e"></div><div class="row"><button class="btn" onclick="closeM()">Cerrar</button><button class="btn p" onclick="addUser()">Agregar</button></div>`)}
@@ -293,7 +337,7 @@ async function addUser(){const n=$('#n').value.trim(),u=$('#u').value.trim().toL
  const sb2=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'tf2'}});
  const {data,error}=await sb2.auth.signUp({email:u+'@taskflow.app',password:p});
  if(error||!data.user){$('#e').textContent='No se pudo crear'+(error?': '+error.message:'');return}
- const r=await sb.from('profiles').insert({id:data.user.id,username:u,name:n,color:pick,role:'user',area_id:$('#ar').value||null});
+ const r=await sb.from('profiles').insert({id:data.user.id,username:u,name:n,color:pick,role:'user',area_id:$('#ar').value||null,must_change_password:true});
  if(r.error){$('#e').textContent='No se pudo guardar el perfil';return}
  await loadAll();team()}
 function setVas(u){vas=u||null;filter='all';menuOpen=false;render()}
@@ -303,8 +347,8 @@ function editU(u){const x=U(u);if(!x)return;ep=x.color;const ts=tasks.filter(t=>
  <label>Área</label><select id="ar"><option value="">Sin área</option>${areas.map(a=>`<option value="${a.id}" ${a.id===x.area_id?'selected':''}>${esc(a.name)}</option>`).join('')}</select>
  <label>Color</label><div class="pal" id="ep">${PAL.map(c=>`<span class="sw ${c===ep?'on':''}" style="background:${c}" data-c="${c}" onclick="ep=this.dataset.c;document.querySelectorAll('#ep .sw').forEach(s=>s.classList.toggle('on',s.dataset.c===ep))"></span>`).join('')}</div>
  ${x.role!=='admin'?`<label>Estado de la cuenta</label><div class="ur" style="border:0"><div style="flex:1"><b>${x.active===false?'⏸ Inactivo':'✅ Activo'}</b><div class="meta">${x.active===false?'No puede entrar a la app. Sus tareas se conservan.':'Puede entrar y usar la app.'}</div></div><button class="btn s ${x.active===false?'g':'r'}" onclick="setActive('${u}',${x.active===false})">${x.active===false?'Activar':'Desactivar'}</button></div>`:''}
- <label>Restablecer contraseña</label><div style="display:flex;gap:6px"><input id="np" placeholder="Nueva contraseña (6+)"><button class="btn s" onclick="$('#np').value=gen()">🎲</button><button class="btn s p" onclick="resetPw('${u}')">Aplicar</button></div>
- <div class="meta" style="margin-top:4px">Por seguridad las contraseñas actuales no se pueden consultar; solo restablecer.</div>
+ <label>Restablecer contraseña (temporal)</label><div style="display:flex;gap:6px"><input id="np" placeholder="Contraseña temporal (6+)"><button class="btn s" onclick="$('#np').value=gen()">🎲</button><button class="btn s p" onclick="resetPw('${u}')">Aplicar</button></div>
+ <div class="meta" style="margin-top:4px">Por seguridad las contraseñas actuales no se pueden consultar; solo restablecer. Al entrar con la temporal, el colaborador debe elegir una nueva.${x.must_change_password?' <b>⏳ Aún no la ha cambiado.</b>':''}</div>
  <label>Tareas recientes</label>${ts.slice(0,6).map(t=>`<div class="meta"><span class="dot" style="background:${ST[t.status].c}"></span>${esc(t.title)}</div>`).join('')||'<div class="meta">Sin tareas</div>'}
  <div class="err" id="e"></div><div class="row"><button class="btn" onclick="team()">← Volver</button>${x.role!=='admin'?`<button class="btn" onclick="closeM();setVas('${u}')">👁 Ver como</button>`:''}<button class="btn p" onclick="saveU('${u}')">Guardar</button>${x.role!=='admin'?`<button class="btn r" onclick="delU('${u}')">Eliminar</button>`:''}</div>`)}
 async function saveU(u){const x=U(u),n=$('#n').value.trim();if(!n){$('#e').textContent='El nombre es obligatorio';return}
@@ -313,7 +357,7 @@ async function saveU(u){const x=U(u),n=$('#n').value.trim();if(!n){$('#e').textC
 async function resetPw(u){const p=$('#np').value,e=$('#e');if(p.length<6){e.style.color='';e.textContent='La contraseña debe tener 6 o más caracteres';return}
  const r=await sb.rpc('admin_set_password',{target:U(u).id,new_password:p});
  if(r.error){e.style.color='';e.textContent='No se pudo: '+r.error.message;return}
- e.style.color='#10b981';e.textContent='Contraseña actualizada. Entrégasela al colaborador: '+p}
+ e.style.color='#10b981';e.textContent='Contraseña temporal aplicada. Entrégasela al colaborador: '+p+' (la cambiará al entrar)';await loadAll();const x=U(u);if(x)x.must_change_password=true}
 async function delU(u){if(!confirm('¿Eliminar a este colaborador? Se borrarán también todas sus tareas.\n\nSi solo quieres que no vuelva a entrar y conservar su historial, usa «Desactivar».'))return;const r=await sb.rpc('admin_delete_user',{target:U(u).id});if(r.error){alert('No se pudo eliminar: '+r.error.message);return}await loadAll();team()}
 async function logoData(){try{const i=new Image();i.src='logo.png';await i.decode();const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;c.getContext('2d').drawImage(i,0,0);return{u:c.toDataURL('image/png'),w:i.naturalWidth,h:i.naturalHeight}}catch(e){return null}}
 const dmy=v=>v.split('-').reverse().join('/');
@@ -322,8 +366,8 @@ function hoursM(){if(!realAdm())return;const t=new Date();t.setDate(t.getDate()-
 function drawH(){const [a,b]=rangeOf(hFrom,hTo);let us=users;
  if(hScope.startsWith('a:'))us=users.filter(u=>u.area_id===hScope.slice(2));else if(hScope.startsWith('u:'))us=users.filter(u=>u.username===hScope.slice(2));
  let grand=0;
- const blocks=us.map(u=>{const m=hoursByDay(tasks.filter(t=>t.owner===u.username),a,b),ks=Object.keys(m).sort().reverse(),tot=ks.reduce((s,k)=>s+m[k].ms,0),n=ks.reduce((s,k)=>s+m[k].n,0);grand+=tot;return{u,m,ks,tot,n}}).filter(x=>x.ks.length||us.length===1);
- showM(`<h2>⏱ Horas trabajadas por día</h2><div class="meta">Suma del tiempo de las tareas terminadas o bloqueadas cada día. Solo lo ves tú.</div>
+ const blocks=us.map(u=>{const m=hoursByDay(tasks.filter(t=>t.owner===u.username),a,b),ks=Object.keys(m).sort().reverse(),tot=ks.reduce((s,k)=>s+m[k].ms,0),n=m.ids.size;grand+=tot;return{u,m,ks,tot,n}}).filter(x=>x.ks.length||us.length===1);
+ showM(`<h2>⏱ Horas trabajadas por día</h2><div class="meta">Tiempo real trabajado cada día en tareas terminadas o bloqueadas. Si dos tareas se hacen a la vez, ese rato se cuenta una sola vez. Solo lo ves tú.</div>
  <label>Colaborador o área</label><select onchange="hScope=this.value;drawH()"><option value="all">Todos los colaboradores</option>
  ${areas.length?`<optgroup label="Áreas">${areas.map(x=>`<option value="a:${x.id}" ${hScope==='a:'+x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</optgroup>`:''}
  <optgroup label="Colaboradores">${users.map(u=>`<option value="u:${esc(u.username)}" ${hScope==='u:'+u.username?'selected':''}>${esc(u.name)}</option>`).join('')}</optgroup></select>
@@ -384,10 +428,10 @@ async function makeReport(){
  }else{
   d.autoTable({startY:y,theme:'grid',head:[sumHead],body:[sumRow(gs[0])],styles:{fontSize:14,halign:'center',cellPadding:3,fontStyle:'bold'},headStyles:{fillColor:[112,111,111],fontSize:9},tableWidth:adm?170:140,margin:{left:14}});nxt()
  }
- const hrsTable=g=>{const ks=Object.keys(g.hr).sort();need(26);d.setFontSize(10);d.setTextColor(60);d.text('Horas trabajadas por día',14,y+4);d.setTextColor(0);y+=7;
+ const hrsTable=g=>{const ks=Object.keys(g.hr).sort();need(26);d.setFontSize(10);d.setTextColor(60);d.text('Horas trabajadas por día (las tareas simultáneas se cuentan una sola vez)',14,y+4);d.setTextColor(0);y+=7;
   if(!ks.length){d.setFontSize(9);d.setTextColor(120);d.text('Sin tareas terminadas o bloqueadas con tiempo registrado en este período.',14,y+3);d.setTextColor(0);y+=10;return}
   d.autoTable({startY:y,theme:'grid',head:[['Fecha','Tareas','Horas trabajadas']],
-   body:ks.map(k=>[dayLabel(k),String(g.hr[k].n),P(g.hr[k].ms)]).concat([[{content:'Total',styles:{fontStyle:'bold'}},{content:String(ks.reduce((s,k)=>s+g.hr[k].n,0)),styles:{fontStyle:'bold'}},{content:P(g.tot),styles:{fontStyle:'bold'}}]]),
+   body:ks.map(k=>[dayLabel(k),String(g.hr[k].n),P(g.hr[k].ms)]).concat([[{content:'Total',styles:{fontStyle:'bold'}},{content:String(g.hr.ids?g.hr.ids.size:0),styles:{fontStyle:'bold'}},{content:P(g.tot),styles:{fontStyle:'bold'}}]]),
    styles:{fontSize:8,cellPadding:1.8},headStyles:{fillColor:[139,92,246]},tableWidth:150,margin:{left:14}});nxt()};
  const taskTable=g=>{const body=[];
   G.forEach(x=>{const l=g.list.filter(t=>t.status===x[0]).sort(SORT[x[0]]);
