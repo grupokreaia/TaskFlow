@@ -16,7 +16,7 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16p
 .btn{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:600;transition:.15s}
 .btn:hover{transform:translateY(-1px);box-shadow:var(--sh)}
 .btn.p{background:var(--acc);border-color:var(--acc);color:#fff}
-.btn.g{background:#10b981;border-color:#10b981;color:#fff}.btn.r{background:#ef4444;border-color:#ef4444;color:#fff}
+.btn.g{background:#10b981;border-color:#10b981;color:#fff}.btn.y{background:#F5B731;border-color:#F5B731;color:#2a2200}.btn.r{background:#ef4444;border-color:#ef4444;color:#fff}
 .btn.s{padding:5px 10px;font-size:13px}
 .av{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;flex:none;overflow:hidden}.av img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}.av.ph{padding:2px}
 .chip{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border:1px solid var(--line);border-radius:99px;background:var(--card)}
@@ -41,6 +41,7 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16p
 .meta{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);margin-bottom:4px}
 .tag{display:inline-block;background:#ef444422;color:#ef4444;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;margin-bottom:6px}
 .acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.evs{border:1px solid var(--bd,#8884);border-radius:10px;padding:4px 10px;margin-top:4px}.ev{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #8883;font-size:13px}.ev:last-child{border:0}.ev>span{width:20px;text-align:center}.ev>div{flex:1;min-width:0}.ev em{font-style:normal;color:var(--mut);white-space:nowrap;font-size:12px}
 .empty{text-align:center;color:var(--mut);font-size:13px;padding:18px 0}
 #modal{position:fixed;inset:0;background:rgba(10,15,30,.55);display:none;align-items:center;justify-content:center;padding:14px;z-index:9;backdrop-filter:blur(3px)}
 #modal.on{display:flex}
@@ -80,7 +81,7 @@ input[readonly]{opacity:.7}textarea{min-height:90px;resize:vertical}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const PAL=['#F94C1B','#F5B731','#706F6F','#10b981','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#84cc16','#0ea5e9'];
-const ST={todo:{n:'Por Hacer',c:'#706F6F'},doing:{n:'En Progreso',c:'#F5B731'},done:{n:'Terminado',c:'#10b981'},blocked:{n:'Bloqueado',c:'#ef4444'}};
+const ST={todo:{n:'Por Hacer',c:'#706F6F'},doing:{n:'En Proceso (Hoy)',c:'#3b82f6'},done:{n:'Terminado',c:'#10b981'},blocked:{n:'Pausado',c:'#F5B731'}};
 let db=null,owner=false,users=[],tasks=[],me=null,uLoaded=false,filter='all',pick=PAL[0],vas=null,from='',to='',ep='',areas=[],area='all',menuOpen=false,theme=(()=>{try{return localStorage.getItem('tf_theme')||'auto'}catch(e){return'auto'}})(),rpMode='',rpFrom='',rpTo='',rpScope='me',rpUser='',rpArea='',hScope='all',hFrom='',hTo='',notifs=[],snap=new Set();
 const ss={get(){try{return sessionStorage.getItem('tf_me')}catch(e){return null}},set(v){try{v?sessionStorage.setItem('tf_me',v):sessionStorage.removeItem('tf_me')}catch(e){}}};
 async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
@@ -101,23 +102,24 @@ const realAdm=()=>isReal()&&!vas;
 
 const SB_URL='https://xlxlvodttebgjkskkkti.supabase.co',SB_KEY='sb_publishable_cVkWbrGXdP0BxiuGWHBpeg_L0jlT_mt';
 const sb=supabase.createClient(SB_URL,SB_KEY);db=sb;
-const TS=['created_at','started_at','done_at','blocked_at','due_at'];let uid=null,loadErr='';
+const TS=['created_at','started_at','done_at','blocked_at','resumed_at','due_at'];let uid=null,loadErr='';
 const PR={1:{n:'P1',l:'Urgente',c:'#EF4444',i:'🔴'},2:{n:'P2',l:'Alta',c:'#F97316',i:'🟠'},3:{n:'P3',l:'Media',c:'#EAB308',i:'🟡'},4:{n:'P4',l:'Baja',c:'#22C55E',i:'🟢'}};
-const pill=p=>{const x=PR[p]||PR[3];return`<span class="pr" style="color:${x.c};background:${x.c}1f">${x.i} ${x.n}</span>`};
+const pill=p=>{const x=PR[p]||PR[3];return`<span class="pr" style="color:${x.c};background:${x.c}1f">${x.i} ${x.l}</span>`};
 const pad=n=>String(n).padStart(2,'0');
 const dkey=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const todayS=()=>dkey(new Date());
 const nowLocal=()=>{const d=new Date();return dkey(d)+'T'+pad(d.getHours())+':'+pad(d.getMinutes())};
 const clampD=v=>v&&v>todayS()?todayS():v;
 const rangeOf=(f,t)=>[f?new Date(f+'T00:00:00').getTime():0,(!f&&!t)?1e15:new Date((t||todayS())+'T23:59:59').getTime()];
-const inR=t=>{const [a,b]=rangeOf(from,to);return[t.created_at,t.started_at,t.done_at,t.blocked_at].some(x=>x&&x>=a&&x<=b)};
-const fin=t=>t.done_at||t.blocked_at;
+const inR=t=>{const [a,b]=rangeOf(from,to);return[t.created_at,t.started_at,t.resumed_at,t.done_at,t.blocked_at].some(x=>x&&x>=a&&x<=b)};
+const fin=t=>t.status==='done'?t.done_at:t.status==='blocked'?t.blocked_at:null;
 const workMs=t=>{if(t.status!=='done'&&t.status!=='blocked')return null;if(t.work_seconds!=null)return t.work_seconds*1000;const f=fin(t);return f&&t.started_at?Math.max(0,f-t.started_at):null};
 const dur=ms=>{if(ms==null)return'—';const m=Math.round(ms/6e4);if(m<1)return ms>0?'< 1 min':'0 min';return m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+(m%60)+' min':'')};
 const dayLabel=k=>{const q=k.split('-').map(Number);return new Date(q[0],q[1]-1,q[2]).toLocaleDateString('es',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})};
+const tramos=t=>{if(t.work_log&&t.work_log.length)return t.work_log.map(g=>[g.s,g.e]);const f=fin(t);return t.started_at&&f&&(t.status==='done'||t.status==='blocked')?[[t.started_at,f]]:[]};
 function hoursByDay(list,a,b){const seg={},all=new Set();
- list.forEach(t=>{const f=fin(t),st=t.started_at;if(!st||!f||(t.status!=='done'&&t.status!=='blocked'))return;const lo=Math.max(st,a),hi=Math.min(f,b);if(hi<lo)return;
-  let cur=lo;do{const d=new Date(cur),nx=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime(),e=Math.min(hi,nx);(seg[dkey(d)]=seg[dkey(d)]||[]).push([cur,e,t.id]);cur=nx}while(cur<hi)});
+ list.forEach(t=>tramos(t).forEach(([st,f])=>{const lo=Math.max(st,a),hi=Math.min(f,b);if(hi<lo)return;
+  let cur=lo;do{const d=new Date(cur),nx=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime(),e=Math.min(hi,nx);(seg[dkey(d)]=seg[dkey(d)]||[]).push([cur,e,t.id]);cur=nx}while(cur<hi)}));
  const m={};Object.keys(seg).forEach(k=>{const v=seg[k].sort((x,y)=>x[0]-y[0]);let ms=0,c0=null,c1=null;v.forEach(x=>{if(c0===null){c0=x[0];c1=x[1]}else if(x[0]<=c1){if(x[1]>c1)c1=x[1]}else{ms+=c1-c0;c0=x[0];c1=x[1]}});if(c0!==null)ms+=c1-c0;const ids=new Set(v.map(x=>x[2]));ids.forEach(i=>all.add(i));m[k]={n:ids.size,ms}});
  Object.defineProperty(m,'ids',{value:all});return m}
 const fl=x=>x?new Date(x).toLocaleString('es',{dateStyle:'short',timeStyle:'short'}):'-';
@@ -133,7 +135,7 @@ async function loadAll(){
  const [p,t,ar]=await Promise.all([sb.from('profiles').select('*'),fetchAll('tasks','created_at'),sb.from('areas').select('*').order('name')]);
  if(p.error||!p.data){loadErr=p.error?p.error.message:'sin datos';uLoaded=true;render();return}loadErr='';
  areas=ar.data||[];users=p.data;
- tasks=(t.data||[]).map(x=>{const o={...x};TS.forEach(k=>o[k]=x[k]?Date.parse(x[k]):null);o.priority=x.priority||3;o.owner=(users.find(u=>u.id===x.owner)||{}).username;return o});
+ tasks=(t.data||[]).map(x=>{const o={...x};TS.forEach(k=>o[k]=x[k]?Date.parse(x[k]):null);o.priority=x.priority||3;o.work_log=Array.isArray(x.work_log)?x.work_log.map(g=>({s:Date.parse(g.s),e:Date.parse(g.e),k:g.k,r:g.r})).filter(g=>g.s&&g.e):[];o.owner=(users.find(u=>u.id===x.owner)||{}).username;return o});
  me=users.find(u=>u.id===uid)||null;
  if(!me){try{await sb.auth.signOut()}catch(e){}dropSession()}
  uLoaded=true;render();
@@ -236,7 +238,7 @@ function render(){
  <button class="btn p newb" onclick="newTask()">+ Nueva tarea</button>
  <button class="bell" onclick="notifM()" title="Notificaciones" aria-label="Notificaciones">🔔${unread?`<i>${unread>9?'9+':unread}</i>`:''}</button>
  <div class="mw"><div class="chip" onclick="toggleMenu(event)">${av(me)}<b>${esc(me.name)}</b><span style="color:var(--mut)">▾</span></div>${menuOpen?menuHtml():''}</div></header>
- ${vas?`<div class="banner">Estás viendo la app como <b>${esc(e.name)}</b> (solo lectura: Iniciar, Completar y Bloquear son del colaborador) · <a href="#" onclick="setVas('');return false">Volver a administrador</a></div>`:''}
+ ${vas?`<div class="banner">Estás viendo la app como <b>${esc(e.name)}</b> (solo lectura: Iniciar, Completar, Pausar y Continuar son del colaborador) · <a href="#" onclick="setVas('');return false">Volver a administrador</a></div>`:''}
  ${nd?`<div class="banner">🔔 Activa las notificaciones para recibir un aviso 3 horas antes de que venza una tarea. <a href="#" onclick="enableNotif();return false">Activar</a></div>`:''}
  ${wip.length?`<div class="banner" style="background:#ef444418;border-color:#ef4444">⚠ ${wip.map(x=>`<b>${esc(x[0].name)}</b>: ${x[1]} tareas P1 activas`).join(' · ')} (máximo recomendado: 3)</div>`:''}
  <div class="stats">${Object.keys(ST).map(s=>`<div class="stat" style="border-color:${ST[s].c}"><b>${cnt(s)}</b><span>${ST[s].n}</span></div>`).join('')}${RA?`<div class="stat" style="border-color:#8b5cf6"><b style="font-size:20px;line-height:1.5">${dur(hrs)}</b><span>⏱ Tiempo trabajado</span></div>`:''}</div>
@@ -246,16 +248,15 @@ function render(){
  ${adm?`<div class="filters"><button class="f ${filter==='all'?'on':''}" onclick="setF('all')">Todos</button>${users.filter(u=>area==='all'||u.area_id===area).map(u=>`<button class="f ${filter===u.username?'on':''}" onclick="setF('${u.username}')">${av(u)}${esc(u.name)}${u.active===false?' ⏸':''}</button>`).join('')}</div>`:''}
  <div class="board">${Object.keys(ST).map(s=>{const l=vis.filter(t=>t.status===s).sort(SORT[s]);return`<div class="col"><h3><span class="dot" style="background:${ST[s].c}"></span>${ST[s].n}<em>${l.length}</em></h3>${l.map(card).join('')||'<div class="empty">Sin tareas</div>'}</div>`}).join('')}</div></div>`;
 }
-function card(t){const o=U(t.owner),c=can(t),p=PR[t.priority]||PR[3];
+function card(t){const o=U(t.owner),p=PR[t.priority]||PR[3],own=canAct(t);
  return`<div class="card" style="border-color:${p.c}" onclick="openT('${t.id}')">
- <div class="meta" style="justify-content:space-between;margin-bottom:6px">${pill(t.priority)}<span>${t.escalated?'<span class="tag" style="margin:0 4px 0 0;background:#f9731622;color:#f97316">⚡ Escalada</span>':''}${t.status==='blocked'?'<span class="tag" style="margin:0">INCOMPLETA</span>':''}</span></div>
+ <div class="meta" style="margin-bottom:6px">${pill(t.priority)}</div>
  <h4>${esc(t.title)}</h4>${t.descr?`<p>${esc(t.descr)}</p>`:''}
- <div class="meta">${av(o)}${esc(o?o.name:t.owner)}</div>
+ ${realAdm()?`<div class="meta">${av(o)}${esc(o?o.name:t.owner)}</div>`:''}
  <div class="meta">🕒 Creada ${fmt(t.created_at)}</div>
- ${t.due_at?`<div class="meta" ${t.due_at<Date.now()&&t.status!=='done'?'style="color:#ef4444"':''}>⏰ Vence ${fmt(t.due_at)}</div>`:''}
- ${t.started_at?`<div class="meta">▶ Inició ${fmt(t.started_at)}</div>`:''}${t.done_at?`<div class="meta">✓ Terminó ${fmt(t.done_at)}</div>`:''}${t.blocked_at?`<div class="meta">⛔ Bloqueó ${fmt(t.blocked_at)}</div>`:''}${realAdm()&&workMs(t)!=null?`<div class="meta" style="color:#8b5cf6;font-weight:700">⏱ Tiempo ${dur(workMs(t))}</div>`:''}
- ${canStart(t)?`<div class="acts"><button class="btn s p" onclick="event.stopPropagation();start('${t.id}')">▶ Iniciar</button></div>`:t.status==='todo'?`<div class="meta" style="margin-top:8px;font-style:italic">⏳ Pendiente: la inicia ${o?esc(o.name):'su responsable'}</div>`:''}
- ${canAct(t)&&t.status==='doing'?`<div class="acts"><button class="btn s g" onclick="event.stopPropagation();complete('${t.id}')">✓ Completar</button><button class="btn s r" onclick="event.stopPropagation();blockAsk('${t.id}')">⛔ Bloqueado</button></div>`:t.status==='doing'?`<div class="meta" style="margin-top:8px;font-style:italic">⏳ En curso: la completa o bloquea ${o?esc(o.name):'su responsable'}</div>`:''}</div>`}
+ ${own&&t.status==='todo'?`<div class="acts"><button class="btn s p" onclick="event.stopPropagation();start('${t.id}')">▶ Iniciar</button></div>`:''}
+ ${own&&t.status==='doing'?`<div class="acts"><button class="btn s g" onclick="event.stopPropagation();complete('${t.id}')">✓ Completar</button><button class="btn s y" onclick="event.stopPropagation();blockAsk('${t.id}')">⏸ Pausado</button></div>`:''}
+ ${own&&t.status==='blocked'?`<div class="acts"><button class="btn s p" onclick="event.stopPropagation();resume('${t.id}')">▶ Continuar</button></div>`:''}</div>`}
 const setF=f=>{filter=f;render()};
 function showM(h){const m=$('#modal');m.innerHTML=`<div class="mb">${h}</div>`;m.classList.add('on')}
 const pwLock=()=>!!(me&&me.must_change_password);
@@ -290,32 +291,42 @@ async function addTask(){const t=$('#t').value.trim();if(!t){$('#t').focus();ret
  if(pr===1&&n1>=3&&!confirm(o.name+' ya tiene '+n1+' tareas P1 activas (máximo recomendado: 3). ¿Crear de todos modos?'))return;
  const {error}=await sb.from('tasks').insert({title:t,descr:$('#d').value.trim(),owner:o.id,priority:pr,due_at:v?new Date(v).toISOString():null});
  if(error)alert('No se pudo crear la tarea: '+error.message);closeM();loadAll()}
+const evs=t=>{const L=t.work_log||[],e=[];
+ e.push([t.created_at,'🕒','Creada']);if(t.due_at)e.push([t.due_at,'⏰','Vence']);
+ if(t.started_at)e.push([t.started_at,'▶','Inicio']);
+ L.forEach((g,i)=>{if(g.k==='pause')e.push([g.e,'⏸','Pausado'+(g.r?' · '+g.r:'')]);if(i>0)e.push([g.s,'▶','Continuado'])});
+ if(t.status==='doing'&&t.resumed_at&&(!L.length||t.resumed_at>L[L.length-1].e))e.push([t.resumed_at,'▶','Continuado']);
+ if(!L.length&&t.status==='blocked'&&t.blocked_at)e.push([t.blocked_at,'⏸','Pausado'+(t.block_reason?' · '+t.block_reason:'')]);
+ if(t.status==='done'&&t.done_at)e.push([t.done_at,'✓','Terminado']);
+ const rk=x=>x[2]==='Creada'?0:x[2]==='Vence'?1:2;return e.sort((x,y)=>rk(x)-rk(y)||x[0]-y[0])};
 function openT(id){const t=T(id);if(!t)return;const c=can(t),o=U(t.owner),td=t.status==='todo'&&c;
+ const log=evs(t).map(x=>`<div class="ev"><span>${x[1]}</span><div><b>${esc(x[2].split(' · ')[0])}</b>${x[2].includes(' · ')?`<div class="meta" style="margin:0">Motivo: ${esc(x[2].split(' · ').slice(1).join(' · '))}</div>`:''}</div><em>${fl(x[0])}</em></div>`).join('');
  showM(`<h2>${ST[t.status].n}</h2><label>Título ${t.status==='todo'?'':'(no editable)'}</label><input id="t" value="${esc(t.title)}" ${td?'':'readonly'}>
  <label>Descripción ${t.status==='doing'||t.status==='todo'?'':'(solo lectura)'}</label><textarea id="d" ${c&&(t.status==='todo'||t.status==='doing')?'':'readonly'}>${esc(t.descr)}</textarea>
- <label>Prioridad</label>${td?`<select id="pr">${[1,2,3,4].map(n=>`<option value="${n}" ${n===t.priority?'selected':''}>${PR[n].i} ${PR[n].n} · ${PR[n].l}</option>`).join('')}</select>`:`<div>${pill(t.priority)}${t.escalated?' <span class="tag" style="background:#f9731622;color:#f97316">⚡ Escalada por vencimiento</span>':''}</div>`}
- <label>Vencimiento</label>${td?`<input id="due" type="datetime-local" min="${nowLocal()}" value="${t.due_at?toLocal(t.due_at):''}">`:`<div class="meta">${t.due_at?fmt(t.due_at):'Sin fecha'}</div>`}
- <div class="meta" style="margin-top:10px">${av(o)}${esc(o?o.name:t.owner)}</div><div class="meta">🕒 Creada: ${fmt(t.created_at)}</div>
- ${t.started_at?`<div class="meta">▶ Inicio: ${fmt(t.started_at)}</div>`:''}${t.done_at?`<div class="meta">✓ Terminado: ${fmt(t.done_at)}</div>`:''}
- ${t.blocked_at?`<div class="meta">⛔ Bloqueado: ${fmt(t.blocked_at)}</div><label>Motivo del bloqueo</label><textarea readonly>${esc(t.block_reason)}</textarea>`:''}
+ <label>Prioridad</label>${td?`<select id="pr">${[1,2,3,4].map(n=>`<option value="${n}" ${n===t.priority?'selected':''}>${PR[n].i} ${PR[n].l}</option>`).join('')}</select>`:`<div>${pill(t.priority)}${t.escalated?' <span class="tag" style="background:#f9731622;color:#f97316">⚡ Escalada por vencimiento</span>':''}</div>`}
+ ${td?`<label>Vencimiento</label><input id="due" type="datetime-local" min="${nowLocal()}" value="${t.due_at?toLocal(t.due_at):''}">`:''}
+ <div class="meta" style="margin-top:10px">${av(o)}${esc(o?o.name:t.owner)}</div>
+ <label>Registro de actividad</label><div class="evs">${log}</div>
  ${realAdm()&&workMs(t)!=null?`<div class="meta" style="color:#8b5cf6;font-weight:700;margin-top:6px">⏱ Tiempo trabajado: ${dur(workMs(t))}</div>`:''}
  <div class="err" id="e"></div>
  <div class="row"><button class="btn" onclick="closeM()">Cerrar</button>
  ${c&&t.status==='todo'?`<button class="btn" onclick="saveT('${id}')">Guardar</button>${canStart(t)?`<button class="btn p" onclick="saveT('${id}',1)">▶ Iniciar</button>`:''}`:''}
- ${c&&t.status==='doing'?`<button class="btn" onclick="saveT('${id}')">Guardar descripción</button>${canAct(t)?`<button class="btn g" onclick="saveT('${id}',2)">✓ Completar</button><button class="btn r" onclick="blockAsk('${id}')">⛔ Bloqueado</button>`:''}`:''}</div>`)}
+ ${c&&t.status==='doing'?`<button class="btn" onclick="saveT('${id}')">Guardar descripción</button>${canAct(t)?`<button class="btn g" onclick="saveT('${id}',2)">✓ Completar</button><button class="btn y" onclick="blockAsk('${id}')">⏸ Pausado</button>`:''}`:''}
+ ${canAct(t)&&t.status==='blocked'?`<button class="btn p" onclick="resume('${id}');closeM()">▶ Continuar</button>`:''}</div>`)}
 async function saveT(id,go){const t=T(id);if(!t||!can(t))return;const d={descr:$('#d').value.trim()};
  if(t.status==='todo'){const n=$('#t').value.trim();if(!n)return;d.title=n;d.priority=+$('#pr').value;const v=$('#due').value;if(v&&v!==(t.due_at?toLocal(t.due_at):'')&&new Date(v)<=new Date()){$('#e').textContent='El vencimiento debe ser una fecha y hora futura';return}d.due_at=v?new Date(v).toISOString():null;if(d.priority!==t.priority)d.escalated=false}
  if(go===1&&canStart(t)){d.status='doing';d.started_at=Date.now()}
  if(go===2&&canAct(t)&&t.status==='doing'){d.status='done';d.done_at=Date.now()}
  await upd(id,d);closeM()}
-async function upd(id,d){d={...d};['started_at','done_at','blocked_at'].forEach(k=>{if(d[k])d[k]=new Date(d[k]).toISOString()});
+async function upd(id,d){d={...d};['started_at','done_at','blocked_at','resumed_at'].forEach(k=>{if(d[k])d[k]=new Date(d[k]).toISOString()});
  const {error}=await sb.from('tasks').update(d).eq('id',id);if(error)alert('No se pudo guardar el cambio');loadAll()}
 function start(id){const t=T(id);if(t&&canStart(t))upd(id,{status:'doing',started_at:Date.now()})}
 function complete(id){const t=T(id);if(t&&canAct(t)&&t.status==='doing')upd(id,{status:'done',done_at:Date.now()})}
-function blockAsk(id){showM(`<h2>⛔ Bloquear tarea</h2><p style="color:var(--mut);margin:0">La tarea quedará como incompleta. Explica por qué se bloquea.</p><label>Motivo (obligatorio)</label><textarea id="r"></textarea><div class="err" id="e"></div>
- <div class="row"><button class="btn" onclick="closeM()">Cancelar</button><button class="btn r" onclick="block('${id}')">Bloquear</button></div>`)}
+function blockAsk(id){showM(`<h2>⏸ Pausar tarea</h2><p style="color:var(--mut);margin:0">La tarea pasará a «Pausado» y podrás retomarla con «Continuar». Explica por qué la pausas.</p><label>Motivo (obligatorio)</label><textarea id="r"></textarea><div class="err" id="e"></div>
+ <div class="row"><button class="btn" onclick="closeM()">Cancelar</button><button class="btn y" onclick="block('${id}')">Pausar</button></div>`)}
 async function block(id){const r=$('#r').value.trim(),t=T(id);if(!r){$('#e').textContent='Debes indicar el motivo';return}
  if(t&&canAct(t)&&t.status==='doing')await upd(id,{status:'blocked',blocked_at:Date.now(),block_reason:r});closeM()}
+function resume(id){const t=T(id);if(t&&canAct(t)&&t.status==='blocked')upd(id,{status:'doing',resumed_at:Date.now()})}
 function team(){showM(`<h2>Colaboradores</h2>${users.map(u=>{const m=tasks.filter(t=>t.owner===u.username);return`<div class="ur ${u.active===false?'off':''}">${av(u)}<div style="flex:1"><b>${esc(u.name)}</b><div style="font-size:12px;color:var(--mut)">@${esc(u.username)}${u.role==='admin'?' · admin':` · ${m.filter(t=>t.status==='done').length}/${m.length} terminadas`}${anm(u)}${u.active===false?' · <span class="badge">Inactivo</span>':''}</div></div><button class="btn s" onclick="editU('${u.username}')">Ver / Editar</button></div>`}).join('')}
  <h2 style="margin-top:18px">Agregar colaborador</h2><label>Nombre</label><input id="n"><label>Usuario</label><input id="u" autocapitalize="none">
  <label>Contraseña temporal (6+ caracteres)</label><div style="display:flex;gap:6px"><input id="p"><button class="btn s" onclick="$('#p').value=gen()">🎲</button></div><div class="meta" style="margin-top:4px">En su primer ingreso el colaborador deberá elegir su propia contraseña.</div>
@@ -323,7 +334,7 @@ function team(){showM(`<h2>Colaboradores</h2>${users.map(u=>{const m=tasks.filte
  <label>Color</label><div class="pal" id="pp">${PAL.map(c=>`<span class="sw ${c===pick?'on':''}" style="background:${c}" data-c="${c}" onclick="pick=this.dataset.c;document.querySelectorAll('#pp .sw').forEach(s=>s.classList.toggle('on',s.dataset.c===pick))"></span>`).join('')}</div>
  <div class="err" id="e"></div><div class="row"><button class="btn" onclick="closeM()">Cerrar</button><button class="btn p" onclick="addUser()">Agregar</button></div>`)}
 function areasM(){const rows=areas.map(a=>{const m=users.filter(u=>u.area_id===a.id),ids=m.map(u=>u.username),ts=tasks.filter(t=>ids.includes(t.owner)&&inR(t)),c=s=>ts.filter(t=>t.status===s).length,pc=ts.length?Math.round(c('done')/ts.length*100):0;
- return`<div class="ur" style="flex-wrap:wrap"><div style="flex:1;min-width:160px"><b>${esc(a.name)}</b><div style="font-size:12px;color:var(--mut)">${m.length} colaboradores · ${ts.length} tareas · ${c('doing')} en progreso · ${c('blocked')} bloqueadas</div><div class="prog" style="margin:6px 0 0"><div style="width:${pc}%"></div></div></div><b>${pc}%</b><button class="btn s" onclick="closeM();setArea('${a.id}')">Ver</button><button class="btn s r" onclick="delArea('${a.id}')">✕</button></div>`}).join('')||'<div class="empty">Aún no hay áreas</div>';
+ return`<div class="ur" style="flex-wrap:wrap"><div style="flex:1;min-width:160px"><b>${esc(a.name)}</b><div style="font-size:12px;color:var(--mut)">${m.length} colaboradores · ${ts.length} tareas · ${c('doing')} en proceso · ${c('blocked')} pausadas</div><div class="prog" style="margin:6px 0 0"><div style="width:${pc}%"></div></div></div><b>${pc}%</b><button class="btn s" onclick="closeM();setArea('${a.id}')">Ver</button><button class="btn s r" onclick="delArea('${a.id}')">✕</button></div>`}).join('')||'<div class="empty">Aún no hay áreas</div>';
  showM(`<h2>Áreas y rendimiento</h2><div class="meta">El rendimiento respeta el rango de fechas del tablero.</div>${rows}<label>Nueva área</label><div style="display:flex;gap:6px"><input id="an" placeholder="Ej. Ventas"><button class="btn p s" onclick="addArea()">Crear</button></div><div class="row"><button class="btn" onclick="closeM()">Cerrar</button></div>`)}
 async function addArea(){const n=$('#an').value.trim();if(!n)return;const r=await sb.from('areas').insert({name:n});if(r.error){alert('No se pudo crear (¿nombre repetido?)');return}await loadAll();areasM()}
 async function delArea(id){if(!confirm('¿Eliminar esta área? Los colaboradores quedan sin área.'))return;await sb.from('areas').delete().eq('id',id);if(area===id)area='all';await loadAll();areasM()}
@@ -367,7 +378,7 @@ function drawH(){const [a,b]=rangeOf(hFrom,hTo);let us=users;
  if(hScope.startsWith('a:'))us=users.filter(u=>u.area_id===hScope.slice(2));else if(hScope.startsWith('u:'))us=users.filter(u=>u.username===hScope.slice(2));
  let grand=0;
  const blocks=us.map(u=>{const m=hoursByDay(tasks.filter(t=>t.owner===u.username),a,b),ks=Object.keys(m).sort().reverse(),tot=ks.reduce((s,k)=>s+m[k].ms,0),n=m.ids.size;grand+=tot;return{u,m,ks,tot,n}}).filter(x=>x.ks.length||us.length===1);
- showM(`<h2>⏱ Horas trabajadas por día</h2><div class="meta">Tiempo real trabajado cada día en tareas terminadas o bloqueadas. Si dos tareas se hacen a la vez, ese rato se cuenta una sola vez. Solo lo ves tú.</div>
+ showM(`<h2>⏱ Horas trabajadas por día</h2><div class="meta">Tiempo real trabajado cada día en tareas terminadas o pausadas. Si dos tareas se hacen a la vez, ese rato se cuenta una sola vez. Solo lo ves tú.</div>
  <label>Colaborador o área</label><select onchange="hScope=this.value;drawH()"><option value="all">Todos los colaboradores</option>
  ${areas.length?`<optgroup label="Áreas">${areas.map(x=>`<option value="a:${x.id}" ${hScope==='a:'+x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</optgroup>`:''}
  <optgroup label="Colaboradores">${users.map(u=>`<option value="u:${esc(u.username)}" ${hScope==='u:'+u.username?'selected':''}>${esc(u.name)}</option>`).join('')}</optgroup></select>
@@ -400,7 +411,7 @@ async function makeReport(){
  const adm=realAdm(),range=rpMode==='range';
  if(!(rpMode==='all'||(range&&rpFrom)))return;
  const [A0,B0]=range?rangeOf(rpFrom,rpTo):[0,1e15];
- const inRg=t=>!range||[t.created_at,t.started_at,t.done_at,t.blocked_at].some(x=>x&&x>=A0&&x<=B0);
+ const inRg=t=>!range||[t.created_at,t.started_at,t.resumed_at,t.done_at,t.blocked_at].some(x=>x&&x>=A0&&x<=B0);
  const byName=(x,y)=>(x.name||'').localeCompare(y.name||'','es');
  let us,title;
  if(!adm){us=[eff()];title=eff().name}
@@ -410,13 +421,13 @@ async function makeReport(){
  else{us=users.slice().sort(byName);title='Todos los colaboradores'}
  const gs=us.map(u=>{const mine=tasks.filter(t=>t.owner===u.username),list=mine.filter(t=>['done','doing','blocked'].includes(t.status)&&inRg(t)),hr=hoursByDay(mine,A0,B0),tot=Object.keys(hr).reduce((s,k)=>s+hr[k].ms,0);return{u,list,hr,tot}}).filter(g=>!(adm&&rpScope==='all')||g.list.length);
  if(!gs.length){alert('No hay colaboradores con tareas para este reporte.');return}
- const G=[['done','Terminado',[16,185,129],[255,255,255]],['doing','En Progreso',[245,183,49],[40,40,40]],['blocked','Bloqueado',[239,68,68],[255,255,255]]];
+ const G=[['done','Terminado',[16,185,129],[255,255,255]],['doing','En Proceso',[59,130,246],[255,255,255]],['blocked','Pausado',[245,183,49],[40,40,40]]];
  const cs=g=>G.map(x=>g.list.filter(t=>t.status===x[0]).length),P=ms=>dur(ms).replace('—','-');
  const {jsPDF}=window.jspdf,d=new jsPDF({orientation:'landscape'});
  const lg=await logoData();let x0=14;if(lg){const h=24,w=h*lg.w/lg.h;d.addImage(lg.u,'PNG',14,6,w,h);x0=14+w+8}
  d.setFontSize(16);d.text('Reporte de tareas - '+title,x0,15);d.setFontSize(10);
  d.text('Generado: '+fl(Date.now())+'   Tipo: '+(range?'Rango de fechas del '+dmy(rpFrom)+' al '+dmy(rpTo||todayS()):'Reporte completo'),x0,22);
- d.setTextColor(110);d.text('Orden: Terminado, En Progreso, Bloqueado',x0,27);d.setTextColor(0);
+ d.setTextColor(110);d.text('Orden: Terminado, En Proceso, Pausado',x0,27);d.setTextColor(0);
  let y=34;const multi=gs.length>1,nxt=()=>{y=d.lastAutoTable.finalY+6},need=h=>{if(y+h>196){d.addPage();y=16}};
  const sumHead=G.map(x=>x[1]).concat(['Total']).concat(adm?['Horas trabajadas']:[]);
  const sumRow=g=>cs(g).map(String).concat([String(g.list.length)]).concat(adm?[P(g.tot)]:[]);
@@ -429,7 +440,7 @@ async function makeReport(){
   d.autoTable({startY:y,theme:'grid',head:[sumHead],body:[sumRow(gs[0])],styles:{fontSize:14,halign:'center',cellPadding:3,fontStyle:'bold'},headStyles:{fillColor:[112,111,111],fontSize:9},tableWidth:adm?170:140,margin:{left:14}});nxt()
  }
  const hrsTable=g=>{const ks=Object.keys(g.hr).sort();need(26);d.setFontSize(10);d.setTextColor(60);d.text('Horas trabajadas por día (las tareas simultáneas se cuentan una sola vez)',14,y+4);d.setTextColor(0);y+=7;
-  if(!ks.length){d.setFontSize(9);d.setTextColor(120);d.text('Sin tareas terminadas o bloqueadas con tiempo registrado en este período.',14,y+3);d.setTextColor(0);y+=10;return}
+  if(!ks.length){d.setFontSize(9);d.setTextColor(120);d.text('Sin tareas terminadas o pausadas con tiempo registrado en este período.',14,y+3);d.setTextColor(0);y+=10;return}
   d.autoTable({startY:y,theme:'grid',head:[['Fecha','Tareas','Horas trabajadas']],
    body:ks.map(k=>[dayLabel(k),String(g.hr[k].n),P(g.hr[k].ms)]).concat([[{content:'Total',styles:{fontStyle:'bold'}},{content:String(g.hr.ids?g.hr.ids.size:0),styles:{fontStyle:'bold'}},{content:P(g.tot),styles:{fontStyle:'bold'}}]]),
    styles:{fontSize:8,cellPadding:1.8},headStyles:{fillColor:[139,92,246]},tableWidth:150,margin:{left:14}});nxt()};
@@ -438,7 +449,7 @@ async function makeReport(){
    body.push([{content:x[1]+' - '+l.length+(l.length===1?' tarea':' tareas'),colSpan:8,styles:{fillColor:x[2],textColor:x[3],fontStyle:'bold',fontSize:9}}]);
    if(!l.length)body.push([{content:'Sin tareas',colSpan:8,styles:{fontStyle:'italic',textColor:[120,120,120]}}]);
    l.forEach(t=>{const o=U(t.owner),f=fl(fin(t));body.push(adm?[PR[t.priority].n,t.title,t.descr||'',fl(t.created_at),fl(t.started_at),f,P(workMs(t)),t.block_reason||'']:[PR[t.priority].n,o?o.name:'',t.title,t.descr||'',fl(t.created_at),fl(t.started_at),f,t.block_reason||''])})});
-  d.autoTable({startY:y,theme:'grid',head:[adm?['Prior.','Tarea','Descripción','Creada','Inicio','Fin / Bloqueo','Tiempo','Motivo']:['Prior.','Responsable','Tarea','Descripción','Creada','Inicio','Fin / Bloqueo','Motivo']],body,
+  d.autoTable({startY:y,theme:'grid',head:[adm?['Prior.','Tarea','Descripción','Creada','Inicio','Fin / Pausa','Tiempo','Motivo']:['Prior.','Responsable','Tarea','Descripción','Creada','Inicio','Fin / Pausa','Motivo']],body,
    styles:{fontSize:8,cellPadding:2,overflow:'linebreak'},headStyles:{fillColor:[249,76,27]},
    columnStyles:adm?{0:{cellWidth:14},1:{cellWidth:42},2:{cellWidth:64},3:{cellWidth:27},4:{cellWidth:27},5:{cellWidth:27},6:{cellWidth:20},7:{cellWidth:48}}:{0:{cellWidth:14},1:{cellWidth:28},2:{cellWidth:42},3:{cellWidth:68},4:{cellWidth:27},5:{cellWidth:27},6:{cellWidth:27},7:{cellWidth:36}}});nxt()};
  if(!multi){if(adm)hrsTable(gs[0]);taskTable(gs[0])}
