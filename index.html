@@ -218,6 +218,7 @@ function menuHtml(){const adm=isReal(),np='Notification' in window?Notification.
  ${adm&&!vas?`<button onclick="menuGo(team)">👥 Equipo</button><button onclick="menuGo(areasM)">🏷 Áreas</button><button onclick="menuGo(hoursM)">⏱ Horas trabajadas</button>`:''}
  ${adm?`<div class="mt">Ver como</div><div style="padding:0 6px"><select onchange="setVas(this.value)"><option value="">👁 Vista administrador</option>${users.filter(u=>u.role!=='admin'&&u.active!==false).map(u=>`<option value="${u.username}" ${vas===u.username?'selected':''}>${esc(u.name)}</option>`).join('')}</select></div>`:''}
  <button onclick="menuGo(photoM)">📷 Mi foto de perfil</button>
+ <button onclick="location.href='asistencia/'">🕒 Asistencia</button>
  <button onclick="menuGo(reportM)">📄 Reporte PDF</button>
  <button onclick="menuGo(pushM)">📲 Avisos con la app cerrada</button>
  ${np==='default'?'<button onclick="enableNotif()">🔔 Activar notificaciones</button>':np==='granted'?'<button style="cursor:default">🔔 Notificaciones activas</button>':np==='denied'?'<button style="cursor:default">🔕 Bloqueadas en el navegador</button>':''}
