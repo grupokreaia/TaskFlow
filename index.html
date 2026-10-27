@@ -191,7 +191,8 @@ const lazy=(()=>{let h;return()=>{clearTimeout(h);h=setTimeout(loadAll,350)}})()
 const nIcon={urgent:'🔴',due_soon:'⏰'};
 const ago=ms=>{const m=Math.round((Date.now()-ms)/6e4);return m<1?'ahora':m<60?'hace '+m+' min':m<1440?'hace '+Math.round(m/60)+' h':fl(ms)};
 async function loadNotifs(){if(!uid)return;const r=await sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(50);if(r.error)return;
- notifs=(r.data||[]).map(n=>({...n,created_at:Date.parse(n.created_at),read_at:n.read_at?Date.parse(n.read_at):null}));render()}
+ notifs=(r.data||[]).map(n=>({...n,created_at:Date.parse(n.created_at),     read_at:n.read_at?Date.parse(n.read_at):null}));render();attCheck()}
+     let attPend=0;async function attCheck(){try{const r=await sb.rpc('att_pending_count');const n=+r.data||0;if(n!==attPend){attPend=n;render()}}catch(e){}}
 function onNotif(p){const n=p&&p.new;if(!n||n.user_id!==uid)return;toast((nIcon[n.kind]||'🔔')+' '+n.title+' · '+n.body);
  if(n.kind==='urgent'&&'Notification' in window&&Notification.permission==='granted')showN(n.title,n.body,'n-'+n.id);loadNotifs()}
 function notifM(){snap=new Set(notifs.filter(n=>!n.read_at).map(n=>n.id));drawN();if(snap.size)sb.rpc('mark_notifications_read').then(loadNotifs)}
@@ -218,7 +219,7 @@ function menuHtml(){const adm=isReal(),np='Notification' in window?Notification.
  ${adm&&!vas?`<button onclick="menuGo(team)">👥 Equipo</button><button onclick="menuGo(areasM)">🏷 Áreas</button><button onclick="menuGo(hoursM)">⏱ Horas trabajadas</button>`:''}
  ${adm?`<div class="mt">Ver como</div><div style="padding:0 6px"><select onchange="setVas(this.value)"><option value="">👁 Vista administrador</option>${users.filter(u=>u.role!=='admin'&&u.active!==false).map(u=>`<option value="${u.username}" ${vas===u.username?'selected':''}>${esc(u.name)}</option>`).join('')}</select></div>`:''}
  <button onclick="menuGo(photoM)">📷 Mi foto de perfil</button>
- <button onclick="location.href='asistencia/'">🕒 Asistencia</button>
+      <button onclick="location.href='asistencia/'">🕒 Asistencia${attPend?` <i style="background:#F94C1B;color:#fff;border-radius:99px;font-style:normal;font-size:11px;padding:1px 7px;margin-left:6px">${attPend}</i>`:''}</button>
  <button onclick="menuGo(reportM)">📄 Reporte PDF</button>
  <button onclick="menuGo(pushM)">📲 Avisos con la app cerrada</button>
  ${np==='default'?'<button onclick="enableNotif()">🔔 Activar notificaciones</button>':np==='granted'?'<button style="cursor:default">🔔 Notificaciones activas</button>':np==='denied'?'<button style="cursor:default">🔕 Bloqueadas en el navegador</button>':''}
@@ -238,7 +239,7 @@ function render(){
  a.innerHTML=`<div class="wrap"><div class="brandbar"></div><header><div class="logo"><img src="logo-mark.png" alt="Krea"><b>Grupo Krea Capital<span>Control de tareas</span></b></div>
  <button class="btn p newb" onclick="newTask()">+ Nueva tarea</button>
  <button class="bell" onclick="notifM()" title="Notificaciones" aria-label="Notificaciones">🔔${unread?`<i>${unread>9?'9+':unread}</i>`:''}</button>
- <div class="mw"><div class="chip" onclick="toggleMenu(event)">${av(me)}<b>${esc(me.name)}</b><span style="color:var(--mut)">▾</span></div>${menuOpen?menuHtml():''}</div></header>
+ <div class="mw"><div class="chip" onclick="toggleMenu(event)">${av(me)}     <b>${esc(me.name)}</b><span style="color:var(--mut)">▾</span>${attPend?'<i style="width:9px;height:9px;border-radius:50%;background:#F94C1B;display:inline-block;margin-left:2px"></i>':''}</div>${menuOpen?menuHtml():''}</div></header>
  ${vas?`<div class="banner">Estás viendo la app como <b>${esc(e.name)}</b> (solo lectura: Iniciar, Completar, Pausar y Continuar son del colaborador) · <a href="#" onclick="setVas('');return false">Volver a administrador</a></div>`:''}
  ${nd?`<div class="banner">🔔 Activa las notificaciones para recibir un aviso 3 horas antes de que venza una tarea. <a href="#" onclick="enableNotif();return false">Activar</a></div>`:''}
  ${wip.length?`<div class="banner" style="background:#ef444418;border-color:#ef4444">⚠ ${wip.map(x=>`<b>${esc(x[0].name)}</b>: ${x[1]} tareas P1 activas`).join(' · ')} (máximo recomendado: 3)</div>`:''}
