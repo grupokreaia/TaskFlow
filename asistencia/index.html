@@ -5,8 +5,8 @@
 <link rel="icon" href="../icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--bg:#f6f5f4;--card:#fff;--text:#2b2a2a;--mut:#706f6f;--line:#e6e3e1;--acc:#F94C1B;--gr:#1a9b50;--or:#e08a00;--rd:#d6361f;--grb:#e3f5ea;--orb:#fff1d6;--rdb:#fde4df;--sh:0 4px 20px rgba(60,40,30,.08)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161515;--card:#232120;--text:#f1eeec;--mut:#a5a09d;--line:#38342f;--grb:#16331f;--orb:#3a2c0e;--rdb:#3d1d17;--sh:0 4px 24px rgba(0,0,0,.45)}}
+:root{--bg:#f6f5f4;--card:#fff;--text:#2b2a2a;--mut:#706f6f;--line:#e6e3e1;--acc:#F94C1B;--gr:#1a9b50;--or:#e08a00;--rd:#d6361f;--bl:#2f6fdb;--blb:#e4edfc;--grb:#e3f5ea;--orb:#fff1d6;--rdb:#fde4df;--sh:0 4px 20px rgba(60,40,30,.08)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161515;--card:#232120;--text:#f1eeec;--mut:#a5a09d;--line:#38342f;--bl:#6aa2ff;--blb:#182a47;--grb:#16331f;--orb:#3a2c0e;--rdb:#3d1d17;--sh:0 4px 24px rgba(0,0,0,.45)}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 .brandbar{height:4px;background:linear-gradient(90deg,var(--acc),#F5B731);position:fixed;top:0;left:0;right:0;z-index:6}
 header{display:flex;align-items:center;gap:10px;max-width:1100px;margin:0 auto;padding:16px 16px 0}
@@ -30,7 +30,22 @@ td.n,th.n{text-align:right}.chip{display:inline-block;border-radius:999px;paddin
 .login{max-width:360px;margin:12vh auto}.login input{width:100%;margin:6px 0 10px}
 .we td{color:var(--mut)}.empty{padding:24px;text-align:center;color:var(--mut)}
 h3{margin:0 0 4px;font-size:16px}.ok{color:var(--gr);font-size:13px;min-height:1.2em}input[type=time],input[type=date]{min-width:110px}input[type=number]{width:90px}
-.wk td{padding:5px 9px}.btn.r{color:var(--rd)}.sw{display:flex;align-items:center;gap:6px}.sw input{width:auto}
+.wk td{padding:5px 9px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.cal .dh{font-size:12px;color:var(--mut);text-align:center;font-weight:600;padding:2px 0}
+.day{border:1px solid var(--line);border-radius:12px;min-height:74px;padding:6px 7px;background:var(--card);cursor:pointer;display:flex;flex-direction:column;gap:4px;text-align:left;font:inherit;color:var(--text)}
+.day:hover{border-color:var(--acc)}.day.sel{outline:2px solid var(--acc)}.day.blank{visibility:hidden}.day .n{font-weight:700;font-size:13px;display:flex;justify-content:space-between}
+.day .st{font-size:11px;font-weight:600;border-radius:8px;padding:2px 6px;align-self:flex-start;line-height:1.25}
+.day.g{background:var(--grb)}.day.o{background:var(--orb)}.day.r{background:var(--rdb)}.day.b{background:var(--blb)}.day.x{opacity:.55}
+.st.g{background:var(--gr);color:#fff}.st.o{background:var(--or);color:#fff}.st.r{background:var(--rd);color:#fff}.st.b{background:var(--bl);color:#fff}.st.x{background:var(--line);color:var(--mut)}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0}.slot{border:1px solid var(--line);border-radius:12px;padding:10px}.slot .l{font-size:12px;color:var(--mut)}.slot .v{font-size:20px;font-weight:700}.slot .p{font-size:12px;color:var(--mut)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}.seg button{border:0;background:var(--card);color:var(--text);padding:7px 16px}.seg button.on{background:var(--acc);color:#fff;font-weight:600}
+.badge{background:var(--acc);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;margin-left:6px}
+textarea{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%;min-height:80px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:20;padding:16px}.ov>div{background:var(--card);border-radius:16px;padding:18px;max-width:460px;width:100%;box-shadow:var(--sh);max-height:90vh;overflow:auto}
+.ov h3{margin-bottom:8px}.req{border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}.req .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{font-size:12px;border-radius:99px;padding:2px 10px;font-weight:600}.tag.pending{background:var(--orb);color:var(--or)}.tag.approved{background:var(--grb);color:var(--gr)}.tag.rejected{background:var(--rdb);color:var(--rd)}
+.pl{font-size:13px}.pl .v{text-decoration:line-through;color:var(--mut)}
+@media(max-width:560px){.day{min-height:58px;padding:4px}.day .st{font-size:10px;padding:1px 4px}}.btn.r{color:var(--rd)}.sw{display:flex;align-items:center;gap:6px}.sw input{width:auto}
 </style></head><body>
 <div id="app"></div>
 <script>
@@ -38,7 +53,7 @@ const SB_URL='https://xlxlvodttebgjkskkkti.supabase.co',SB_KEY='sb_publishable_c
 const sb=supabase.createClient(SB_URL,SB_KEY);          // misma sesión que TaskFlow (mismo sitio y mismo almacenamiento)
 const TZ='America/Bogota',$=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let cfg={late_threshold_min:10,monthly_tolerance_min:30},me=null,profiles=[],areas=[],tab='mine',viewUser=null,month=new Date().toLocaleDateString('sv',{timeZone:TZ}).slice(0,7),emps=[],err='';
+let pendN=0,mode='today',selDay=null,reqMonth=[],cfg={late_threshold_min:10,monthly_tolerance_min:30},me=null,profiles=[],areas=[],tab='mine',viewUser=null,month=new Date().toLocaleDateString('sv',{timeZone:TZ}).slice(0,7),emps=[],err='';
 
 // 1h 20min / 30min
 const fm=m=>{if(m==null)return'–';const s=m<0?'-':'',a=Math.abs(m),h=Math.floor(a/60),r=a%60;return s+(h?h+'h'+(r?' '+r+'min':''):r+'min')};
@@ -60,8 +75,9 @@ async function init(){
  const [p,a]=await Promise.all([sb.from('profiles').select('id,name,username,role,area_id,active').order('name'),sb.from('areas').select('*').order('name')]);
  profiles=p.data||[];areas=a.data||[];
  const c=await sb.from('att_settings').select('*').eq('id',1).maybeSingle();if(c.data)cfg=c.data;
- await loadEmps();render();
+ await loadEmps();await countPend();render();if(isAdmin()&&pendN&&!location.hash)tab='reqs',render();
 }
+async function countPend(){if(!isAdmin()){pendN=0;return}const r=await sb.rpc('att_pending_count');pendN=+r.data||0}
 async function loadEmps(){const r=await sb.from('att_employees').select('user_id,pin,active');emps=r.data||[];if(r.error)err='No se pudo leer: '+r.error.message}
 const pinOf=id=>(emps.find(e=>e.user_id===id)||{}).pin||'';
 const nameOf=id=>(profiles.find(p=>p.id===id)||{}).name||'—';
@@ -80,36 +96,134 @@ async function login(){
 }
 
 function render(){
- const tabs=[['mine','Mi asistencia'],...(isAdmin()?[['emps','Empleados'],['sched','Horarios']]:[])];
+ const tabs=[['mine','Mi asistencia'],...(isAdmin()?[['reqs','Solicitudes'],['emps','Empleados'],['sched','Horarios']]:[])];
  $('#app').innerHTML=`<div class="brandbar"></div><header><a class="back" href="../" title="Volver a Control de tareas" aria-label="Volver a Control de tareas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></a>
  <div class="logo"><img src="../logo-mark.png" alt="Krea"><b>Grupo Krea Capital<span>Asistencia</span></b></div>
  <div class="chip">${av(me)}<b>${esc(me.name)}</b></div></header>
- <main><div class="tabs">${tabs.map(t=>`<button class="${tab===t[0]?'on':''}" onclick="go('${t[0]}')">${t[1]}</button>`).join('')}</div><div id="v"></div></main>`;
- tab==='emps'?viewEmps():tab==='sched'?viewSched():viewMine();
+ <main><div class="tabs">${tabs.map(t=>`<button class="${tab===t[0]?'on':''}" onclick="go('${t[0]}')">${t[1]}${t[0]==='reqs'&&pendN?`<span class="badge">${pendN}</span>`:''}</button>`).join('')}</div><div id="v"></div></main>`;
+ tab==='emps'?viewEmps():tab==='sched'?viewSched():tab==='reqs'?viewReqs():viewMine();
 }
 const go=t=>{tab=t;render()};
 
-/* ---------- Mi asistencia ---------- */
+/* ---------- Mi asistencia: hoy / mes en calendario / detalle del día ---------- */
+const todayStr=()=>new Date().toLocaleDateString('sv',{timeZone:TZ});
+const pad=n=>String(n).padStart(2,'0');
+const monthLast=m=>new Date(Date.UTC(+m.slice(0,4),+m.slice(5,7),0)).toISOString().slice(0,10);
+const REASONS=['Olvidé marcar','Falla del equipo','Marcaje equivocado','Permiso autorizado','Otro'];
+const SLOTS=[['in','Entrada','entrada','sched_start'],['bo','Salida a refrigerio','salida_refri','sched_bo'],['bi','Regreso de refrigerio','ingreso_refri','sched_bi'],['out','Salida','salida','sched_end']];
+const hhmm=t=>t?ft(t):'';
+function dayState(r,pend){
+ // estado corto para el calendario: [clase, texto]
+ if(r.day_type==='holiday')return['b','Feriado'];if(r.day_type==='off')return['x','Libre'];
+ if(r.day_type==='none')return r.punches?['o','Sin horario']:['',''];
+ if(r.status==='Pendiente'||r.status==='Sin entrada aún')return['x',r.status==='Pendiente'?'':'Sin entrada'];
+ if(r.status==='En curso')return['b','En curso'];
+ if(r.status==='Sin registro')return['r','Sin registro'];
+ if(r.status==='Refrigerio incompleto')return['o','Refrigerio'];
+ const m=r.late_min||0;return[m===0?'g':m<=cfg.late_threshold_min?'o':'r',m===0?'Puntual':'Tarde '+fm(m)];
+}
 async function viewMine(){
- const visible=emps.filter(e=>e.active!==false).map(e=>e.user_id);if(!visible.includes(me.id)&&isAdmin()===false)visible.unshift(me.id);
- const opts=[...new Set([me.id,...visible])].map(id=>`<option value="${id}" ${id===viewUser?'selected':''}>${esc(nameOf(id))}${id===me.id?' (yo)':''}${pinOf(id)?'':' · sin ID'}</option>`).join('');
- $('#v').innerHTML=`<div class="card row">${visible.length>1||isAdmin()?`<select id="who" onchange="viewUser=this.value;viewMine()">${opts}</select>`:''}<input id="mo" type="month" value="${month}" onchange="month=this.value;viewMine()"><span class="note" id="pinNote"></span></div><div id="res"><div class="empty">Cargando…</div></div>`;
- const first=month+'-01',last=new Date(Date.UTC(+month.slice(0,4),+month.slice(5,7),0)).toISOString().slice(0,10);
- const [m,d]=await Promise.all([sb.rpc('att_month',{p_user:viewUser,p_month:first}),sb.rpc('att_daily',{p_user:viewUser,p_from:first,p_to:last})]);
+ const visible=[...new Set([me.id,...emps.filter(e=>e.active!==false).map(e=>e.user_id)])];
+ const opts=visible.map(id=>`<option value="${id}" ${id===viewUser?'selected':''}>${esc(nameOf(id))}${id===me.id?' (yo)':''}</option>`).join('');
+ $('#v').innerHTML=`<div class="card row">${visible.length>1?`<select id="who" onchange="viewUser=this.value;selDay=null;viewMine()">${opts}</select>`:''}
+ <div class="seg"><button class="${mode==='today'?'on':''}" onclick="mode='today';selDay=null;viewMine()">Hoy</button><button class="${mode==='month'?'on':''}" onclick="mode='month';viewMine()">Todo el mes</button></div>
+ ${mode==='month'?`<input id="mo" type="month" value="${month}" onchange="month=this.value;selDay=null;viewMine()">`:''}<span class="note" id="pinNote"></span></div><div id="res"><div class="empty">Cargando…</div></div>`;
+ const pin=pinOf(viewUser);$('#pinNote').textContent=pin?'ID en el equipo: '+pin:'Sin ID del equipo vinculado';
+ if(mode==='today'){selDay=todayStr();$('#res').innerHTML='<div id="dd"></div>';return dayDetail(selDay)}
+ const first=month+'-01',last=monthLast(month);
+ const [m,d,q]=await Promise.all([sb.rpc('att_month',{p_user:viewUser,p_month:first}),sb.rpc('att_daily',{p_user:viewUser,p_from:first,p_to:last}),sb.from('att_change_requests').select('work_date,status').eq('user_id',viewUser).gte('work_date',first).lte('work_date',last)]);
  if(m.error||d.error){$('#res').innerHTML=`<div class="card err">No se pudo cargar: ${esc((m.error||d.error).message)}</div>`;return}
- const k=m.data||{},rows=d.data||[];
- const pin=pinOf(viewUser);$('#pinNote').textContent=pin?'ID en el equipo: '+pin:'Esta persona aún no tiene ID del equipo vinculado';
- const kp=(v,l,c)=>`<div class="kpi"><div class="v ${c||''}" ${c?'':''}>${v}</div><div class="l">${l}</div></div>`;
+ const k=m.data||{},rows=d.data||[],pend=new Set((q.data||[]).filter(x=>x.status==='pending').map(x=>x.work_date));
  const hasSched=rows.some(r=>r.day_type==='workday');
+ const kp=(v,l)=>`<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`;
+ const off=(new Date(first+'T12:00:00Z').getUTCDay()+6)%7;
+ const cells=[...Array(off).fill('<div class="day blank"></div>'),...rows.map(r=>{const [c,t]=dayState(r);const dn=+r.work_date.slice(8);
+  return`<button class="day ${c} ${selDay===r.work_date?'sel':''}" onclick="pickDay('${r.work_date}')"><span class="n">${dn}${pend.has(r.work_date)?'<span title="Solicitud pendiente">⏳</span>':''}</span>${t?`<span class="st ${c}">${esc(t)}</span>`:''}</button>`})];
  $('#res').innerHTML=`<div class="card"><div class="kpis">
   ${kp(fm(k.worked_min),'Trabajado en el mes')}${kp(hasSched?fm(k.required_to_date_min):'–','Requerido a la fecha')}${kp(hasSched?fm(k.diff_min):'–','Diferencia')}${kp(hasSched?pc(k.compliance):'–','Cumplimiento')}
-  ${kp(fm(k.late_total_min),'Tardanza acumulada')}${kp(hasSched?fm(k.tolerance_min):'–','Tolerancia mensual')}${kp(fm(k.late_excess_min),'Tardanza fuera de tolerancia')}${kp(fm(k.extra_total_min),'Horas extras')}
+  ${kp(fm(k.late_total_min),'Tardanza acumulada')}${kp(hasSched?fm(k.tolerance_min):'–','Tolerancia mensual')}${kp(fm(k.late_excess_min),'Fuera de tolerancia')}${kp(fm(k.extra_total_min),'Horas extras')}
   ${kp(hasSched?pc(k.punctuality):'–','Puntualidad')}${kp(`<span class="chip g">${k.days_green||0}</span> <span class="chip o">${k.days_orange||0}</span> <span class="chip r">${k.days_red||0}</span>`,'Días verde · naranja · rojo')}</div>
-  ${hasSched?'':'<p class="note">Todavía no hay un horario asignado a esta persona: se muestran los marcajes y las horas trabajadas. Los cálculos de tardanza y cumplimiento aparecerán cuando se asigne el horario.</p>'}</div>
- <div class="card tw"><table><thead><tr><th>Fecha</th><th>Horario</th><th>Entrada</th><th>Sal. refrigerio</th><th>Ing. refrigerio</th><th>Salida</th><th class="n">Trabajadas</th><th class="n">Requeridas</th><th>Tardanza</th><th class="n">Extras</th><th>Estado</th></tr></thead><tbody>
- ${rows.filter(r=>r.day_type!=='none'||r.punches>0).map(r=>`<tr class="${r.day_type==='off'||r.day_type==='holiday'?'we':''}"><td>${esc(r.work_date.slice(8))} ${dow(r.work_date)}</td><td>${r.sched_start?r.sched_start.slice(0,5)+'–'+r.sched_end.slice(0,5):'–'}</td><td>${ft(r.entrada)}</td><td>${ft(r.salida_refri)}</td><td>${ft(r.ingreso_refri)}</td><td>${ft(r.salida)}</td><td class="n">${r.punches?fm(r.worked_min):'–'}</td><td class="n">${r.day_type==='workday'?fm(r.required_min):'–'}</td><td>${late(r)}</td><td class="n">${r.day_type==='workday'&&r.extra_min?fm(r.extra_min):'–'}</td><td>${esc(r.status||'')}${r.flag?` <span class="note">· ${esc(r.flag)}</span>`:''}</td></tr>`).join('')||'<tr><td colspan="11" class="empty">Sin marcajes en este mes</td></tr>'}
- </tbody></table></div>`;
+  ${hasSched?'':'<p class="note">Esta persona aún no tiene horario asignado: se muestran marcajes y horas trabajadas.</p>'}</div>
+ <div class="card"><div class="cal">${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(x=>`<div class="dh">${x}</div>`).join('')}${cells.join('')}</div><p class="note" style="margin-bottom:0">Toca un día para ver sus marcajes y pedir un cambio.</p></div><div id="dd"></div>`;
+ if(selDay)dayDetail(selDay);
 }
+function pickDay(d){selDay=d;document.querySelectorAll('.day.sel').forEach(x=>x.classList.remove('sel'));const b=[...document.querySelectorAll('.day')].find(x=>x.getAttribute('onclick')==="pickDay('"+d+"')");if(b)b.classList.add('sel');dayDetail(d,true)}
+
+async function dayDetail(date,scroll){
+ const box=$('#dd');if(!box)return;box.innerHTML='<div class="card empty">Cargando…</div>';
+ const d0=new Date(date+'T00:00:00-05:00').toISOString(),d1=new Date(new Date(date+'T00:00:00-05:00').getTime()+864e5).toISOString();
+ const [dr,pr,rq]=await Promise.all([sb.rpc('att_daily',{p_user:viewUser,p_from:date,p_to:date}),
+  sb.from('att_punches').select('id,punched_at,source,voided,kind_override,note').eq('user_id',viewUser).gte('punched_at',d0).lt('punched_at',d1).order('punched_at'),
+  sb.from('att_change_requests').select('*').eq('user_id',viewUser).eq('work_date',date).order('created_at',{ascending:false})]);
+ if(dr.error){box.innerHTML=`<div class="card err">${esc(dr.error.message)}</div>`;return}
+ const r=(dr.data||[])[0]||{},punches=pr.data||[],reqs=rq.data||[];const [c,t]=dayState(r);
+ window._day={date,r};
+ const pendReq=reqs.find(x=>x.status==='pending'),own=viewUser===me.id;
+ const KIND={in:'Entrada',break_out:'Salida a refrigerio',break_in:'Regreso de refrigerio',out:'Salida'};
+ box.innerHTML=`<div class="card"><div class="row" style="justify-content:space-between"><h3>${dow(date)} ${esc(date.slice(8))}/${esc(date.slice(5,7))}/${esc(date.slice(0,4))} ${t?`<span class="chip ${c||'x'}" style="margin-left:6px;${c==='x'||c===''?'background:var(--line);color:var(--mut)':c==='b'?'background:var(--blb);color:var(--bl)':''}">${esc(r.status||t)}</span>`:''}</h3>
+  <span class="note">${r.sched_start?'Horario '+hhmm2(r.sched_start)+'–'+hhmm2(r.sched_end)+(r.sched_bo?' · refrigerio '+hhmm2(r.sched_bo)+'–'+hhmm2(r.sched_bi):''):esc(r.status||'')}</span></div>
+  <div class="slots">${SLOTS.map(([k,l,f,sf])=>`<div class="slot"><div class="l">${l}</div><div class="v">${r[f]?ft(r[f]):'–'}</div><div class="p">Horario: ${r[sf]?hhmm2(r[sf]):'–'}</div></div>`).join('')}</div>
+  <div class="kpis">${[['Trabajadas',r.punches?fm(r.worked_min):'–'],['Requeridas',r.day_type==='workday'?fm(r.required_min):'–'],['Tardanza',r.day_type==='workday'&&r.entrada?late(r):'–'],['Extras',r.day_type==='workday'&&r.extra_min?fm(r.extra_min):'–']].map(([l,v])=>`<div class="kpi"><div class="v" style="font-size:18px">${v}</div><div class="l">${l}</div></div>`).join('')}</div>
+  ${r.flag?`<p class="note">⚠ ${esc(r.flag)}</p>`:''}
+  <h3 style="margin-top:14px">Marcajes del día</h3>
+  ${punches.length?`<div class="tw"><table><thead><tr><th>Hora</th><th>Tipo</th><th>Origen</th><th>Nota</th></tr></thead><tbody>${punches.map(p=>`<tr style="${p.voided?'opacity:.5;text-decoration:line-through':''}"><td><b>${ft(p.punched_at)}</b></td><td>${p.kind_override?KIND[p.kind_override]:'<span class="mut">según el orden</span>'}</td><td>${p.source==='manual'?'Manual':'Equipo'}${p.voided?' · anulado':''}</td><td class="mut" style="white-space:normal">${esc(p.note||'')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="note">Sin marcajes este día.</p>'}
+  ${reqs.length?`<h3 style="margin-top:14px">Solicitudes de cambio</h3>${reqs.map(x=>`<div class="req"><div class="h"><span class="tag ${x.status}">${x.status==='pending'?'Pendiente':x.status==='approved'?'Aprobada':'Rechazada'}</span><b>${esc(x.reason)}</b></div><div class="pl">${esc(x.description)}</div><div class="pl mut">Propuesto: ${propText(x.proposed)}</div>${x.decision_note?`<div class="pl">Respuesta: ${esc(x.decision_note)}</div>`:''}</div>`).join('')}`:''}
+  <div class="row" style="margin-top:12px">${(own||isAdmin())&&date<=todayStr()&&!pendReq?`<button class="btn p" onclick="reqForm()">Solicitar cambio de marcaje</button>`:pendReq?'<span class="note">Hay una solicitud pendiente para este día.</span>':''}${isAdmin()?`<button class="btn" onclick="editForm()">✏️ Editar marcajes</button>`:''}</div></div>`;
+ if(scroll)box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+const hhmm2=t=>String(t).slice(0,5);
+const SL={in:'Entrada',bo:'Salida a refrigerio',bi:'Regreso de refrigerio',out:'Salida'};
+const propText=p=>Object.entries(p||{}).map(([k,v])=>`${SL[k]||k}: <b>${v||'borrar'}</b>`).join(' · ');
+function modal(html){const o=document.createElement('div');o.className='ov';o.id='modal';o.innerHTML='<div>'+html+'</div>';o.addEventListener('click',e=>{if(e.target===o)closeModal()});document.body.appendChild(o)}
+const closeModal=()=>{const o=$('#modal');if(o)o.remove()};
+const timeInputs=(pre)=>`<div class="slots">${SLOTS.map(([k,l,f])=>`<label class="slot"><div class="l">${l}</div><input type="time" id="t_${k}" value="${pre&&window._day.r[f]?hhmm(window._day.r[f]):''}" style="width:100%"></label>`).join('')}</div>`;
+function changedSlots(){const r=window._day.r,o={};SLOTS.forEach(([k,l,f])=>{const v=$('#t_'+k).value,cur=r[f]?hhmm(r[f]):'';if(v!==cur)o[k]=v||null});return o}
+
+function reqForm(){
+ modal(`<h3>Solicitar cambio de marcaje</h3><p class="note">${esc(window._day.date)} · Cambia solo la hora que corresponda; deja las demás como están.</p>${timeInputs(true)}
+ <label>Motivo *</label><select id="rM" style="width:100%"><option value="">Elige un motivo…</option>${REASONS.map(x=>`<option>${x}</option>`).join('')}</select>
+ <label style="display:block;margin-top:8px">Descripción del motivo *</label><textarea id="rD" placeholder="Cuéntanos qué pasó y a qué hora fue en realidad"></textarea>
+ <div class="err" id="rE"></div><div class="row"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn p" onclick="sendReq()">Enviar solicitud</button></div>`);
+}
+async function sendReq(){const m=$('#rM').value,d=$('#rD').value.trim(),sl=changedSlots();
+ if(!m){$('#rE').textContent='Elige el motivo';return}if(!d){$('#rE').textContent='Escribe la descripción del motivo';return}
+ if(!Object.keys(sl).length){$('#rE').textContent='Cambia al menos una hora';return}
+ const r=await sb.rpc('att_request_change',{p_date:window._day.date,p_reason:m,p_description:d,p_slots:sl,p_user:viewUser});
+ if(r.error){$('#rE').textContent=r.error.message;return}closeModal();dayDetail(window._day.date)}
+function editForm(){
+ modal(`<h3>Editar marcajes</h3><p class="note">${esc(nameOf(viewUser))} · ${esc(window._day.date)}. El cambio queda registrado con tu nombre y el motivo. Si vacías una hora, ese marcaje se borra.</p>${timeInputs(true)}
+ <label>Motivo del cambio *</label><textarea id="eR" placeholder="Por qué se corrige este día"></textarea>
+ <div class="err" id="eE"></div><div class="row"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn p" onclick="saveEdit()">Guardar cambios</button></div>`);
+}
+async function saveEdit(){const sl=changedSlots(),why=$('#eR').value.trim();
+ if(!Object.keys(sl).length){$('#eE').textContent='No cambiaste ninguna hora';return}if(!why){$('#eE').textContent='Escribe el motivo del cambio';return}
+ const r=await sb.rpc('att_edit_day',{p_user:viewUser,p_date:window._day.date,p_slots:sl,p_reason:why});
+ if(r.error){$('#eE').textContent=r.error.message;return}closeModal();if(mode==='month')viewMine();else dayDetail(window._day.date)}
+
+/* ---------- Solicitudes (administrador) ---------- */
+async function viewReqs(){
+ $('#v').innerHTML='<div class="empty">Cargando…</div>';
+ const r=await sb.from('att_change_requests').select('*').order('created_at',{ascending:false}).limit(60);
+ if(r.error){$('#v').innerHTML=`<div class="card err">${esc(r.error.message)}</div>`;return}
+ const all=r.data||[],pend=all.filter(x=>x.status==='pending'),done=all.filter(x=>x.status!=='pending').slice(0,15);
+ pendN=pend.length;
+ const card=x=>`<div class="req"><div class="h"><b>${esc(nameOf(x.user_id))}</b><span class="note">${x.work_date.slice(8)}/${x.work_date.slice(5,7)}/${x.work_date.slice(0,4)}</span><span class="tag ${x.status}">${x.status==='pending'?'Pendiente':x.status==='approved'?'Aprobada':'Rechazada'}</span></div>
+  <div class="pl" style="margin-top:6px"><b>Motivo:</b> ${esc(x.reason)}</div><div class="pl">${esc(x.description)}</div><div class="pl" style="margin-top:4px"><b>Pide:</b> ${propText(x.proposed)}</div>
+  ${x.decision_note?`<div class="pl mut">Respuesta: ${esc(x.decision_note)}</div>`:''}
+  ${x.status==='pending'?`<div class="row" style="margin-top:8px"><button class="btn p s" onclick="askApprove(${x.id})">Aprobar</button><button class="btn s r" onclick="askReject(${x.id})">Rechazar</button><button class="btn s" onclick="openDay('${x.user_id}','${x.work_date}')">Ver el día</button></div>`:''}</div>`;
+ window._reqs=all;
+ $('#v').innerHTML=`<div class="card"><h3>Solicitudes pendientes ${pend.length?`<span class="badge">${pend.length}</span>`:''}</h3>${pend.map(card).join('')||'<div class="empty">No hay solicitudes pendientes 🎉</div>'}</div>${done.length?`<div class="card"><h3>Resueltas recientemente</h3>${done.map(card).join('')}</div>`:''}`;
+ render_tabs_badge();
+}
+const render_tabs_badge=()=>{const b=[...document.querySelectorAll('.tabs button')].find(x=>x.textContent.startsWith('Solicitudes'));if(b)b.innerHTML='Solicitudes'+(pendN?`<span class="badge">${pendN}</span>`:'')};
+function openDay(u,d){viewUser=u;mode='month';month=d.slice(0,7);selDay=d;tab='mine';render()}
+function askApprove(id){const x=window._reqs.find(y=>y.id===id);
+ modal(`<h3>Aprobar solicitud</h3><div class="req"><b>${esc(nameOf(x.user_id))}</b> · ${x.work_date}<div class="pl"><b>Motivo:</b> ${esc(x.reason)}</div><div class="pl">${esc(x.description)}</div><div class="pl"><b>Se cambiará:</b> ${propText(x.proposed)}</div></div>
+ <p><b>¿Has leído correctamente la solicitud?</b><br><span class="note">Al confirmar, el marcaje de la persona se cambia y queda registrado.</span></p><div class="err" id="aE"></div>
+ <div class="row"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn p" onclick="doDecide(${id},true)">Confirmar</button></div>`)}
+function askReject(id){modal(`<h3>Rechazar solicitud</h3><label>Motivo del rechazo *</label><textarea id="jN" placeholder="Se lo enviaremos a la persona"></textarea><div class="err" id="aE"></div><div class="row"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn p" onclick="doDecide(${id},false)">Rechazar</button></div>`)}
+async function doDecide(id,ok){const note=ok?null:$('#jN').value.trim();if(!ok&&!note){$('#aE').textContent='Escribe el motivo del rechazo';return}
+ const r=await sb.rpc('att_decide_request',{p_id:id,p_approve:ok,p_note:note});if(r.error){$('#aE').textContent=r.error.message;return}closeModal();await countPend();viewReqs()}
 
 /* ---------- Empleados (solo administrador) ---------- */
 async function viewEmps(){
@@ -139,7 +253,7 @@ async function loadWeek(uid,date){
  if(rows.length&&rows[0].kind==='rotating')schedNote='Esta persona tiene un turno rotativo. Si guardas un horario semanal, reemplaza el turno rotativo desde la fecha elegida.';
  else if(rows.length)schedNote='Horario vigente desde el '+rows[0].valid_from+'.';
  else schedNote='Esta persona todavía no tiene horario asignado.';
- rows.filter(x=>x.start_time).forEach(x=>weekState[x.weekday]={on:true,s:hm5(x.start_time),e:hm5(x.end_time)});
+ rows.filter(x=>x.start_time).forEach(x=>weekState[x.weekday]={on:true,s:hm5(x.start_time),bs:hm5(x.break_start),be:hm5(x.break_end),e:hm5(x.end_time)});
 }
 async function viewSched(){
  const people=profiles.filter(p=>p.active!==false);if(!schedUser)schedUser=(people[0]||{}).id;
@@ -153,9 +267,9 @@ async function viewSched(){
  <div class="card"><h3>Horario semanal por colaborador</h3><div class="row" style="margin:8px 0"><select id="sU" onchange="schedUser=this.value;viewSched()">${opts(schedUser)}</select>
  <label>Rige desde <input id="sF" type="date" value="${schedFrom}" onchange="schedFrom=this.value;viewSched()"></label>
  <select id="sC" onchange="copyWeek(this.value)"><option value="">Copiar horario de…</option>${people.filter(p=>p.id!==schedUser).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
- <p class="note"><span id="sNote">${esc(schedNote)}</span> Los días anteriores a la fecha «Rige desde» conservan su horario anterior. Los días sin marcar son libres.</p>
- <div class="tw"><table class="wk"><thead><tr><th>Día</th><th>Trabaja</th><th>Entrada</th><th>Salida</th></tr></thead><tbody>
- ${WD.map(([n,l])=>{const w=weekState[n]||{on:false,s:'10:00',e:'19:00'};return`<tr><td>${l}</td><td><input type="checkbox" id="on${n}" ${w.on?'checked':''}></td><td><input type="time" id="s${n}" value="${w.s}"></td><td><input type="time" id="e${n}" value="${w.e}"></td></tr>`}).join('')}</tbody></table></div>
+ <p class="note">El cálculo usa estos cuatro horarios: lo requerido es la jornada menos el refrigerio; si la persona marca refrigerio se usa lo marcado. <span id="sNote">${esc(schedNote)}</span> Los días anteriores a la fecha «Rige desde» conservan su horario anterior. Los días sin marcar son libres.</p>
+ <div class="tw"><table class="wk"><thead><tr><th>Día</th><th>Trabaja</th><th>Entrada</th><th>Salida a refrigerio</th><th>Regreso de refrigerio</th><th>Salida</th></tr></thead><tbody>
+ ${WD.map(([n,l])=>{const w=weekState[n]||{on:false,s:'10:00',bs:'13:00',be:'14:00',e:'19:00'};return`<tr><td>${l}</td><td><input type="checkbox" id="on${n}" ${w.on?'checked':''}></td><td><input type="time" id="s${n}" value="${w.s}"></td><td><input type="time" id="bs${n}" value="${w.bs||''}"></td><td><input type="time" id="be${n}" value="${w.be||''}"></td><td><input type="time" id="e${n}" value="${w.e}"></td></tr>`}).join('')}</tbody></table></div>
  <div class="row" style="margin-top:10px"><button class="btn p" onclick="saveWeek()">Guardar horario</button><span class="err" id="sErr">${esc(schedMsg)}</span></div></div>
  <div class="card"><h3>Feriados y días especiales</h3><p class="note">Un feriado o día libre no exige horario ni cuenta tardanza. «Horario especial» cambia la hora de ese día.</p>
  <div class="row" style="margin:8px 0"><input id="oD" type="date"><select id="oW"><option value="">Todos</option>${opts('')}</select><select id="oK" onchange="document.getElementById('oT').style.display=this.value==='custom'?'flex':'none'"><option value="holiday">Feriado</option><option value="off">Día libre</option><option value="custom">Horario especial</option></select>
@@ -168,10 +282,13 @@ async function saveTol(){const d=parseInt($('#tD').value,10),m=parseInt($('#tM')
  if(r.error){$('#tOk').textContent='No se pudo guardar: '+r.error.message;return}
  cfg.late_threshold_min=d;cfg.monthly_tolerance_min=m;$('#tOk').textContent='✅ Guardado'}
 async function copyWeek(uid){if(!uid)return;await loadWeek(uid,schedFrom);
- WD.forEach(([n])=>{const w=weekState[n]||{on:false,s:'10:00',e:'19:00'};$('#on'+n).checked=!!w.on;$('#s'+n).value=w.s;$('#e'+n).value=w.e});
+ WD.forEach(([n])=>{const w=weekState[n]||{on:false,s:'10:00',bs:'13:00',be:'14:00',e:'19:00'};$('#on'+n).checked=!!w.on;$('#s'+n).value=w.s;$('#bs'+n).value=w.bs||'';$('#be'+n).value=w.be||'';$('#e'+n).value=w.e});
  $('#sNote').textContent='Copiado de '+nameOf(uid)+'. Revisa y pulsa Guardar horario.';$('#sC').value=''}
 async function saveWeek(){const days=[];schedMsg='';
- for(const [n,l] of WD){if($('#on'+n).checked){const s=$('#s'+n).value,e=$('#e'+n).value;if(!s||!e||e<=s){$('#sErr').textContent=l+': la salida debe ser mayor que la entrada';return}days.push({weekday:n,start:s,end:e})}}
+ for(const [n,l] of WD){if($('#on'+n).checked){const s=$('#s'+n).value,e=$('#e'+n).value,bs=$('#bs'+n).value,be=$('#be'+n).value;if(!s||!e||e<=s){$('#sErr').textContent=l+': la salida debe ser mayor que la entrada';return}
+  if(!!bs!==!!be){$('#sErr').textContent=l+': completa la salida y el regreso de refrigerio (o déjalos vacíos)';return}
+  if(bs&&(be<=bs||bs<s||be>e)){$('#sErr').textContent=l+': el refrigerio debe estar dentro del horario';return}
+  days.push({weekday:n,start:s,bs:bs||null,be:be||null,end:e})}}
  const from=$('#sF').value;if(!from){$('#sErr').textContent='Elige desde qué fecha rige';return}
  const r=await sb.rpc('att_set_user_week',{p_user:schedUser,p_from:from,p_days:days});
  if(r.error){$('#sErr').textContent=r.error.message;return}
