@@ -5,8 +5,8 @@
 <link rel="icon" href="../icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--bg:#f6f5f4;--card:#fff;--text:#2b2a2a;--mut:#706f6f;--line:#e6e3e1;--acc:#F94C1B;--gr:#1a9b50;--or:#e08a00;--rd:#d6361f;--bl:#2f6fdb;--blb:#e4edfc;--grb:#e3f5ea;--orb:#fff1d6;--rdb:#fde4df;--sh:0 4px 20px rgba(60,40,30,.08)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161515;--card:#232120;--text:#f1eeec;--mut:#a5a09d;--line:#38342f;--bl:#6aa2ff;--blb:#182a47;--grb:#16331f;--orb:#3a2c0e;--rdb:#3d1d17;--sh:0 4px 24px rgba(0,0,0,.45)}}
+:root{--bg:#f6f5f4;--card:#fff;--text:#2b2a2a;--mut:#706f6f;--line:#e6e3e1;--acc:#F94C1B;--gr:#1a9b50;--or:#e08a00;--rd:#d6361f;--bl:#2f6fdb;--blb:#e4edfc;--pu:#7a45d1;--pub:#efe6fb;--grb:#e3f5ea;--orb:#fff1d6;--rdb:#fde4df;--sh:0 4px 20px rgba(60,40,30,.08)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161515;--card:#232120;--text:#f1eeec;--mut:#a5a09d;--line:#38342f;--bl:#6aa2ff;--blb:#182a47;--pu:#b08cf2;--pub:#2b2142;--grb:#16331f;--orb:#3a2c0e;--rdb:#3d1d17;--sh:0 4px 24px rgba(0,0,0,.45)}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 .brandbar{height:4px;background:linear-gradient(90deg,var(--acc),#F5B731);position:fixed;top:0;left:0;right:0;z-index:6}
 header{display:flex;align-items:center;gap:10px;max-width:1100px;margin:0 auto;padding:16px 16px 0}
@@ -35,15 +35,17 @@ h3{margin:0 0 4px;font-size:16px}.ok{color:var(--gr);font-size:13px;min-height:1
 .day{border:1px solid var(--line);border-radius:12px;min-height:74px;padding:6px 7px;background:var(--card);cursor:pointer;display:flex;flex-direction:column;gap:4px;text-align:left;font:inherit;color:var(--text)}
 .day:hover{border-color:var(--acc)}.day.sel{outline:2px solid var(--acc)}.day.blank{visibility:hidden}.day .n{font-weight:700;font-size:13px;display:flex;justify-content:space-between}
 .day .st{font-size:11px;font-weight:600;border-radius:8px;padding:2px 6px;align-self:flex-start;line-height:1.25}
-.day.g{background:var(--grb)}.day.o{background:var(--orb)}.day.r{background:var(--rdb)}.day.b{background:var(--blb)}.day.x{opacity:.55}
+.day.p{background:var(--pub)}.day.z{background:var(--rdb);border-style:dashed;border-color:var(--rd)}.day.g{background:var(--grb)}.day.o{background:var(--orb)}.day.r{background:var(--rdb)}.day.b{background:var(--blb)}.day.x{opacity:.55}
 .st.g{background:var(--gr);color:#fff}.st.o{background:var(--or);color:#fff}.st.r{background:var(--rd);color:#fff}.st.b{background:var(--bl);color:#fff}.st.x{background:var(--line);color:var(--mut)}
-.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0}.slot{border:1px solid var(--line);border-radius:12px;padding:10px}.slot .l{font-size:12px;color:var(--mut)}.slot .v{font-size:20px;font-weight:700}.slot .p{font-size:12px;color:var(--mut)}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}.slot{border:1px solid var(--line);border-radius:12px;padding:10px}.slot .l{font-size:12px;color:var(--mut)}.slot .v{font-size:20px;font-weight:700}.slot .p{font-size:12px;color:var(--mut)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}.seg button{border:0;background:var(--card);color:var(--text);padding:7px 16px}.seg button.on{background:var(--acc);color:#fff;font-weight:600}
 .badge{background:var(--acc);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;margin-left:6px}
 textarea{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%;min-height:80px}
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:20;padding:16px}.ov>div{background:var(--card);border-radius:16px;padding:18px;max-width:460px;width:100%;box-shadow:var(--sh);max-height:90vh;overflow:auto}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:20;padding:16px}.ov>div{background:var(--card);border-radius:16px;padding:18px;max-width:540px;width:100%;box-shadow:var(--sh);max-height:90vh;overflow:auto}
 .ov h3{margin-bottom:8px}.req{border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}.req .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.tag{font-size:12px;border-radius:99px;padding:2px 10px;font-weight:600}.tag.pending{background:var(--orb);color:var(--or)}.tag.approved{background:var(--grb);color:var(--gr)}.tag.rejected{background:var(--rdb);color:var(--rd)}
+.tag{font-size:12px;border-radius:99px;padding:2px 10px;font-weight:600}.chip.p{background:var(--pub);color:var(--pu)}.chip.z{background:var(--rdb);color:var(--rd)}.tag.pending{background:var(--orb);color:var(--or)}.tag.approved{background:var(--grb);color:var(--gr)}.tag.rejected{background:var(--rdb);color:var(--rd)}
+.lg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:10px}.lg i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:5px;vertical-align:-2px;border:1px solid var(--line)}.lg i.g{background:var(--gr)}.lg i.o{background:var(--or)}.lg i.r{background:var(--rd)}.lg i.p{background:var(--pu)}.lg i.z{background:var(--rdb);border:1px dashed var(--rd)}.lg i.b{background:var(--bl)}.lg i.x{background:var(--line)}
+.day .tm{font-size:11px;color:var(--mut)}
 .pl{font-size:13px}.pl .v{text-decoration:line-through;color:var(--mut)}
 @media(max-width:560px){.day{min-height:58px;padding:4px}.day .st{font-size:10px;padding:1px 4px}}.btn.r{color:var(--rd)}.sw{display:flex;align-items:center;gap:6px}.sw input{width:auto}
 </style></head><body>
@@ -109,17 +111,16 @@ const go=t=>{tab=t;render()};
 const todayStr=()=>new Date().toLocaleDateString('sv',{timeZone:TZ});
 const pad=n=>String(n).padStart(2,'0');
 const monthLast=m=>new Date(Date.UTC(+m.slice(0,4),+m.slice(5,7),0)).toISOString().slice(0,10);
-const REASONS=['Olvidé marcar','Falla del equipo','Marcaje equivocado','Permiso autorizado','Otro'];
 const SLOTS=[['in','Entrada','entrada','sched_start'],['bo','Salida a refrigerio','salida_refri','sched_bo'],['bi','Regreso de refrigerio','ingreso_refri','sched_bi'],['out','Salida','salida','sched_end']];
 const hhmm=t=>t?ft(t):'';
-function dayState(r,pend){
- // estado corto para el calendario: [clase, texto]
- if(r.day_type==='holiday')return['b','Feriado'];if(r.day_type==='off')return['x','Libre'];
+function dayState(r){
+ // [clase de color, texto]. En el calendario solo se muestra el color; el texto queda como ayuda al pasar el cursor y en el detalle.
+ if(r.day_type==='holiday')return['b','Feriado'];if(r.day_type==='off')return['x','Día libre'];
  if(r.day_type==='none')return r.punches?['o','Sin horario']:['',''];
- if(r.status==='Pendiente'||r.status==='Sin entrada aún')return['x',r.status==='Pendiente'?'':'Sin entrada'];
+ if(r.status==='Pendiente')return['x','Pendiente'];if(r.status==='Sin entrada aún')return['x','Sin entrada aún'];
  if(r.status==='En curso')return['b','En curso'];
- if(r.status==='Sin registro')return['r','Sin registro'];
- if(r.status==='Refrigerio incompleto')return['o','Refrigerio'];
+ if(r.status==='Sin registro')return['z','Sin registro'];
+ if(r.status==='Incompleto'||r.status==='Refrigerio incompleto')return['p',r.status];
  const m=r.late_min||0;return[m===0?'g':m<=cfg.late_threshold_min?'o':'r',m===0?'Puntual':'Tarde '+fm(m)];
 }
 async function viewMine(){
@@ -138,13 +139,14 @@ async function viewMine(){
  const kp=(v,l)=>`<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`;
  const off=(new Date(first+'T12:00:00Z').getUTCDay()+6)%7;
  const cells=[...Array(off).fill('<div class="day blank"></div>'),...rows.map(r=>{const [c,t]=dayState(r);const dn=+r.work_date.slice(8);
-  return`<button class="day ${c} ${selDay===r.work_date?'sel':''}" onclick="pickDay('${r.work_date}')"><span class="n">${dn}${pend.has(r.work_date)?'<span title="Solicitud pendiente">⏳</span>':''}</span>${t?`<span class="st ${c}">${esc(t)}</span>`:''}</button>`})];
+  return`<button class="day ${c} ${selDay===r.work_date?'sel':''}" title="${esc(t)}" aria-label="${dn}: ${esc(t||'sin información')}" onclick="pickDay('${r.work_date}')"><span class="n">${dn}${pend.has(r.work_date)?'<span title="Solicitud pendiente">⏳</span>':''}</span></button>`})];
  $('#res').innerHTML=`<div class="card"><div class="kpis">
   ${kp(fm(k.worked_min),'Trabajado en el mes')}${kp(hasSched?fm(k.required_to_date_min):'–','Requerido a la fecha')}${kp(hasSched?fm(k.diff_min):'–','Diferencia')}${kp(hasSched?pc(k.compliance):'–','Cumplimiento')}
   ${kp(fm(k.late_total_min),'Tardanza acumulada')}${kp(hasSched?fm(k.tolerance_min):'–','Tolerancia mensual')}${kp(fm(k.late_excess_min),'Fuera de tolerancia')}${kp(fm(k.extra_total_min),'Horas extras')}
   ${kp(hasSched?pc(k.punctuality):'–','Puntualidad')}${kp(`<span class="chip g">${k.days_green||0}</span> <span class="chip o">${k.days_orange||0}</span> <span class="chip r">${k.days_red||0}</span>`,'Días verde · naranja · rojo')}</div>
   ${hasSched?'':'<p class="note">Esta persona aún no tiene horario asignado: se muestran marcajes y horas trabajadas.</p>'}</div>
- <div class="card"><div class="cal">${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(x=>`<div class="dh">${x}</div>`).join('')}${cells.join('')}</div><p class="note" style="margin-bottom:0">Toca un día para ver sus marcajes y pedir un cambio.</p></div><div id="dd"></div>`;
+ <div class="card"><div class="cal">${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(x=>`<div class="dh">${x}</div>`).join('')}${cells.join('')}</div><div class="lg"><span><i class="g"></i>Puntual</span><span><i class="o"></i>Tarde (hasta ${cfg.late_threshold_min} min)</span><span><i class="r"></i>Tarde (más de ${cfg.late_threshold_min} min)</span><span><i class="p"></i>Marcajes incompletos</span><span><i class="z"></i>Sin registro</span><span><i class="b"></i>Feriado / en curso</span><span><i class="x"></i>Libre / pendiente</span></div>
+ <p class="note" style="margin-bottom:0">Toca un día para ver sus marcajes${isAdmin()?'':' y pedir un cambio'}.</p></div><div id="dd"></div>`;
  if(selDay)dayDetail(selDay);
 }
 function pickDay(d){selDay=d;document.querySelectorAll('.day.sel').forEach(x=>x.classList.remove('sel'));const b=[...document.querySelectorAll('.day')].find(x=>x.getAttribute('onclick')==="pickDay('"+d+"')");if(b)b.classList.add('sel');dayDetail(d,true)}
@@ -158,17 +160,17 @@ async function dayDetail(date,scroll){
  if(dr.error){box.innerHTML=`<div class="card err">${esc(dr.error.message)}</div>`;return}
  const r=(dr.data||[])[0]||{},punches=pr.data||[],reqs=rq.data||[];const [c,t]=dayState(r);
  window._day={date,r};
- const pendReq=reqs.find(x=>x.status==='pending'),own=viewUser===me.id;
+ const pendSlots=new Set(reqs.filter(x=>x.status==='pending').map(x=>x.slot||Object.keys(x.proposed||{})[0])),own=viewUser===me.id&&!isAdmin(),canReq=own&&date<=todayStr();
  const KIND={in:'Entrada',break_out:'Salida a refrigerio',break_in:'Regreso de refrigerio',out:'Salida'};
  box.innerHTML=`<div class="card"><div class="row" style="justify-content:space-between"><h3>${dow(date)} ${esc(date.slice(8))}/${esc(date.slice(5,7))}/${esc(date.slice(0,4))} ${t?`<span class="chip ${c||'x'}" style="margin-left:6px;${c==='x'||c===''?'background:var(--line);color:var(--mut)':c==='b'?'background:var(--blb);color:var(--bl)':''}">${esc(r.status||t)}</span>`:''}</h3>
   <span class="note">${r.sched_start?'Horario '+hhmm2(r.sched_start)+'–'+hhmm2(r.sched_end)+(r.sched_bo?' · refrigerio '+hhmm2(r.sched_bo)+'–'+hhmm2(r.sched_bi):''):esc(r.status||'')}</span></div>
-  <div class="slots">${SLOTS.map(([k,l,f,sf])=>`<div class="slot"><div class="l">${l}</div><div class="v">${r[f]?ft(r[f]):'–'}</div><div class="p">Horario: ${r[sf]?hhmm2(r[sf]):'–'}</div></div>`).join('')}</div>
+  <div class="slots">${SLOTS.map(([k,l,f,sf])=>`<div class="slot"><div class="l">${l}</div><div class="v">${r[f]?ft(r[f]):'–'}</div><div class="p">Horario: ${r[sf]?hhmm2(r[sf]):'–'}</div>${canReq?(pendSlots.has(k)?'<div style="margin-top:6px"><span class="tag pending">⏳ Solicitud pendiente</span></div>':`<div style="margin-top:6px"><button class="btn s" onclick="slotReq('${k}')">Solicitar cambio</button></div>`):''}</div>`).join('')}</div>
   <div class="kpis">${[['Trabajadas',r.punches?fm(r.worked_min):'–'],['Requeridas',r.day_type==='workday'?fm(r.required_min):'–'],['Tardanza',r.day_type==='workday'&&r.entrada?late(r):'–'],['Extras',r.day_type==='workday'&&r.extra_min?fm(r.extra_min):'–']].map(([l,v])=>`<div class="kpi"><div class="v" style="font-size:18px">${v}</div><div class="l">${l}</div></div>`).join('')}</div>
   ${r.flag?`<p class="note">⚠ ${esc(r.flag)}</p>`:''}
   <h3 style="margin-top:14px">Marcajes del día</h3>
   ${punches.length?`<div class="tw"><table><thead><tr><th>Hora</th><th>Tipo</th><th>Origen</th><th>Nota</th></tr></thead><tbody>${punches.map(p=>`<tr style="${p.voided?'opacity:.5;text-decoration:line-through':''}"><td><b>${ft(p.punched_at)}</b></td><td>${p.kind_override?KIND[p.kind_override]:'<span class="mut">según el orden</span>'}</td><td>${p.source==='manual'?'Manual':'Equipo'}${p.voided?' · anulado':''}</td><td class="mut" style="white-space:normal">${esc(p.note||'')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="note">Sin marcajes este día.</p>'}
-  ${reqs.length?`<h3 style="margin-top:14px">Solicitudes de cambio</h3>${reqs.map(x=>`<div class="req"><div class="h"><span class="tag ${x.status}">${x.status==='pending'?'Pendiente':x.status==='approved'?'Aprobada':'Rechazada'}</span><b>${esc(x.reason)}</b></div><div class="pl">${esc(x.description)}</div><div class="pl mut">Propuesto: ${propText(x.proposed)}</div>${x.decision_note?`<div class="pl">Respuesta: ${esc(x.decision_note)}</div>`:''}</div>`).join('')}`:''}
-  <div class="row" style="margin-top:12px">${(own||isAdmin())&&date<=todayStr()&&!pendReq?`<button class="btn p" onclick="reqForm()">Solicitar cambio de marcaje</button>`:pendReq?'<span class="note">Hay una solicitud pendiente para este día.</span>':''}${isAdmin()?`<button class="btn" onclick="editForm()">✏️ Editar marcajes</button>`:''}</div></div>`;
+  ${own?'<p class="note">Cada marcaje que quieras corregir lleva su propia solicitud.</p>':''}${reqs.length?`<h3 style="margin-top:14px">Solicitudes de cambio</h3>${reqs.map(x=>`<div class="req"><div class="h"><span class="tag ${x.status}">${x.status==='pending'?'Pendiente':x.status==='approved'?'Aprobada':'Rechazada'}</span><b>${esc(x.reason)}</b></div><div class="pl">${esc(x.description)}</div><div class="pl mut">Pedido: ${propText(x.proposed)}</div>${x.decision_note?`<div class="pl">Respuesta: ${esc(x.decision_note)}</div>`:''}</div>`).join('')}`:''}
+  <div class="row" style="margin-top:12px">${isAdmin()?`<button class="btn" onclick="editForm()">✏️ Editar marcajes</button>`:''}</div></div>`;
  if(scroll)box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 const hhmm2=t=>String(t).slice(0,5);
@@ -176,26 +178,32 @@ const SL={in:'Entrada',bo:'Salida a refrigerio',bi:'Regreso de refrigerio',out:'
 const propText=p=>Object.entries(p||{}).map(([k,v])=>`${SL[k]||k}: <b>${v||'borrar'}</b>`).join(' · ');
 function modal(html){const o=document.createElement('div');o.className='ov';o.id='modal';o.innerHTML='<div>'+html+'</div>';o.addEventListener('click',e=>{if(e.target===o)closeModal()});document.body.appendChild(o)}
 const closeModal=()=>{const o=$('#modal');if(o)o.remove()};
-const timeInputs=(pre)=>`<div class="slots">${SLOTS.map(([k,l,f])=>`<label class="slot"><div class="l">${l}</div><input type="time" id="t_${k}" value="${pre&&window._day.r[f]?hhmm(window._day.r[f]):''}" style="width:100%"></label>`).join('')}</div>`;
+const timeInputs=(pre)=>{const mx=window._day.date===todayStr()?nowHM():'';return`<div class="slots">${SLOTS.map(([k,l,f])=>`<label class="slot"><div class="l">${l}</div><input type="time" id="t_${k}" value="${pre&&window._day.r[f]?hhmm(window._day.r[f]):''}" ${mx?`max="${mx}"`:''} style="width:100%"></label>`).join('')}</div>`};
 function changedSlots(){const r=window._day.r,o={};SLOTS.forEach(([k,l,f])=>{const v=$('#t_'+k).value,cur=r[f]?hhmm(r[f]):'';if(v!==cur)o[k]=v||null});return o}
 
-function reqForm(){
- modal(`<h3>Solicitar cambio de marcaje</h3><p class="note">${esc(window._day.date)} · Cambia solo la hora que corresponda; deja las demás como están.</p>${timeInputs(true)}
- <label>Motivo *</label><select id="rM" style="width:100%"><option value="">Elige un motivo…</option>${REASONS.map(x=>`<option>${x}</option>`).join('')}</select>
- <label style="display:block;margin-top:8px">Descripción del motivo *</label><textarea id="rD" placeholder="Cuéntanos qué pasó y a qué hora fue en realidad"></textarea>
+const nowHM=()=>new Date().toLocaleTimeString('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false});
+function slotReq(k){
+ const sl=SLOTS.find(x=>x[0]===k),r=window._day.r,cur=r[sl[2]]?hhmm(r[sl[2]]):'',mx=window._day.date===todayStr()?nowHM():'';
+ window._slot=k;
+ modal(`<h3>Solicitar cambio: ${sl[1]}</h3><p class="note">${esc(window._day.date)} · Marcaje actual: <b>${cur||'sin marcaje'}</b></p>
+ <label>Hora correcta *</label><input type="time" id="rT" value="${cur}" ${mx?`max="${mx}"`:''} style="width:100%">
+ <label style="display:block;margin-top:8px">Motivo *</label><input id="rM" maxlength="80" placeholder="Escribe el motivo" style="width:100%">
+ <label style="display:block;margin-top:8px">Descripción del motivo *</label><textarea id="rD" placeholder="Cuéntanos qué pasó y por qué la hora es esa"></textarea>
  <div class="err" id="rE"></div><div class="row"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn p" onclick="sendReq()">Enviar solicitud</button></div>`);
 }
-async function sendReq(){const m=$('#rM').value,d=$('#rD').value.trim(),sl=changedSlots();
- if(!m){$('#rE').textContent='Elige el motivo';return}if(!d){$('#rE').textContent='Escribe la descripción del motivo';return}
- if(!Object.keys(sl).length){$('#rE').textContent='Cambia al menos una hora';return}
- const r=await sb.rpc('att_request_change',{p_date:window._day.date,p_reason:m,p_description:d,p_slots:sl,p_user:viewUser});
- if(r.error){$('#rE').textContent=r.error.message;return}closeModal();dayDetail(window._day.date)}
+async function sendReq(){const t=$('#rT').value,m=$('#rM').value.trim(),d=$('#rD').value.trim(),date=window._day.date;
+ if(!t){$('#rE').textContent='Escribe la hora correcta';return}
+ if(date>todayStr()||(date===todayStr()&&t>nowHM())){$('#rE').textContent='No puedes pedir un cambio con fecha u hora futura';return}
+ if(!m){$('#rE').textContent='Escribe el motivo';return}if(!d){$('#rE').textContent='Escribe la descripción del motivo';return}
+ const r=await sb.rpc('att_request_change',{p_date:date,p_slot:window._slot,p_time:t,p_reason:m,p_description:d});
+ if(r.error){$('#rE').textContent=r.error.message;return}closeModal();dayDetail(date)}
 function editForm(){
  modal(`<h3>Editar marcajes</h3><p class="note">${esc(nameOf(viewUser))} · ${esc(window._day.date)}. El cambio queda registrado con tu nombre y el motivo. Si vacías una hora, ese marcaje se borra.</p>${timeInputs(true)}
  <label>Motivo del cambio *</label><textarea id="eR" placeholder="Por qué se corrige este día"></textarea>
  <div class="err" id="eE"></div><div class="row"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn p" onclick="saveEdit()">Guardar cambios</button></div>`);
 }
 async function saveEdit(){const sl=changedSlots(),why=$('#eR').value.trim();
+ if(window._day.date===todayStr()&&Object.values(sl).some(v=>v&&v>nowHM())){$('#eE').textContent='No se pueden dejar marcajes con hora futura';return}
  if(!Object.keys(sl).length){$('#eE').textContent='No cambiaste ninguna hora';return}if(!why){$('#eE').textContent='Escribe el motivo del cambio';return}
  const r=await sb.rpc('att_edit_day',{p_user:viewUser,p_date:window._day.date,p_slots:sl,p_reason:why});
  if(r.error){$('#eE').textContent=r.error.message;return}closeModal();if(mode==='month')viewMine();else dayDetail(window._day.date)}
@@ -243,56 +251,68 @@ async function unlink(id){if(!confirm('¿Quitar el ID del equipo de '+nameOf(id)
  err='';const r=await sb.rpc('att_unlink_employee',{p_user:id});if(r.error)err=r.error.message;await loadEmps();viewEmps()}
 
 /* ---------- Horarios y tolerancias (solo administrador) ---------- */
-let schedUser=null,schedFrom=new Date().toLocaleDateString('sv',{timeZone:TZ}),weekState={},schedMsg='',schedNote='',ovr=[];
-const WD=[[1,'Lunes'],[2,'Martes'],[3,'Miércoles'],[4,'Jueves'],[5,'Viernes'],[6,'Sábado'],[7,'Domingo']];
+let schedUser=null,schMonth=new Date().toLocaleDateString('sv',{timeZone:TZ}).slice(0,7),schRows=[],ovr=[];
+const WD=[[1,'Lun'],[2,'Mar'],[3,'Mié'],[4,'Jue'],[5,'Vie'],[6,'Sáb'],[7,'Dom']];
 const hm5=t=>t?String(t).slice(0,5):'';
-async function loadWeek(uid,date){
- weekState={};schedNote='';
- const r=await sb.rpc('att_user_week',{p_user:uid,p_date:date});
- const rows=r.data||[];
- if(rows.length&&rows[0].kind==='rotating')schedNote='Esta persona tiene un turno rotativo. Si guardas un horario semanal, reemplaza el turno rotativo desde la fecha elegida.';
- else if(rows.length)schedNote='Horario vigente desde el '+rows[0].valid_from+'.';
- else schedNote='Esta persona todavía no tiene horario asignado.';
- rows.filter(x=>x.start_time).forEach(x=>weekState[x.weekday]={on:true,s:hm5(x.start_time),bs:hm5(x.break_start),be:hm5(x.break_end),e:hm5(x.end_time)});
-}
+const isoDow=d=>((new Date(d+'T12:00:00Z').getUTCDay()+6)%7)+1;
+function shiftMonth(n){const [y,m]=schMonth.split('-').map(Number);const d=new Date(Date.UTC(y,m-1+n,1));schMonth=d.toISOString().slice(0,7);viewSched()}
 async function viewSched(){
  const people=profiles.filter(p=>p.active!==false);if(!schedUser)schedUser=(people[0]||{}).id;
  $('#v').innerHTML='<div class="empty">Cargando…</div>';
- await loadWeek(schedUser,schedFrom);
- const o=await sb.from('att_day_overrides').select('*').order('work_date',{ascending:false}).limit(60);ovr=o.data||[];
+ const first=schMonth+'-01',last=monthLast(schMonth);
+ const [d,o]=await Promise.all([sb.rpc('att_daily',{p_user:schedUser,p_from:first,p_to:last}),sb.from('att_day_overrides').select('*').order('work_date',{ascending:false}).limit(60)]);
+ schRows=d.data||[];ovr=o.data||[];
  const opts=sel=>people.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''}>${esc(p.name)}</option>`).join('');
+ const off=(new Date(first+'T12:00:00Z').getUTCDay()+6)%7;
+ const cells=[...Array(off).fill('<div class="day blank"></div>'),...schRows.map(r=>{
+  const wk=r.day_type==='workday',c=wk?'b':r.day_type==='off'?'x':r.day_type==='holiday'?'b':'';
+  const txt=wk?hm5(r.sched_start)+'–'+hm5(r.sched_end):r.day_type==='off'?'Libre':r.day_type==='holiday'?'Feriado':'—';
+  const gl=r.day_type==='holiday';
+  return`<button class="day ${c}" ${gl?'disabled style="cursor:default"':''} onclick="dayEd('${r.work_date}')"><span class="n">${+r.work_date.slice(8)}</span><span class="tm">${txt}</span>${wk&&r.sched_bo?`<span class="tm">☕ ${hm5(r.sched_bo)}–${hm5(r.sched_bi)}</span>`:''}</button>`})];
+ const nm=new Date(first+'T12:00:00Z').toLocaleDateString('es-CO',{month:'long',year:'numeric',timeZone:'UTC'});
  $('#v').innerHTML=`
- <div class="card"><h3>Tolerancias de tardanza</h3><p class="note">Diaria: hasta estos minutos la tardanza se marca naranja; más que eso, roja (0 minutos es verde). Mensual: minutos de tardanza acumulada que se toleran en el mes.</p>
+ <div class="card"><h3>Tolerancias de tardanza</h3><p class="note">Por día: hasta estos minutos la tardanza se marca naranja; más que eso, roja (0 minutos es verde). Por mes: minutos de tardanza acumulada que se toleran en el mes.</p>
  <div class="row"><label>Por día (min) <input id="tD" type="number" min="0" max="240" value="${cfg.late_threshold_min}"></label><label>Por mes (min) <input id="tM" type="number" min="0" max="2000" value="${cfg.monthly_tolerance_min}"></label><button class="btn p" onclick="saveTol()">Guardar tolerancias</button><span class="ok" id="tOk"></span></div></div>
- <div class="card"><h3>Horario semanal por colaborador</h3><div class="row" style="margin:8px 0"><select id="sU" onchange="schedUser=this.value;viewSched()">${opts(schedUser)}</select>
- <label>Rige desde <input id="sF" type="date" value="${schedFrom}" onchange="schedFrom=this.value;viewSched()"></label>
- <select id="sC" onchange="copyWeek(this.value)"><option value="">Copiar horario de…</option>${people.filter(p=>p.id!==schedUser).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
- <p class="note">El cálculo usa estos cuatro horarios: lo requerido es la jornada menos el refrigerio; si la persona marca refrigerio se usa lo marcado. <span id="sNote">${esc(schedNote)}</span> Los días anteriores a la fecha «Rige desde» conservan su horario anterior. Los días sin marcar son libres.</p>
- <div class="tw"><table class="wk"><thead><tr><th>Día</th><th>Trabaja</th><th>Entrada</th><th>Salida a refrigerio</th><th>Regreso de refrigerio</th><th>Salida</th></tr></thead><tbody>
- ${WD.map(([n,l])=>{const w=weekState[n]||{on:false,s:'10:00',bs:'13:00',be:'14:00',e:'19:00'};return`<tr><td>${l}</td><td><input type="checkbox" id="on${n}" ${w.on?'checked':''}></td><td><input type="time" id="s${n}" value="${w.s}"></td><td><input type="time" id="bs${n}" value="${w.bs||''}"></td><td><input type="time" id="be${n}" value="${w.be||''}"></td><td><input type="time" id="e${n}" value="${w.e}"></td></tr>`}).join('')}</tbody></table></div>
- <div class="row" style="margin-top:10px"><button class="btn p" onclick="saveWeek()">Guardar horario</button><span class="err" id="sErr">${esc(schedMsg)}</span></div></div>
- <div class="card"><h3>Feriados y días especiales</h3><p class="note">Un feriado o día libre no exige horario ni cuenta tardanza. «Horario especial» cambia la hora de ese día.</p>
- <div class="row" style="margin:8px 0"><input id="oD" type="date"><select id="oW"><option value="">Todos</option>${opts('')}</select><select id="oK" onchange="document.getElementById('oT').style.display=this.value==='custom'?'flex':'none'"><option value="holiday">Feriado</option><option value="off">Día libre</option><option value="custom">Horario especial</option></select>
- <span id="oT" class="row" style="display:none"><input id="oS" type="time" value="10:00"><input id="oE" type="time" value="14:00"></span><input id="oN" placeholder="Nota (opcional)"><button class="btn p" onclick="addOvr()">Agregar</button></div><div class="err" id="oErr"></div>
- <div class="tw"><table><thead><tr><th>Fecha</th><th>Aplica a</th><th>Tipo</th><th>Nota</th><th></th></tr></thead><tbody>${ovr.map(x=>`<tr><td>${x.work_date}</td><td>${x.user_id?esc(nameOf(x.user_id)):'Todos'}</td><td>${x.kind==='holiday'?'Feriado':x.kind==='off'?'Día libre':'Horario '+hm5(x.start_time)+'–'+hm5(x.end_time)}</td><td class="mut">${esc(x.note||'')}</td><td><button class="btn s r" onclick="delOvr(${x.id})">Quitar</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">Sin feriados cargados</td></tr>'}</tbody></table></div></div>`;
+ <div class="card"><h3>Horario del mes por colaborador</h3><p class="note">Toca un día para fijar su Entrada, Salida a refrigerio, Regreso de refrigerio y Salida, o para marcarlo como libre. Puedes editarlo cuando quieras.</p>
+ <div class="row" style="margin:8px 0"><select id="sU" onchange="schedUser=this.value;viewSched()">${opts(schedUser)}</select>
+ <button class="btn s" onclick="shiftMonth(-1)" aria-label="Mes anterior">‹</button><b style="min-width:140px;text-align:center;text-transform:capitalize">${esc(nm)}</b><button class="btn s" onclick="shiftMonth(1)" aria-label="Mes siguiente">›</button></div>
+ <div class="cal">${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(x=>`<div class="dh">${x}</div>`).join('')}${cells.join('')}</div>
+ <div class="lg"><span><i class="b"></i>Con horario</span><span><i class="x"></i>Libre</span><span><i style="background:var(--card)"></i>Sin horario</span></div></div>
+ <div class="card"><h3>Feriados y días especiales</h3><p class="note">Un feriado para todos o un día libre de una persona. No exige horario ni cuenta tardanza.</p>
+ <div class="row" style="margin:8px 0"><input id="oD" type="date"><select id="oW"><option value="">Todos</option>${opts('')}</select><select id="oK"><option value="holiday">Feriado</option><option value="off">Día libre</option></select><input id="oN" placeholder="Nota (opcional)"><button class="btn p" onclick="addOvr()">Agregar</button></div><div class="err" id="oErr"></div>
+ <div class="tw"><table><thead><tr><th>Fecha</th><th>Aplica a</th><th>Tipo</th><th>Nota</th><th></th></tr></thead><tbody>${ovr.filter(x=>x.kind!=='custom').map(x=>`<tr><td>${x.work_date}</td><td>${x.user_id?esc(nameOf(x.user_id)):'Todos'}</td><td>${x.kind==='holiday'?'Feriado':'Día libre'}</td><td class="mut">${esc(x.note||'')}</td><td><button class="btn s r" onclick="delOvr(${x.id})">Quitar</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">Sin feriados cargados</td></tr>'}</tbody></table></div></div>`;
 }
+function dayEd(date){
+ const r=schRows.find(x=>x.work_date===date)||{},wk=r.day_type==='workday',kind=wk?'work':r.day_type==='off'?'off':'clear';
+ const v=(x,def)=>wk&&x?hm5(x):(wk?'':def);
+ modal(`<h3>${esc(nameOf(schedUser))}</h3><p class="note">${dow(date)} ${esc(date.slice(8))}/${esc(date.slice(5,7))}/${esc(date.slice(0,4))}</p>
+ <div class="row" style="margin-bottom:8px">${[['work','Trabaja'],['off','Día libre'],['clear','Sin horario']].map(([k,l])=>`<label class="sw"><input type="radio" name="dk" value="${k}" ${kind===k?'checked':''} onchange="dkToggle()"> ${l}</label>`).join('')}</div>
+ <div id="dkT" class="slots" style="${kind==='work'?'':'display:none'}">
+  <label class="slot"><div class="l">Entrada</div><input type="time" id="h_s" value="${v(r.sched_start,'10:00')}" style="width:100%"></label>
+  <label class="slot"><div class="l">Salida a refrigerio</div><input type="time" id="h_bs" value="${v(r.sched_bo,'13:00')}" style="width:100%"></label>
+  <label class="slot"><div class="l">Regreso de refrigerio</div><input type="time" id="h_be" value="${v(r.sched_bi,'14:00')}" style="width:100%"></label>
+  <label class="slot"><div class="l">Salida</div><input type="time" id="h_e" value="${v(r.sched_end,'19:00')}" style="width:100%"></label></div>
+ <p class="note" style="margin:6px 0 4px">Aplicar lo mismo a todos estos días del mes (opcional):</p>
+ <div class="row" style="gap:12px">${WD.map(([n,l])=>`<label class="sw"><input type="checkbox" class="dw" value="${n}"> ${l}</label>`).join('')}</div>
+ <div class="err" id="hE"></div><div class="row" style="margin-top:8px"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn p" onclick="saveDay('${date}')">Guardar</button></div>`);
+}
+function dkToggle(){const k=document.querySelector('input[name=dk]:checked').value;$('#dkT').style.display=k==='work'?'':'none'}
+async function saveDay(date){
+ const kind=document.querySelector('input[name=dk]:checked').value;let s=null,bs=null,be=null,e=null;
+ if(kind==='work'){s=$('#h_s').value;bs=$('#h_bs').value||null;be=$('#h_be').value||null;e=$('#h_e').value;
+  if(!s||!e||e<=s){$('#hE').textContent='La salida debe ser mayor que la entrada';return}
+  if(!!bs!==!!be){$('#hE').textContent='Completa la salida y el regreso de refrigerio (o déjalos vacíos)';return}
+  if(bs&&(be<=bs||bs<s||be>e)){$('#hE').textContent='El refrigerio debe estar dentro del horario';return}}
+ const wds=[...document.querySelectorAll('.dw:checked')].map(x=>+x.value);
+ const dates=new Set([date]);schRows.forEach(r=>{if(wds.includes(isoDow(r.work_date))&&r.day_type!=='holiday')dates.add(r.work_date)});
+ if(dates.size>1&&!confirm('Se aplicará a '+dates.size+' días del mes y reemplaza lo que tengan. ¿Continuar?'))return;
+ const r=await sb.rpc('att_set_days',{p_user:schedUser,p_dates:[...dates].sort(),p_kind:kind,p_start:s,p_bs:bs,p_be:be,p_end:e});
+ if(r.error){$('#hE').textContent=r.error.message;return}closeModal();viewSched()}
 async function saveTol(){const d=parseInt($('#tD').value,10),m=parseInt($('#tM').value,10);
  if(isNaN(d)||isNaN(m)||d<0||m<0){$('#tOk').textContent='Escribe números válidos';return}
  const r=await sb.from('att_settings').update({late_threshold_min:d,monthly_tolerance_min:m}).eq('id',1);
  if(r.error){$('#tOk').textContent='No se pudo guardar: '+r.error.message;return}
  cfg.late_threshold_min=d;cfg.monthly_tolerance_min=m;$('#tOk').textContent='✅ Guardado'}
-async function copyWeek(uid){if(!uid)return;await loadWeek(uid,schedFrom);
- WD.forEach(([n])=>{const w=weekState[n]||{on:false,s:'10:00',bs:'13:00',be:'14:00',e:'19:00'};$('#on'+n).checked=!!w.on;$('#s'+n).value=w.s;$('#bs'+n).value=w.bs||'';$('#be'+n).value=w.be||'';$('#e'+n).value=w.e});
- $('#sNote').textContent='Copiado de '+nameOf(uid)+'. Revisa y pulsa Guardar horario.';$('#sC').value=''}
-async function saveWeek(){const days=[];schedMsg='';
- for(const [n,l] of WD){if($('#on'+n).checked){const s=$('#s'+n).value,e=$('#e'+n).value,bs=$('#bs'+n).value,be=$('#be'+n).value;if(!s||!e||e<=s){$('#sErr').textContent=l+': la salida debe ser mayor que la entrada';return}
-  if(!!bs!==!!be){$('#sErr').textContent=l+': completa la salida y el regreso de refrigerio (o déjalos vacíos)';return}
-  if(bs&&(be<=bs||bs<s||be>e)){$('#sErr').textContent=l+': el refrigerio debe estar dentro del horario';return}
-  days.push({weekday:n,start:s,bs:bs||null,be:be||null,end:e})}}
- const from=$('#sF').value;if(!from){$('#sErr').textContent='Elige desde qué fecha rige';return}
- const r=await sb.rpc('att_set_user_week',{p_user:schedUser,p_from:from,p_days:days});
- if(r.error){$('#sErr').textContent=r.error.message;return}
- schedMsg='';await viewSched();$('#sErr').textContent='';const ok=document.createElement('span');ok.className='ok';ok.textContent='✅ Horario guardado';$('#sErr').after(ok)}
 async function addOvr(){const d=$('#oD').value,k=$('#oK').value,w=$('#oW').value||null;if(!d){$('#oErr').textContent='Elige la fecha';return}
  const row={work_date:d,kind:k,user_id:w,note:$('#oN').value.trim()||null};
  if(k==='custom'){row.start_time=$('#oS').value;row.end_time=$('#oE').value;if(!row.start_time||!row.end_time||row.end_time<=row.start_time){$('#oErr').textContent='Revisa las horas';return}}
