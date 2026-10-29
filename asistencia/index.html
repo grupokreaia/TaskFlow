@@ -111,6 +111,7 @@ const go=t=>{tab=t;render()};
 const todayStr=()=>new Date().toLocaleDateString('sv',{timeZone:TZ});
 const pad=n=>String(n).padStart(2,'0');
 const monthLast=m=>new Date(Date.UTC(+m.slice(0,4),+m.slice(5,7),0)).toISOString().slice(0,10);
+const blocked=(r,k)=>(k==='bo'||k==='bi')&&r.day_type==='workday'&&!r.sched_bo;
 const SLOTS=[['in','Entrada','entrada','sched_start'],['bo','Salida a refrigerio','salida_refri','sched_bo'],['bi','Regreso de refrigerio','ingreso_refri','sched_bi'],['out','Salida','salida','sched_end']];
 const hhmm=t=>t?ft(t):'';
 function dayState(r){
@@ -141,7 +142,7 @@ async function viewMine(){
  const cells=[...Array(off).fill('<div class="day blank"></div>'),...rows.map(r=>{const [c,t]=dayState(r);const dn=+r.work_date.slice(8);
   return`<button class="day ${c} ${selDay===r.work_date?'sel':''}" title="${esc(t)}" aria-label="${dn}: ${esc(t||'sin información')}" onclick="pickDay('${r.work_date}')"><span class="n">${dn}${pend.has(r.work_date)?'<span title="Solicitud pendiente">⏳</span>':''}</span></button>`})];
  $('#res').innerHTML=`<div class="card"><div class="kpis">
-  ${kp(fm(k.worked_min),'Trabajado en el mes')}${kp(hasSched?fm(k.required_to_date_min):'–','Requerido a la fecha')}${kp(hasSched?fm(k.diff_min):'–','Diferencia')}${kp(hasSched?pc(k.compliance):'–','Cumplimiento')}
+  ${kp(fm(k.worked_min),'Trabajado en el mes')}${kp(hasSched?fm(k.plan_total_min):'–','Requerido del mes')}${kp(hasSched?fm(k.required_to_date_min):'–','Requerido a la fecha')}${kp(hasSched?fm(k.diff_min):'–','Diferencia')}${kp(hasSched?pc(k.compliance):'–','Cumplimiento')}
   ${kp(fm(k.late_total_min),'Tardanza acumulada')}${kp(hasSched?fm(k.tolerance_min):'–','Tolerancia mensual')}${kp(fm(k.late_excess_min),'Fuera de tolerancia')}${kp(fm(k.extra_total_min),'Horas extras')}
   ${kp(hasSched?pc(k.punctuality):'–','Puntualidad')}${kp(`<span class="chip g">${k.days_green||0}</span> <span class="chip o">${k.days_orange||0}</span> <span class="chip r">${k.days_red||0}</span>`,'Días verde · naranja · rojo')}</div>
   ${hasSched?'':'<p class="note">Esta persona aún no tiene horario asignado: se muestran marcajes y horas trabajadas.</p>'}</div>
@@ -164,7 +165,7 @@ async function dayDetail(date,scroll){
  const KIND={in:'Entrada',break_out:'Salida a refrigerio',break_in:'Regreso de refrigerio',out:'Salida'};
  box.innerHTML=`<div class="card"><div class="row" style="justify-content:space-between"><h3>${dow(date)} ${esc(date.slice(8))}/${esc(date.slice(5,7))}/${esc(date.slice(0,4))} ${t?`<span class="chip ${c||'x'}" style="margin-left:6px;${c==='x'||c===''?'background:var(--line);color:var(--mut)':c==='b'?'background:var(--blb);color:var(--bl)':''}">${esc(r.status||t)}</span>`:''}</h3>
   <span class="note">${r.sched_start?'Horario '+hhmm2(r.sched_start)+'–'+hhmm2(r.sched_end)+(r.sched_bo?' · refrigerio '+hhmm2(r.sched_bo)+'–'+hhmm2(r.sched_bi):''):esc(r.status||'')}</span></div>
-  <div class="slots">${SLOTS.map(([k,l,f,sf])=>`<div class="slot"><div class="l">${l}</div><div class="v">${r[f]?ft(r[f]):'–'}</div><div class="p">Horario: ${r[sf]?hhmm2(r[sf]):'–'}</div>${canReq?(pendSlots.has(k)?'<div style="margin-top:6px"><span class="tag pending">⏳ Solicitud pendiente</span></div>':`<div style="margin-top:6px"><button class="btn s" onclick="slotReq('${k}')">Solicitar cambio</button></div>`):''}</div>`).join('')}</div>
+  <div class="slots">${SLOTS.map(([k,l,f,sf])=>`${blocked(r,k)?`<div class="slot" style="opacity:.55"><div class="l">${l}</div><div class="v">🔒</div><div class="p">No aplica: tu horario no tiene refrigerio</div></div>`:`<div class="slot"><div class="l">${l}</div><div class="v">${r[f]?ft(r[f]):'–'}</div><div class="p">Horario: ${r[sf]?hhmm2(r[sf]):'–'}</div>${canReq?(pendSlots.has(k)?'<div style="margin-top:6px"><span class="tag pending">⏳ Solicitud pendiente</span></div>':`<div style="margin-top:6px"><button class="btn s" onclick="slotReq('${k}')">Solicitar cambio</button></div>`):''}</div>`}`).join('')}</div>
   <div class="kpis">${[['Trabajadas',r.punches?fm(r.worked_min):'–'],['Requeridas',r.day_type==='workday'?fm(r.required_min):'–'],['Tardanza',r.day_type==='workday'&&r.entrada?late(r):'–'],['Extras',r.day_type==='workday'&&r.extra_min?fm(r.extra_min):'–']].map(([l,v])=>`<div class="kpi"><div class="v" style="font-size:18px">${v}</div><div class="l">${l}</div></div>`).join('')}</div>
   ${r.flag?`<p class="note">⚠ ${esc(r.flag)}</p>`:''}
   <h3 style="margin-top:14px">Marcajes del día</h3>
@@ -178,8 +179,8 @@ const SL={in:'Entrada',bo:'Salida a refrigerio',bi:'Regreso de refrigerio',out:'
 const propText=p=>Object.entries(p||{}).map(([k,v])=>`${SL[k]||k}: <b>${v||'borrar'}</b>`).join(' · ');
 function modal(html){const o=document.createElement('div');o.className='ov';o.id='modal';o.innerHTML='<div>'+html+'</div>';o.addEventListener('click',e=>{if(e.target===o)closeModal()});document.body.appendChild(o)}
 const closeModal=()=>{const o=$('#modal');if(o)o.remove()};
-const timeInputs=(pre)=>{const mx=window._day.date===todayStr()?nowHM():'';return`<div class="slots">${SLOTS.map(([k,l,f])=>`<label class="slot"><div class="l">${l}</div><input type="time" id="t_${k}" value="${pre&&window._day.r[f]?hhmm(window._day.r[f]):''}" ${mx?`max="${mx}"`:''} style="width:100%"></label>`).join('')}</div>`};
-function changedSlots(){const r=window._day.r,o={};SLOTS.forEach(([k,l,f])=>{const v=$('#t_'+k).value,cur=r[f]?hhmm(r[f]):'';if(v!==cur)o[k]=v||null});return o}
+const timeInputs=(pre)=>{const mx=window._day.date===todayStr()?nowHM():'';return`<div class="slots">${SLOTS.map(([k,l,f])=>{const bl=blocked(window._day.r,k);return`<label class="slot"${bl?' style="opacity:.55"':''}><div class="l">${l}${bl?' 🔒':''}</div><input type="time" id="t_${k}" value="${pre&&!bl&&window._day.r[f]?hhmm(window._day.r[f]):''}" ${mx?`max="${mx}"`:''} ${bl?'disabled':''} style="width:100%"></label>`}).join('')}</div>`};
+function changedSlots(){const r=window._day.r,o={};SLOTS.forEach(([k,l,f])=>{if(blocked(r,k))return;const v=$('#t_'+k).value,cur=r[f]?hhmm(r[f]):'';if(v!==cur)o[k]=v||null});return o}
 
 const nowHM=()=>new Date().toLocaleTimeString('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false});
 function slotReq(k){
