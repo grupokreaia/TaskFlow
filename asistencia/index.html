@@ -187,6 +187,7 @@ function slotReq(k){
  const sl=SLOTS.find(x=>x[0]===k),r=window._day.r,cur=r[sl[2]]?hhmm(r[sl[2]]):'',mx=window._day.date===todayStr()?nowHM():'';
  window._slot=k;
  modal(`<h3>Solicitar cambio: ${sl[1]}</h3><p class="note">${esc(window._day.date)} · Marcaje actual: <b>${cur||'sin marcaje'}</b></p>
+ <p class="note" style="background:var(--line);border-radius:10px;padding:8px 10px">⚠️ Verifica bien los datos que vas a ingresar. Las horas siempre van de menor a mayor: entrada, salida a refrigerio, regreso de refrigerio y salida.</p>
  <label>Hora correcta *</label><input type="time" id="rT" value="${cur}" ${mx?`max="${mx}"`:''} style="width:100%">
  <label style="display:block;margin-top:8px">Motivo *</label><input id="rM" maxlength="80" placeholder="Escribe el motivo" style="width:100%">
  <label style="display:block;margin-top:8px">Descripción del motivo *</label><textarea id="rD" placeholder="Cuéntanos qué pasó y por qué la hora es esa"></textarea>
