@@ -210,7 +210,8 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&uid){chec
 const scope=()=>{const e=eff(),adm=isAdmin();return tasks.filter(t=>adm?((filter==='all'||t.owner===filter)&&(area==='all'||(U(t.owner)||{}).area_id===area)):t.owner===e.username)};
 const scopeName=()=>{const e=eff();return !isAdmin()?e.name:filter!=='all'?(U(filter)||{}).name:area!=='all'?((areas.find(x=>x.id===area)||{}).name||'Área'):'Todos los colaboradores'};
 const cmpP=(x,y)=>x.priority-y.priority||(x.due_at||9e15)-(y.due_at||9e15)||(x.created_at||0)-(y.created_at||0);
-const SORT={todo:cmpP,doing:cmpP,done:(x,y)=>(y.done_at||0)-(x.done_at||0),blocked:(x,y)=>(y.blocked_at||0)-(x.blocked_at||0)};
+const cmpT=(x,y)=>x.priority-y.priority||(y.created_at||0)-(x.created_at||0);
+const SORT={todo:cmpT,doing:cmpP,done:(x,y)=>(y.done_at||0)-(x.done_at||0),blocked:(x,y)=>(y.blocked_at||0)-(x.blocked_at||0)};
 function toggleMenu(ev){ev.stopPropagation();menuOpen=!menuOpen;render()}
 function menuGo(f){menuOpen=false;render();f()}
 function setTheme(v){theme=v;try{localStorage.setItem('tf_theme',v)}catch(e){}if(v==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=v;render()}
@@ -404,7 +405,7 @@ function drawRp(){const adm=realAdm(),cols=users.filter(u=>u.role!=='admin');
  <div class="opt ${rpScope==='all'?'on':''}" onclick="rpS('all')"><b>Todos los colaboradores</b><span>Un bloque por cada colaborador</span></div>
  <div class="mt0" style="margin-top:18px">2. ¿Qué período?</div>`:'<div class="meta">Elige una opción para poder generarlo.</div>'}
  <div class="opt ${rpMode==='all'?'on':''}" onclick="rpSet('all')"><b>Reporte completo</b><span>Todas las tareas, sin filtro de fechas</span></div>
- <div class="opt ${rpMode==='range'?'on':''}" onclick="rpSet('range')"><b>Rango de fechas</b><span>Tareas con actividad dentro del rango. Si no eliges fecha final, se usa hoy</span></div>
+ <div class="opt ${rpMode==='range'?'on':''}" onclick="rpSet('range')"><b>Rango de fechas</b><span>En Proceso: todas las activas hoy · Terminado: por fecha de término · Pausado: por fecha de la última pausa. Sin fecha final, se usa hoy</span></div>
  ${rpMode==='range'?`<div class="dr" style="margin-top:10px"><input type="date" max="${todayS()}" value="${rpFrom}" onchange="rpFrom=clampD(this.value);if(rpTo&&rpFrom>rpTo)rpTo=rpFrom;drawRp()"><span>a</span><input type="date" max="${todayS()}" value="${rpTo}" onchange="rpTo=clampD(this.value);if(rpFrom&&rpTo&&rpTo<rpFrom)rpFrom=rpTo;drawRp()"></div><div class="meta">${!rpFrom?'Elige la fecha inicial.':!rpTo?'Fecha final: hoy ('+dmy(todayS())+')':''}</div>`:''}
  ${adm?'<div class="meta" style="margin-top:10px">Como administrador, el reporte incluye el tiempo de cada tarea y las horas trabajadas por día.</div>':''}
  <div class="row"><button class="btn" onclick="closeM()">Cancelar</button><button class="btn p" ${ok?'':'disabled'} onclick="makeReport()">Generar PDF</button></div>`)}
@@ -413,7 +414,8 @@ async function makeReport(){
  const adm=realAdm(),range=rpMode==='range';
  if(!(rpMode==='all'||(range&&rpFrom)))return;
  const [A0,B0]=range?rangeOf(rpFrom,rpTo):[0,1e15];
- const inRg=t=>!range||[t.created_at,t.started_at,t.resumed_at,t.done_at,t.blocked_at].some(x=>x&&x>=A0&&x<=B0);
+ const lastP=t=>Math.max(t.blocked_at||0,...(t.work_log||[]).filter(g=>g.k==='pause').map(g=>g.e))||null;
+ const inRg=t=>{if(t.status==='doing'||!range)return true;const d=t.status==='done'?t.done_at:lastP(t);return !!(d&&d>=A0&&d<=B0)};
  const byName=(x,y)=>(x.name||'').localeCompare(y.name||'','es');
  let us,title;
  if(!adm){us=[eff()];title=eff().name}
@@ -488,5 +490,9 @@ async function setActive(u,val){const x=U(u);if(!x||x.role==='admin')return;
  const r=await sb.from('profiles').update({active:val}).eq('id',x.id);
  if(r.error){alert('No se pudo cambiar el estado: '+r.error.message);return}
  await loadAll();editU(u)}
+/* ---------- Confirmar antes de cerrar la app ---------- */
+let leaveOK=false;
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&/location\.(href|assign|replace)/.test(b.getAttribute('onclick')||'')){leaveOK=true;setTimeout(()=>{leaveOK=false},3000)}},true);
+window.addEventListener('beforeunload',e=>{if(!me||leaveOK)return;e.preventDefault();e.returnValue=''});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script></body></html>
