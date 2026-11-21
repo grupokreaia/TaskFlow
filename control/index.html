@@ -30,13 +30,12 @@
   --bad:#F28C84; --bad-bg:#432220; --info:#8DBAF0; --info-bg:#172E49; --shadow:none; color-scheme:dark}
 
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--font);
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--font);margin:0;padding:0}
 button,input,select,textarea{font:inherit;color:inherit}
 h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.shell{display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px;max-width:1440px;margin:0 auto;padding-block:20px}
-.side{position:sticky;top:max(20px,env(safe-area-inset-top,0px));align-self:start;display:flex;flex-direction:column;gap:20px}
+.shell{display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px;max-width:1440px;margin:0 auto;padding-block:20px;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+.side{position:sticky;top:76px;align-self:start;display:flex;flex-direction:column;gap:20px}
 .brand{display:flex;flex-direction:column;gap:2px}
 .brand b{font-size:18px;font-weight:600;letter-spacing:-.02em}
 .brand span{color:var(--muted);font-size:12.5px}
@@ -171,8 +170,49 @@ td .small.warn{color:var(--hi);font-weight:500}
   .alert{grid-template-columns:minmax(0,1fr)}
 }
 @media (prefers-reduced-motion:no-preference){.fill{transition:width .3s}}
-.back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:7px 11px;width:max-content}
-.back:hover{background:var(--surface2)}
+.back{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--accent);text-decoration:none;border:1px solid var(--accent-soft);background:var(--accent-soft);border-radius:99px;padding:5px 14px 5px 6px;width:max-content;min-height:36px;transition:background .15s,transform .15s}
+.back:hover{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.back:active{transform:scale(.97)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.back .ic{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--surface);color:var(--accent);flex:none}
+.back:hover .ic{background:rgba(255,255,255,.22);color:var(--accent-ink)}
+.back .ic svg{width:14px;height:14px}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;justify-content:space-between;padding:8px max(20px,env(safe-area-inset-right,0px)) 8px max(20px,env(safe-area-inset-left,0px));padding-top:max(8px,env(safe-area-inset-top,0px));background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.tb-title{display:flex;flex-direction:column;line-height:1.15;min-width:0;flex:1}
+.tb-title b{font-size:16px;font-weight:600;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-title span{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who{display:flex;align-items:center;gap:9px;padding:3px 12px 3px 3px;border:1px solid var(--line);border-radius:99px;background:var(--surface);max-width:46vw;flex:none}
+.who[hidden]{display:none}
+.who .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:600;overflow:hidden;flex:none;background:var(--accent)}
+.who .av img{width:100%;height:100%;object-fit:cover;display:block}
+.who .tx{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.who .tx b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .tx span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctas{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}
+.cta{border:1px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:99px;padding:6px 14px;cursor:pointer;white-space:nowrap;font-size:13px}
+.cta:hover{border-color:var(--accent)}
+.cta[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:500}
+.cta.add{border-style:dashed;background:none}
+@media (max-width:860px){
+  .topbar{padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px));gap:8px}
+  .tb-title span{display:none}
+  .tb-title b{font-size:15px}
+  .back .bt small{display:none}
+  .who .tx span{display:none}
+  .who{max-width:44vw;padding-right:9px}
+  .shell{padding-inline:12px!important;padding-block:12px!important;gap:12px!important}
+  .side .brand{display:none}
+  .head{align-items:flex-start;gap:8px 12px}
+  .head h1{font-size:20px}
+  .head p{font-size:13px}
+  .head .actions{width:100%;display:flex;gap:8px;flex-wrap:wrap}
+  .head .actions .btn{flex:1 1 auto;justify-content:center}
+  .toolbar{gap:8px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .kpi .v{font-size:1.02rem!important;white-space:nowrap}
+  .kpi{padding:10px 12px}
+}
+@media (max-width:520px){.tb-title{display:none}.who{margin-left:auto;max-width:56vw}}
 #gate{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:24px;text-align:center}
 #gate .box{max-width:420px;display:flex;flex-direction:column;gap:12px;align-items:center}
 #gate[hidden]{display:none}
@@ -180,10 +220,13 @@ td .small.warn{color:var(--hi);font-weight:500}
 </style>
 </head><body>
 <div id="gate"><div class="box"><p>Verificando acceso…</p></div></div>
+<header class="topbar">
+  <a class="back" href="../" title="Volver a TaskFlow" aria-label="Volver a TaskFlow"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></span><span class="bt">Volver a TaskFlow</span></a>
+  <div class="tb-title"><b>Krea Control</b><span>Información de la empresa, un panel por proceso</span></div>
+  <div class="who" id="who" hidden></div>
+</header>
 <div class="shell">
   <aside class="side" aria-label="Procesos">
-    <a class="back" href="../" title="Volver a Control de tareas">← Volver a TaskFlow</a>
-    <div class="brand"><b>Krea Control</b><span>Información de la empresa, un panel por proceso</span></div>
     <ul class="mods" id="mods"></ul>
     <div class="store" id="store"></div>
   </aside>
@@ -192,7 +235,102 @@ td .small.warn{color:var(--hi);font-weight:500}
 <div id="modal"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+/* ---------- generador de .xlsx con estilos (colores, fuentes, bordes, combinaciones, fórmulas) ---------- */
+const XLX=(()=>{
+  const colL=n=>{let s='';n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s};
+  const ref=(r,c)=>colL(c)+(r+1);
+  const clean=s=>String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'');
+  const ex=s=>clean(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const rgb=c=>'FF'+String(c).replace('#','').toUpperCase();
+  const BUILTIN={'General':0,'0':1,'0.00':2,'#,##0':3,'#,##0.00':4,'@':49};
+
+  function styles(){
+    const fonts=[],fills=['<fill><patternFill patternType="none"/></fill>','<fill><patternFill patternType="gray125"/></fill>'],borders=['<border><left/><right/><top/><bottom/><diagonal/></border>'];
+    const fmts=[],xfs=[],idx={f:new Map(),fi:new Map(),b:new Map(),n:new Map(),x:new Map()};
+    const add=(list,map,xml)=>{if(map.has(xml))return map.get(xml);list.push(xml);map.set(xml,list.length-1);return list.length-1};
+    const fontXml=f=>'<font>'+(f.b?'<b/>':'')+(f.i?'<i/>':'')+(f.u?'<u/>':'')+'<sz val="'+(f.sz||11)+'"/>'+(f.c?'<color rgb="'+rgb(f.c)+'"/>':'<color theme="1"/>')+'<name val="'+ex(f.n||'Calibri')+'"/><family val="2"/></font>';
+    add(fonts,idx.f,fontXml({}));
+    add(borders,idx.b,borders[0]);add(fills,idx.fi,fills[0]);
+    const side=(t,s)=>s?'<'+t+' style="'+s.s+'"><color rgb="'+rgb(s.c||'000000')+'"/></'+t+'>':'<'+t+'/>';
+    const norm=bd=>{if(!bd)return null;if(typeof bd==='string')bd={all:{s:bd}};
+      const a=bd.all;const o=k=>bd[k]||(a?{s:a.s,c:a.c}:null);return {l:o('l'),r:o('r'),t:o('t'),b:o('b')}};
+    function xf(s){
+      s=s||{};const key=JSON.stringify(s);if(idx.x.has(key))return idx.x.get(key);
+      const fo=add(fonts,idx.f,fontXml(s.font||{}));
+      const fi=s.fill?add(fills,idx.fi,'<fill><patternFill patternType="solid"><fgColor rgb="'+rgb(s.fill)+'"/><bgColor indexed="64"/></patternFill></fill>'):0;
+      const bn=norm(s.bd);const bo=bn?add(borders,idx.b,'<border>'+side('left',bn.l)+side('right',bn.r)+side('top',bn.t)+side('bottom',bn.b)+'<diagonal/></border>'):0;
+      let nid=0;if(s.nf){if(BUILTIN[s.nf]!=null)nid=BUILTIN[s.nf];else{if(!idx.n.has(s.nf)){fmts.push(s.nf);idx.n.set(s.nf,163+fmts.length)}nid=idx.n.get(s.nf)}}
+      const al=s.al||{};
+      const alx=(al.h||al.v||al.w||al.ind)?'<alignment'+(al.h?' horizontal="'+al.h+'"':'')+(al.v?' vertical="'+al.v+'"':'')+(al.w?' wrapText="1"':'')+(al.ind?' indent="'+al.ind+'"':'')+'/>':'';
+      const x='<xf numFmtId="'+nid+'" fontId="'+fo+'" fillId="'+fi+'" borderId="'+bo+'" xfId="0"'+(nid?' applyNumberFormat="1"':'')+' applyFont="1"'+(fi?' applyFill="1"':'')+(bo?' applyBorder="1"':'')+(alx?' applyAlignment="1">'+alx+'</xf>':'/>');
+      xfs.push(x);idx.x.set(key,xfs.length-1);return xfs.length-1;
+    }
+    xf({});
+    const xml=()=>'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+      +(fmts.length?'<numFmts count="'+fmts.length+'">'+fmts.map((f,i)=>'<numFmt numFmtId="'+(164+i)+'" formatCode="'+ex(f)+'"/>').join('')+'</numFmts>':'')
+      +'<fonts count="'+fonts.length+'">'+fonts.join('')+'</fonts><fills count="'+fills.length+'">'+fills.join('')+'</fills><borders count="'+borders.length+'">'+borders.join('')+'</borders>'
+      +'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="'+xfs.length+'">'+xfs.join('')+'</cellXfs>'
+      +'<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+    return {xf,xml};
+  }
+
+  function sheetXml(sh,st){
+    const rows=sh.rows||[];let maxC=0;
+    const rowXml=rows.map((row,ri)=>{
+      if(!row&&!(sh.heights&&sh.heights[ri+1]))return '';
+      let cs='';
+      (row||[]).forEach((cell,ci)=>{
+        if(cell==null)return;maxC=Math.max(maxC,ci+1);
+        const o=(typeof cell==='object'&&!(cell instanceof Date))?cell:{v:cell};
+        const s=st.xf(o.s),r=ref(ri,ci);
+        if(o.f!=null){
+          const v=o.v;
+          if(typeof v==='number')cs+='<c r="'+r+'" s="'+s+'"><f>'+ex(o.f)+'</f><v>'+v+'</v></c>';
+          else cs+='<c r="'+r+'" s="'+s+'" t="str"><f>'+ex(o.f)+'</f><v>'+ex(v==null?'':v)+'</v></c>';
+        }else if(typeof o.v==='number'&&isFinite(o.v))cs+='<c r="'+r+'" s="'+s+'"><v>'+o.v+'</v></c>';
+        else if(o.v==null||o.v==='')cs+='<c r="'+r+'" s="'+s+'"/>';
+        else cs+='<c r="'+r+'" s="'+s+'" t="inlineStr"><is><t xml:space="preserve">'+ex(o.v)+'</t></is></c>';
+      });
+      const h=sh.heights&&sh.heights[ri+1];
+      return '<row r="'+(ri+1)+'"'+(h?' ht="'+h+'" customHeight="1"':'')+'>'+cs+'</row>';
+    }).join('');
+    const cols=(sh.cols||[]).map((w,i)=>w?'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>':'').join('');
+    const dim='A1:'+ref(Math.max(rows.length-1,0),Math.max(maxC-1,0));
+    const pane=sh.freeze?'<pane'+(sh.freeze.c?' xSplit="'+sh.freeze.c+'"':'')+(sh.freeze.r?' ySplit="'+sh.freeze.r+'"':'')+' topLeftCell="'+ref(sh.freeze.r,sh.freeze.c)+'" activePane="'+(sh.freeze.r&&sh.freeze.c?'bottomRight':sh.freeze.r?'bottomLeft':'topRight')+'" state="frozen"/>':'';
+    const dv=(sh.validations||[]).length?'<dataValidations count="'+sh.validations.length+'">'+sh.validations.map(v=>'<dataValidation type="list" allowBlank="1" showErrorMessage="1" sqref="'+v.sqref+'"><formula1>"'+ex(v.list.join(','))+'"</formula1></dataValidation>').join('')+'</dataValidations>':'';
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+      +'<sheetPr>'+(sh.tab?'<tabColor rgb="'+rgb(sh.tab)+'"/>':'')+'<pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="'+dim+'"/>'
+      +'<sheetViews><sheetView workbookViewId="0"'+(sh.hideGrid?' showGridLines="0"':'')+(sh.zoom?' zoomScale="'+sh.zoom+'"':'')+(sh.first?' tabSelected="1"':'')+'>'+pane+'</sheetView></sheetViews>'
+      +'<sheetFormatPr defaultRowHeight="15"/>'+(cols?'<cols>'+cols+'</cols>':'')+'<sheetData>'+rowXml+'</sheetData>'
+      +((sh.merges||[]).length?'<mergeCells count="'+sh.merges.length+'">'+sh.merges.map(m=>'<mergeCell ref="'+m+'"/>').join('')+'</mergeCells>':'')
+      +dv+'<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup orientation="'+(sh.landscape===false?'portrait':'landscape')+'" fitToWidth="1" fitToHeight="0"/></worksheet>';
+  }
+
+  async function build(sheets,JSZip){
+    const st=styles();const names=[];
+    sheets.forEach((s,i)=>{
+      let n=clean(s.name||('Hoja'+(i+1))).replace(/[\[\]:*?\/\\]/g,' ').trim().slice(0,31)||('Hoja'+(i+1));
+      let base=n,k=2;while(names.some(x=>x.toLowerCase()===n.toLowerCase())){const suf=' ('+k+')';n=base.slice(0,31-suf.length)+suf;k++}
+      names.push(n);s.first=i===0;
+    });
+    const zip=new JSZip();
+    zip.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sheets.map((_,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')+'</Types>');
+    zip.file('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+    zip.file('xl/workbook.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets>'+names.map((n,i)=>'<sheet name="'+ex(n)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join('')+'</sheets><calcPr fullCalcOnLoad="1"/></workbook>');
+    zip.file('xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((_,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+'<Relationship Id="rId'+(sheets.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
+    sheets.forEach((s,i)=>zip.file('xl/worksheets/sheet'+(i+1)+'.xml',sheetXml(s,st)));
+    zip.file('xl/styles.xml',st.xml());
+    return zip.generateAsync({type:'uint8array',compression:'DEFLATE'});
+  }
+  /* fecha ISO (aaaa-mm-dd) -> número de serie de Excel */
+  const serial=iso=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(iso||''))return null;const [y,m,d]=iso.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/864e5)};
+  return {build,serial,ref,colL};
+})();
+if(typeof module!=='undefined')module.exports=XLX;
+
+</script>
 <script>
 (function(){
 'use strict';
@@ -296,7 +434,23 @@ const DL={async save({filename,data}){
 /* acceso: solo administrador y área Administración (la regla real vive en Supabase: ctl_can_access) */
 function gateMsg(title,msg){
   $('#gate').hidden=false;
-  $('#gate').innerHTML='<div class="box"><h1>'+esc(title)+'</h1><p>'+esc(msg)+'</p><a class="back" href="../">← Volver a TaskFlow</a></div>';
+  $('#gate').innerHTML='<div class="box"><h1>'+esc(title)+'</h1><p>'+esc(msg)+'</p><a class="back" href="../"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></span><span class="bt">Volver a TaskFlow</span></a></div>';
+}
+async function loadWho(){
+  const el=$('#who');if(!el)return;
+  try{
+    const {data:{session}}=await sb.auth.getSession();if(!session)return;
+    const uid=session.user.id;
+    const r=await sb.from('profiles').select('name,color,avatar_url,role,area_id,username').eq('id',uid).maybeSingle();
+    const p=r.data;let name=(p&&p.name)||(session.user.email||'').split('@')[0]||'Usuario',sub='';
+    if(p){if(p.role==='admin')sub='Administrador';
+      else if(p.area_id){const a=await sb.from('areas').select('name').eq('id',p.area_id).maybeSingle();sub=(a.data&&a.data.name)||''}}
+    const ini=name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'?';
+    const col=(p&&/^#[0-9a-f]{3,8}$/i.test(p.color||''))?p.color:'#0B6B5D';
+    const img=p&&p.avatar_url&&/^https:\/\//.test(p.avatar_url)?`<img src="${esc(p.avatar_url)}" alt="" onerror="this.remove()">`:'';
+    el.innerHTML=`<span class="av" style="background:${col}">${img||esc(ini)}</span><span class="tx"><b>${esc(name)}</b>${sub?`<span>${esc(sub)}</span>`:''}</span>`;
+    el.title=name+(sub?' · '+sub:'');el.hidden=false;
+  }catch(e){}
 }
 async function checkAccess(){
   const {data:{session}}=await sb.auth.getSession();
@@ -304,7 +458,7 @@ async function checkAccess(){
   const r=await sb.rpc('ctl_can_access');
   if(r.error){gateMsg('No se pudo verificar el acceso','Revisa tu conexión e inténtalo de nuevo. Si el problema sigue, avisa al administrador.');return false}
   if(r.data!==true){gateMsg('Sin acceso','Este apartado es solo para el área de Administración y el administrador.');return false}
-  $('#gate').hidden=true;return true;
+  $('#gate').hidden=true;loadWho();return true;
 }
 
 /* ---------- reglas de negocio ---------- */
@@ -431,7 +585,7 @@ function validDoc(v){
   }
   return null;
 }
-function collFor(k){return k==='bm'?BCOLS.mov:k==='ac'?ACOLS.con:k==='kp'?KCOLS.cat:k==='km'?KCOLS.mov:k==='p'?COLS.proyectos:k==='e'?COLS.escrituras:COLS.servicios}
+function collFor(k){return k==='bj'?BCOLS.caja:k==='bm'?BCOLS.mov:k==='ac'?ACOLS.con:k==='kp'?KCOLS.cat:k==='km'?KCOLS.mov:k==='p'?COLS.proyectos:k==='e'?COLS.escrituras:COLS.servicios}
 function kUsed(id){const c=S.k.cat.find(x=>x.id===id);return !!c&&S.k.mov.some(m=>kcode(m.codigo)===kcode(c.codigo))}
 
 function computeK(){
@@ -816,34 +970,6 @@ function kChangeIn(t,k){
   }
 }
 
-async function exportK(){
-  const X=window.XLSX;if(!X){toast('No se pudo cargar el generador de Excel.');return}
-  const dl=DL;
-  const KC=S.KC,cfg=S.k.cfg,fm=[];
-  const dates=KC.movs.map(m=>m.fecha).filter(Boolean).sort();
-  const per=dates.length?dates[0].slice(0,4):String(new Date().getFullYear());
-  const ka=[['KARDEX DE REGALOS ENTREGADOS A CLIENTES'],[],['Empresa',cfg.empresa||'','RUC',cfg.ruc||''],['Periodo',per,'Responsable',cfg.responsable||''],[],
-    ['Ítem','Fecha','Tipo Movimiento','Tipo Sustento','N° Documento','N° Acta/Constancia','Código Premio','Descripción','Marca','Unidad','Ingreso','Salida','Costo Unit. s/IGV','Valor Movimiento','Stock Acum. Producto','Proyecto','Lote','DNI/RUC Cliente','Cliente','Responsable','Sustento Adjunto','Observación']];
-  KC.movs.forEach(m=>{const r=KC.rowBy[kcode(m.codigo)],ent=m.tipo==='ENTRADA',rr=ka.length;
-    ka.push([m._i,serial(m.fecha),m.tipo,m.sustentoTipo||'',m.nroDoc||'',m.nroActa||'',m.codigo,r?r.desc:'',r?r.marca:'',r?r.unidad:'UND',ent?m._q:0,ent?0:m._q,m._cost,m._val,m._stock,m.proyecto||'',m.lote||'',m.docCliente||'',m.cliente||'',m.responsable||'',(m.adjuntos||[]).join(' / '),m.obs||'']);
-    fm.push([0,rr,1,'dd/mm/yyyy'],[0,rr,12,'"S/ "#,##0.0000'],[0,rr,13,'"S/ "#,##0.00']);
-  });
-  const st=[['STOCK CONSOLIDADO DE REGALOS'],[],['Código Premio','Descripción','Marca','Unidad','Entradas','Salidas','Stock Actual','Costo Promedio','Valor Stock','Estado']];
-  KC.rows.forEach(r=>{st.push([r.codigo,r.desc,r.marca,r.unidad,r.ent,r.sal,r.q,r.avg,r.val,r.est]);fm.push([1,st.length-1,7,'"S/ "#,##0.00'],[1,st.length-1,8,'"S/ "#,##0.00'])});
-  const ca=[['CATÁLOGO DE PREMIOS / REGALOS'],[],['Código Premio','Descripción','Marca','Unidad','Stock mínimo','Observación']];
-  S.k.cat.slice().sort((a,b)=>cmpTxt(a.codigo,b.codigo)).forEach(c=>ca.push([c.codigo,c.descripcion,c.marca||'',c.unidad||'UND',num(c.stockMin)||0,c.obs||'']));
-  const rs=[['RESUMEN EJECUTIVO - KARDEX DE REGALOS A CLIENTES'],[],['Productos registrados',KC.T.prod],['Unidades ingresadas',KC.T.ent],['Unidades entregadas',KC.T.sal],['Stock actual total',KC.T.stock],['Valor entregado s/IGV',KC.T.valSal],['Valor en stock s/IGV',KC.T.valStock],['Hallazgos por revisar',KC.alerts.filter(a=>a.sev!=='i').length]];
-  fm.push([3,6,1,'"S/ "#,##0.00'],[3,7,1,'"S/ "#,##0.00']);
-  const sheets=[['KARDEX',ka,[6,12,16,18,16,18,14,26,12,8,10,10,16,16,16,24,10,16,26,14,30,24]],['STOCK',st,[14,28,12,8,10,10,12,16,16,16]],['CATALOGOS',ca,[14,28,12,8,14,30]],['RESUMEN',rs,[28,16]]];
-  const wb=X.utils.book_new(),wss=[];
-  sheets.forEach(([n,a,w])=>{const ws=X.utils.aoa_to_sheet(a);ws['!cols']=w.map(c=>({wch:c}));X.utils.book_append_sheet(wb,ws,n);wss.push(ws)});
-  fm.forEach(([si,rr,cc,z])=>{const c=wss[si][X.utils.encode_cell({r:rr,c:cc})];if(c)c.z=z});
-  const q=[['Severidad','Hallazgo','Detalle']];KC.alerts.forEach(a=>q.push([SEV[a.sev].n,a.t,a.d||'']));
-  const w2=X.utils.aoa_to_sheet(q);w2['!cols']=[{wch:12},{wch:70},{wch:90}];X.utils.book_append_sheet(wb,w2,'Control de calidad');
-  const out=X.write(wb,{bookType:'xlsx',type:'array'});
-  try{await dl.save({filename:'Kardex_Regalos_'+hoy()+'.xlsx',data:out});toast('Archivo listo')}
-  catch(e){if(!e||e.code!=='declined')toast('No se pudo guardar el archivo.')}
-}
 
 
 /* ================= ALQUILERES VIGENTES ================= */
@@ -1148,49 +1274,39 @@ function aChangeIn(t,k){
   }
 }
 
-async function exportA(){
-  const X=window.XLSX;if(!X){toast('No se pudo cargar el generador de Excel.');return}
-  const dl=DL;
-  const AC=S.AC,cfg=S.a.cfg,fm=[];
-  const head=['NRO DE CONTRATO','DETALLE','NRO DE MESES','FECHA DE INICIO','FECHA DE TERMINO','ARRENDADOR','DNI/RUC','TIPO DE BIEN','PLACA','IMPORTE MENSUAL','MONEDA','FORMA DE PAGO','VIGENCIA'];
-  const sheet=(title,list,ad,si)=>{
-    const h=ad?['NRO DE ADENDA','CONTRATO',...head.slice(1)]:head;
-    const a=[[title],['Empresa',cfg.empresa||'','RUC',cfg.ruc||''],['Vigentes al',serial(AC.ref)],[],h];
-    fm.push([si,2,1,'dd/mm/yyyy']);
-    list.forEach(c=>{const r=a.length;
-      const row=[c.nro||'',...(ad?[(AC.byId[c.contratoRef]||{}).nro||'']:[]),c.detalle||'',c._meses,serial(c.inicio),serial(c._fin),c.arrendador||'',c.doc||'',c.bien||'',c.placa||'',c._imp,c.moneda==='USD'?'US$':'S/',c.formaPago||'',c._vig];
-      a.push(row);const o=ad?1:0;fm.push([si,r,3+o,'dd/mm/yyyy'],[si,r,4+o,'dd/mm/yyyy'],[si,r,9+o,'#,##0.00']);
-    });
-    return a;
-  };
-  const sCon=sheet('INFORMACIÓN DE ALQUILERES VIGENTES',AC.con.filter(c=>c.tipoDoc!=='ADENDA'),false,0);
-  const sAd=sheet('ADENDAS VIGENTES',AC.con.filter(c=>c.tipoDoc==='ADENDA'),true,1);
-  const pg=[['PAGOS DE ALQUILER POR MES'],[],['Contrato / Adenda','Arrendador','N° MESES','PERIODO / FECHA DE INICIO','RENTA','MONEDA','FECHA DE DEVENGO','FECHA DE PAGO (según voucher)','TIPO DE DOCUMENTO','FECHA DE EMISIÓN','SERIE-NÚMERO','ESTADO','DÍAS DE ATRASO']];
-  AC.con.forEach(c=>c.cuotas.forEach(q=>{const r=pg.length;
-    pg.push([c.nro||'',c.arrendador||'',q.n,serial(q.per),q.renta,c.moneda==='USD'?'US$':'S/',serial(q.dev),serial(q.fechaPago),q.tipoDoc,serial(q.fechaEm),q.serie,q.estado,q.atraso]);
-    fm.push([2,r,3,'dd/mm/yyyy'],[2,r,4,'#,##0.00'],[2,r,6,'dd/mm/yyyy'],[2,r,7,'dd/mm/yyyy'],[2,r,9,'dd/mm/yyyy']);
-  }));
-  const sheets=[['CONTRATOS',sCon,[16,26,10,14,14,28,14,14,10,14,8,16,12]],['ADENDAS',sAd,[16,16,26,10,14,14,28,14,14,10,14,8,16,12]],['PAGOS',pg,[16,28,9,16,12,8,16,18,26,16,18,12,12]]];
-  const wb=X.utils.book_new(),wss=[];
-  sheets.forEach(([n,a,w])=>{const ws=X.utils.aoa_to_sheet(a);ws['!cols']=w.map(c=>({wch:c}));X.utils.book_append_sheet(wb,ws,n);wss.push(ws)});
-  fm.forEach(([si,rr,cc,z])=>{const c=wss[si][X.utils.encode_cell({r:rr,c:cc})];if(c&&c.v!=='')c.z=z});
-  const q=[['Severidad','Hallazgo','Detalle']];AC.alerts.forEach(a=>q.push([SEV[a.sev].n,a.t,a.d||'']));
-  const w2=X.utils.aoa_to_sheet(q);w2['!cols']=[{wch:12},{wch:70},{wch:90}];X.utils.book_append_sheet(wb,w2,'Control de calidad');
-  const out=X.write(wb,{bookType:'xlsx',type:'array'});
-  try{await dl.save({filename:'Alquileres_'+hoy()+'.xlsx',data:out});toast('Archivo listo')}
-  catch(e){if(!e||e.code!=='declined')toast('No se pudo guardar el archivo.')}
-}
 
 
 /* ================= MOVIMIENTOS BANCARIOS ================= */
-const BCOLS={mov:'ban_movimientos',cfg:'ban_config'};
-const BDEF={banco:'BBVA',cuenta:'',moneda:'PEN',empresa:'',ruc:'',saldoInicial:0,fechaInicial:'',itfPct:0.005,itfUmbral:1000,saldoEstado:'',fechaEstado:''};
-const BTABS=[['resumen','Resumen'],['movimientos','Movimientos'],['conciliacion','Conciliación'],['calidad','Control de calidad']];
+const BCOLS={mov:'ban_movimientos',cfg:'ban_config',caja:'ban_caja'};
+const BDEF={nombre:'',cajaSaldo:0,banco:'BBVA',cuenta:'',moneda:'PEN',empresa:'',ruc:'',saldoInicial:0,fechaInicial:'',itfPct:0.005,itfUmbral:1000,saldoEstado:'',fechaEstado:''};
+const BTABS=[['resumen','Resumen'],['movimientos','Movimientos'],['conciliacion','Conciliación'],['caja','Caja chica'],['calidad','Control de calidad']];
 const BOPS=[['ABONO TRANSFERENCIAS','I'],['DEPOSITO EN EFECTIVO','I'],['TRANSFERENCIA ENVIADA','E'],['PAGO FACTURA','E'],['PAGO DE SERVICIOS','E'],['COMPRA EN COMERCIO','E'],['COMISION','E'],['ITF','E'],['OTRO','E']];
-const BDOCS=['','FACTURA','BOLETA','RECIBO POR HONORARIOS','RECIBO DE ARRENDAMIENTO','NOTA DE CRÉDITO','OTRO'];
+const BDOCS=['','FACTURA','BOLETA','RECIBO POR HONORARIOS','RECIBO DE ARRENDAMIENTO','PLANILLA','VOUCHER','TICKET','ENTRE CUENTAS','NOTA DE CRÉDITO','OTROS'];
 const BEXENTO=['ITF','COMISION'];
-S.b={mov:[],cfg:{...BDEF},ready:{},tab:'resumen',fmes:'',fdir:'',fq:'',fsin:false};
+S.b={mov:[],all:[],cfgs:[],caja:[],cajaM:[],list:[],cta:'banco',cfg:{...BDEF},ready:{},tab:'resumen',fmes:'',fdir:'',fq:'',fsin:false};
 S.BC=null;
+const bCtaName=x=>x.nombre||((x.banco||'Cuenta')+(x.cuenta?' '+String(x.cuenta).slice(-4):''));
+/* cuenta activa: S.b.cfg y S.b.mov salen de la cuenta o sede elegida */
+function bSync(){
+  const B=S.b;
+  let list=B.cfgs.slice().sort((a,b)=>cmpTxt(bCtaName(a),bCtaName(b)));
+  if(!list.length)list=[{id:'banco',...BDEF}];
+  if(!list.some(x=>x.id===B.cta))B.cta=list[0].id;
+  B.list=list;
+  const cur=list.find(x=>x.id===B.cta),{id:_i,...rest}=cur;
+  B.cfg={...BDEF,...rest};B.cfgId=cur.id;
+  const first=list.some(x=>x.id==='banco')?'banco':list[0].id;
+  B.mov=B.all.filter(m=>(m.cuentaId||first)===B.cta);
+  B.cajaM=B.caja.filter(m=>(m.cuentaId||first)===B.cta);
+}
+function computeCaja(){
+  const B=S.b,si=num(B.cfg.cajaSaldo)||0;
+  const movs=B.cajaM.map(m=>({...m,_m:num(m.monto)||0})).sort((a,b)=>cmpTxt(a.fecha,b.fecha)||((num(a.ts)||0)-(num(b.ts)||0))||cmpTxt(a.id,b.id));
+  let s=si,ing=0,egr=0;
+  movs.forEach((m,i)=>{m._n=i+1;if(m.dir==='I'){s+=m._m;ing+=m._m}else{s-=m._m;egr+=m._m}m._saldo=Math.round(s*100)/100});
+  const pend=movs.filter(m=>m.pendiente);
+  return {movs,si,ing,egr,saldo:Math.round(s*100)/100,pend:pend.length,pendMonto:pend.reduce((a,m)=>a+m._m,0)};
+}
 const bMoneda=()=>S.b.cfg.moneda==='USD'?'USD':'PEN';
 const bm=n=>money(n,bMoneda(),2);
 const mesLbl=k=>{const [y,m]=k.split('-');return MES[Number(m)-1]+' '+y.slice(2)};
@@ -1198,6 +1314,7 @@ const sinComp=m=>!String(m.docTipo||'').trim()&&!BEXENTO.some(x=>String(m.tipoOp
 const itfCalc=monto=>{const c=S.b.cfg,u=num(c.itfUmbral),p=num(c.itfPct);return (monto>(u==null?1000:u))?Math.round(monto*((p==null?0.005:p)/100)*100)/100:0};
 
 function computeB(){
+  bSync();
   const B=S.b,cfg=B.cfg,si=num(cfg.saldoInicial)||0;
   const movs=B.mov.map(m=>({...m,_m:num(m.monto)||0}))
     .sort((a,b)=>cmpTxt(a.fecha,b.fecha)||((num(a.ts)||0)-(num(b.ts)||0))||cmpTxt(a.id,b.id));
@@ -1221,7 +1338,7 @@ function computeB(){
   libro=Math.round(libro*100)/100;
   const dif=se==null?null:Math.round((libro-se)*100)/100;
   const terc={};movs.forEach(m=>{if(m.tercDoc&&m.tercNombre)terc[String(m.tercDoc).trim()]=m.tercNombre});
-  const BC={movs,meses,porMes,tipos,T,libro,se,dif,fe,terc};
+  const BC={movs,meses,porMes,tipos,T,libro,se,dif,fe,terc,cj:computeCaja()};
   BC.alerts=alertsB(BC);
   return BC;
 }
@@ -1250,23 +1367,31 @@ function alertsB(BC){
   if(BC.se==null)add('b','Falta el saldo según el estado de cuenta','Regístralo en la pestaña Conciliación para comprobar que el saldo cuadra.',{tab:'conciliacion'});
   else if(BC.dif!==0)add('c','El saldo no concilia: diferencia de '+bm(BC.dif),'Saldo del libro '+bm(BC.libro)+' contra estado de cuenta '+bm(BC.se)+' al '+fdate(BC.fe||hoy())+'.',{tab:'conciliacion'});
   if(!String(cfg.cuenta||'').trim()||!String(cfg.empresa||'').trim())add('b','Faltan los datos de la cuenta','Completa empresa, RUC y número de cuenta en Ajustes para que salgan en el Excel.',{settings:true});
+  BC.cj.movs.forEach(m=>{const ref='Caja chica del '+fdate(m.fecha)+' ('+bm(m._m)+')';
+    if(!String(m.docTipo||'').trim())add('m',ref+': sin comprobante','Indica el tipo y la serie-número del documento que sustenta el gasto.',{tab:'caja'});
+    if(m._saldo<0)add('a',ref+': deja la caja chica en negativo ('+bm(m._saldo)+')','Revisa el saldo inicial de caja o los ingresos de reposición.',{tab:'caja'});
+  });
   X.sort((a,b)=>SEV[a.sev].o-SEV[b.sev].o);
   return X;
 }
 
 /* ----- vistas ----- */
+function bCuentas(){
+  const B=S.b;
+  return `<div class="ctas" role="tablist" aria-label="Cuenta o sede">${B.list.map(x=>`<button class="cta" role="tab" aria-selected="${B.cta===x.id}" data-act="b-cta" data-id="${esc(x.id)}">${esc(bCtaName(x))}</button>`).join('')}<button class="cta add" data-act="b-newcta">+ Nueva cuenta o sede</button></div>`;
+}
 function viewBanco(){
-  const B=S.b,r=B.ready,all=r.mov&&r.cfg,BC=S.BC;
+  const B=S.b,r=B.ready,all=r.mov&&r.cfg&&r.caja,BC=S.BC;
   const nA=BC.alerts.filter(a=>a.sev!=='i');const crit=nA.filter(a=>a.sev==='c'||a.sev==='a').length;
   let body='';
   if(!all&&!S.timeout)body='<div class="empty"><b>Cargando datos…</b></div>';
   else body=(!all?'<div class="note warn">No se pudo alcanzar el almacenamiento todavía. Se sigue intentando; lo que veas puede estar desactualizado.</div>':'')+bTabBody();
   const c=B.cfg;
-  return `<div class="head"><div><h1>Movimientos bancarios</h1><p>${esc(c.banco||'Banco')}${c.cuenta?' · cuenta '+esc(c.cuenta):''} · ${c.moneda==='USD'?'Dólares':'Soles'}${c.empresa?' · '+esc(c.empresa):''}</p></div>
+  return `<div class="head"><div><h1>Movimientos bancarios</h1><p>${esc(bCtaName(B.list.find(x=>x.id===B.cta)||c))} · ${esc(c.banco||'Banco')}${c.cuenta?' · cuenta '+esc(c.cuenta):''} · ${c.moneda==='USD'?'Dólares':'Soles'}${c.empresa?' · '+esc(c.empresa):''}</p></div>
     <div class="actions"><button class="btn" data-act="b-settings">Ajustes</button>${S.canExport?'<button class="btn primary" data-act="b-export">Exportar a Excel</button>':''}</div></div>
-  <div class="tabs" role="tablist">${BTABS.map(([id,n])=>`<button class="tab" role="tab" aria-selected="${B.tab===id}" data-act="btab" data-id="${id}">${n}${id==='calidad'&&nA.length?`<span class="cnt ${crit?'bad':''}">${nA.length}</span>`:''}</button>`).join('')}</div>${body}`;
+  ${bCuentas()}<div class="tabs" role="tablist">${BTABS.map(([id,n])=>`<button class="tab" role="tab" aria-selected="${B.tab===id}" data-act="btab" data-id="${id}">${n}${id==='calidad'&&nA.length?`<span class="cnt ${crit?'bad':''}">${nA.length}</span>`:''}</button>`).join('')}</div>${body}`;
 }
-function bTabBody(){switch(S.b.tab){case 'resumen':return bResumen();case 'movimientos':return bMovs();case 'conciliacion':return bConc();case 'calidad':return bCalidad();}return ''}
+function bTabBody(){switch(S.b.tab){case 'resumen':return bResumen();case 'movimientos':return bMovs();case 'conciliacion':return bConc();case 'caja':return bCaja();case 'calidad':return bCalidad();}return ''}
 const bEmpty=()=>`<div class="empty"><b>Empieza con el saldo inicial</b><span>Indica en Ajustes el saldo con el que empieza el periodo y luego registra los movimientos. El saldo de cada operación se calcula solo.</span><div class="grp"><button class="btn" data-act="b-settings">Ajustes de la cuenta</button><button class="btn primary" data-act="b-new">Nuevo movimiento</button></div></div>`;
 
 function bResumen(){
@@ -1298,10 +1423,10 @@ function bMovs(){
    <div class="grp"><button class="btn primary" data-act="b-new">Nuevo movimiento</button></div></div>`;
   if(!BC.movs.length)return bar+bEmpty();
   const q=B.fq.trim().toLowerCase();
-  const list=BC.movs.filter(m=>(!B.fmes||m.fecha.slice(0,7)===B.fmes)&&(!B.fdir||m.dir===B.fdir)&&(!B.fsin||sinComp(m))&&(!q||[m.descripcion,m.tercNombre,m.tercDoc,m.nroOp,m.docSerie].some(x=>String(x||'').toLowerCase().includes(q))));
+  const list=BC.movs.filter(m=>(!B.fmes||m.fecha.slice(0,7)===B.fmes)&&(!B.fdir||m.dir===B.fdir)&&(!B.fsin||sinComp(m))&&(!q||[m.descripcion,m.descEECC,m.tercNombre,m.tercDoc,m.nroOp,m.docSerie].some(x=>String(x||'').toLowerCase().includes(q))));
   const first=B.fmes||B.fq||B.fdir||B.fsin?'':`<tr><td></td><td></td><td colspan="4"><b>SALDO INICIAL</b></td><td></td><td></td><td class="n"><b>${bm(BC.T.si)}</b></td><td></td><td></td></tr>`;
   const rows=list.map(m=>{const e=m.dir==='E';
-    return `<tr><td class="mono">${m._cod}</td><td class="n">${fdate(m.fecha)}</td><td class="wrap">${esc(m.tipoOp||'')}<span class="small mono">${esc(m.nroOp||'')}</span></td><td class="wrap">${esc(m.descripcion||'')}</td>
+    return `<tr><td class="mono">${m._cod}</td><td class="n">${fdate(m.fecha)}</td><td class="wrap">${esc(m.tipoOp||'')}<span class="small mono">${esc(m.nroOp||'')}</span></td><td class="wrap">${esc(m.descripcion||'')}${m.descEECC?'<span class="small">EE.CC: '+esc(m.descEECC)+'</span>':''}</td>
     <td class="wrap">${m.docTipo?esc(m.docTipo)+'<span class="small mono">'+esc(m.docSerie||'')+'</span>':(sinComp(m)?'<span class="pill a">Sin comprobante</span>':'<span class="small">No requiere</span>')}</td>
     <td class="wrap">${esc(m.tercNombre||'')}<span class="small mono">${esc(m.tercDoc||'')}</span></td>
     <td class="n">${e?'':bm(m._m)}</td><td class="n">${e?bm(m._m):''}</td><td class="n" style="${m._saldo<0?'color:var(--bad);font-weight:600':''}"><b>${bm(m._saldo)}</b></td><td class="wrap">${esc(m.obs||'')}</td><td><button class="btn sm" data-act="b-edit" data-id="${m.id}">Editar</button></td></tr>`}).join('');
@@ -1352,7 +1477,8 @@ function openMovB(id){
    fld('bm-dir','Es un',`<select id="bm-dir"><option value="I" ${m.dir!=='E'?'selected':''}>Ingreso (abono)</option><option value="E" ${m.dir==='E'?'selected':''}>Egreso (cargo)</option></select>`,'Se propone según el tipo de operación.')+
    fld('bm-monto','Importe',`<input id="bm-monto" type="number" min="0" step="0.01" inputmode="decimal" value="${m.monto==null?'':esc(m.monto)}">`)+
    fld('bm-nro','N.° de operación',`<input id="bm-nro" value="${esc(m.nroOp||'')}" autocomplete="off">`)+
-   fld('bm-desc','Descripción',`<input id="bm-desc" value="${esc(m.descripcion||'')}" autocomplete="off">`,'',true)+
+   fld('bm-eecc','Descripción en el estado de cuenta (EE.CC)',`<input id="bm-eecc" value="${esc(m.descEECC||'')}" autocomplete="off">`,'Tal como aparece en el extracto del banco.',true)+
+   fld('bm-desc','Descripción de la operación',`<input id="bm-desc" value="${esc(m.descripcion||'')}" autocomplete="off">`,'Qué fue realmente el movimiento (para qué, de quién).',true)+
    fld('bm-doct','Comprobante que lo sustenta',`<select id="bm-doct">${BDOCS.map(d=>`<option value="${d}" ${m.docTipo===d?'selected':''}>${d||'Sin comprobante'}</option>`).join('')}</select>`)+
    fld('bm-docs','Serie-número',`<input id="bm-docs" value="${esc(m.docSerie||'')}" autocomplete="off">`)+
    fld('bm-tdoc','DNI o RUC',`<input id="bm-tdoc" list="dl-terc" inputmode="numeric" value="${esc(m.tercDoc||'')}" autocomplete="off"><datalist id="dl-terc">${terc}</datalist>`,'<span id="h-tdoc"></span>')+
@@ -1399,37 +1525,93 @@ function saveMovB(){
   if(tdoc&&!validDoc(tdoc)){setErr('bm-tdoc','El DNI o RUC no es válido. Déjalo vacío si no lo tienes.');ok=false}
   if(gv('bm-doct')&&!gv('bm-docs')){setErr('bm-docs','Escribe la serie y número del comprobante.');ok=false}
   if(!ok)return;
-  const data={fecha,tipoOp:op,dir,monto:Math.round(monto*100)/100,nroOp:gv('bm-nro'),descripcion:gv('bm-desc'),docTipo:gv('bm-doct'),docSerie:gv('bm-docs'),tercDoc:tdoc,tercNombre:gv('bm-tnom'),obs:gv('bm-obs'),ts:prev&&prev.ts?prev.ts:Date.now()};
+  const data={fecha,tipoOp:op,dir,monto:Math.round(monto*100)/100,cuentaId:S.b.cta,nroOp:gv('bm-nro'),descEECC:gv('bm-eecc'),descripcion:gv('bm-desc'),docTipo:gv('bm-doct'),docSerie:gv('bm-docs'),tercDoc:tdoc,tercNombre:gv('bm-tnom'),obs:gv('bm-obs'),ts:prev&&prev.ts?prev.ts:Date.now()};
   const itfBox=$('#bm-itf'),itf=(!id&&itfBox&&itfBox.checked&&dir==='E'&&op!=='ITF')?itfCalc(monto):0;
   persist(async()=>{
     await Store.set(BCOLS.mov,id||newId('b_'),data);
-    if(itf>0)await Store.set(BCOLS.mov,newId('b_'),{fecha,tipoOp:'ITF',dir:'E',monto:itf,nroOp:data.nroOp,descripcion:'ITF',docTipo:'',docSerie:'',tercDoc:'',tercNombre:'',obs:'Generado automáticamente',ts:Date.now()+1});
+    if(itf>0)await Store.set(BCOLS.mov,newId('b_'),{cuentaId:S.b.cta,fecha,tipoOp:'ITF',dir:'E',monto:itf,nroOp:data.nroOp,descripcion:'ITF',docTipo:'',docSerie:'',tercDoc:'',tercNombre:'',obs:'Generado automáticamente',ts:Date.now()+1});
   },id?'Movimiento actualizado':(itf>0?'Movimiento e ITF registrados':'Movimiento registrado'));
 }
 
-function openSettingsB(){
-  const c=S.b.cfg;
-  openModal('Ajustes de la cuenta',
+function openSettingsB(nuevo){
+  const c=nuevo?{...BDEF,banco:''}:S.b.cfg;
+  openModal(nuevo?'Nueva cuenta o sede':'Ajustes de la cuenta',
+   fld('bc-nom','Nombre de la cuenta o sede',`<input id="bc-nom" value="${esc(c.nombre||'')}" placeholder="Ej.: BBVA Lima, Tarapoto" autocomplete="off">`,'Con este nombre aparece en la lista de cuentas y en el archivo.',true)+
    fld('bc-emp','Empresa',`<input id="bc-emp" value="${esc(c.empresa||'')}" autocomplete="off">`)+
    fld('bc-ruc','RUC',`<input id="bc-ruc" inputmode="numeric" value="${esc(c.ruc||'')}" autocomplete="off">`)+
    fld('bc-banco','Banco',`<input id="bc-banco" value="${esc(c.banco||'')}" autocomplete="off">`)+
    fld('bc-cta','N.° de cuenta',`<input id="bc-cta" value="${esc(c.cuenta||'')}" autocomplete="off">`)+
    fld('bc-mon','Moneda',`<select id="bc-mon"><option value="PEN" ${c.moneda!=='USD'?'selected':''}>Soles (S/)</option><option value="USD" ${c.moneda==='USD'?'selected':''}>Dólares (US$)</option></select>`)+
    fld('bc-fi','Fecha del saldo inicial',`<input id="bc-fi" type="date" value="${esc(c.fechaInicial||'')}">`)+
-   fld('bc-si','Saldo inicial',`<input id="bc-si" type="number" step="0.01" inputmode="decimal" value="${esc(c.saldoInicial==null?0:c.saldoInicial)}">`,'Saldo con el que empieza el periodo, según el banco.')+
+   fld('bc-si','Saldo inicial del banco',`<input id="bc-si" type="number" step="0.01" inputmode="decimal" value="${esc(c.saldoInicial==null?0:c.saldoInicial)}">`,'Saldo con el que empieza el periodo, según el banco.')+
+   fld('bc-caja','Saldo inicial de caja chica',`<input id="bc-caja" type="number" step="0.01" inputmode="decimal" value="${esc(c.cajaSaldo==null?0:c.cajaSaldo)}">`,'Efectivo con el que empieza la caja chica de esta cuenta o sede.')+
    fld('bc-itf','ITF (%)',`<input id="bc-itf" type="number" min="0" step="0.001" value="${esc(c.itfPct==null?0.005:c.itfPct)}">`)+
    fld('bc-umb','ITF desde el importe',`<input id="bc-umb" type="number" min="0" step="1" value="${esc(c.itfUmbral==null?1000:c.itfUmbral)}">`,'Operaciones menores a este monto no pagan ITF.'),
    `<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`);
-  const f=$('#mf');f.dataset.kind='bg';f.dataset.id='';
+  const f=$('#mf');f.dataset.kind='bg';f.dataset.id=nuevo?newId('cta_'):S.b.cfgId;f.dataset.nuevo=nuevo?'1':'';
 }
 function saveSettingsB(){
-  clearErrs();let ok=true;const ruc=gv('bc-ruc'),si=num(gv('bc-si')),p=num(gv('bc-itf')),u=num(gv('bc-umb'));
+  clearErrs();let ok=true;const f=$('#mf'),id=f.dataset.id,nuevo=!!f.dataset.nuevo;
+  const ruc=gv('bc-ruc'),si=num(gv('bc-si')),cj=num(gv('bc-caja')),p=num(gv('bc-itf')),u=num(gv('bc-umb'));
+  if(!gv('bc-nom')&&!gv('bc-banco')){setErr('bc-nom','Ponle un nombre para reconocerla (por ejemplo, la sede).');ok=false}
   if(ruc&&validDoc(ruc)!=='RUC'){setErr('bc-ruc','El RUC no es válido (11 dígitos).');ok=false}
   if(si==null){setErr('bc-si','Escribe el saldo inicial (0 si empieza en cero).');ok=false}
+  if(cj==null){setErr('bc-caja','Escribe el saldo de caja chica (0 si empieza en cero).');ok=false}
   if(p==null||p<0){setErr('bc-itf','Escribe un porcentaje válido.');ok=false}
   if(u==null||u<0){setErr('bc-umb','Escribe un monto válido.');ok=false}
   if(!ok)return;
-  persist(()=>Store.set(BCOLS.cfg,'banco',{...S.b.cfg,empresa:gv('bc-emp'),ruc,banco:gv('bc-banco'),cuenta:gv('bc-cta'),moneda:gv('bc-mon'),fechaInicial:gv('bc-fi'),saldoInicial:si,itfPct:p,itfUmbral:u}),'Ajustes guardados');
+  const cur=nuevo?{}:(S.b.list.find(x=>x.id===id)||{}),{id:_i,...rest}=cur;
+  persist(async()=>{
+    await Store.set(BCOLS.cfg,id,{...BDEF,...rest,nombre:gv('bc-nom'),empresa:gv('bc-emp'),ruc,banco:gv('bc-banco'),cuenta:gv('bc-cta'),moneda:gv('bc-mon'),fechaInicial:gv('bc-fi'),saldoInicial:si,cajaSaldo:cj,itfPct:p,itfUmbral:u});
+    if(nuevo){S.b.cta=id;S.b.fmes='';S.b.tab='resumen';render()}
+  },nuevo?'Cuenta creada':'Ajustes guardados');
+}
+
+/* ----- caja chica ----- */
+function bCaja(){
+  const BC=S.BC,CJ=BC.cj,B=S.b;
+  const bar=`<div class="toolbar"><div class="grp"><span class="hint">Gastos menores en efectivo de esta cuenta o sede. El saldo se calcula solo.</span></div><div class="grp"><button class="btn primary" data-act="b-newj">Nuevo movimiento de caja</button></div></div>`;
+  const kpis=`<div class="kpis">
+   <div class="kpi"><span class="l">Saldo inicial</span><span class="v" style="font-size:1.25rem">${bm(CJ.si)}</span><span class="s">caja chica</span></div>
+   <div class="kpi"><span class="l">Ingresos</span><span class="v" style="font-size:1.25rem">${bm(CJ.ing)}</span><span class="s">reposiciones</span></div>
+   <div class="kpi"><span class="l">Egresos</span><span class="v" style="font-size:1.25rem">${bm(CJ.egr)}</span><span class="s">${CJ.movs.filter(m=>m.dir==='E').length} gastos</span></div>
+   <div class="kpi"><span class="l">Saldo final</span><span class="v" style="font-size:1.25rem;color:${CJ.saldo<0?'var(--bad)':'inherit'}">${bm(CJ.saldo)}</span><span class="s">calculado</span></div>
+   <div class="kpi"><span class="l">Pendiente de devolución</span><span class="v" style="color:${CJ.pend?'var(--hi)':'var(--ok)'}">${CJ.pend}</span><span class="s">${CJ.pend?bm(CJ.pendMonto):'nada pendiente'}</span></div></div>`;
+  if(!CJ.movs.length)return bar+`<div class="empty"><b>Aún no hay movimientos de caja chica</b><span>Registra cada gasto o reposición en efectivo. Salen en la hoja “Detalle movimientos caja chica” del Excel.</span><button class="btn primary" data-act="b-newj">Nuevo movimiento de caja</button></div>`;
+  const rows=CJ.movs.map(m=>{const e=m.dir==='E';
+    return `<tr><td class="mono">${m._n}</td><td class="n">${fdate(m.fecha)}</td><td class="wrap">${esc(m.desc||'')}${m.pendiente?' <span class="pill a">Pendiente de devolución</span>':''}</td>
+    <td class="wrap">${m.docTipo?esc(m.docTipo)+'<span class="small mono">'+esc(m.docSerie||'')+'</span>':'<span class="pill m">Sin comprobante</span>'}</td>
+    <td class="wrap">${esc(m.tercNombre||'')}<span class="small mono">${esc(m.tercDoc||'')}</span></td>
+    <td class="n">${e?'':bm(m._m)}</td><td class="n">${e?bm(m._m):''}</td><td class="n" style="${m._saldo<0?'color:var(--bad);font-weight:600':''}"><b>${bm(m._saldo)}</b></td><td><button class="btn sm" data-act="b-editj" data-id="${m.id}">Editar</button></td></tr>`}).join('');
+  return bar+kpis+`<div class="scroll"><table><thead><tr><th>N.°</th><th class="n">Fecha</th><th>Descripción</th><th>Comprobante</th><th>Proveedor / trabajador</th><th class="n">Ingreso</th><th class="n">Egreso</th><th class="n">Saldo</th><th></th></tr></thead><tbody>${rows}</tbody>
+  <tfoot><tr><td colspan="5">Total (${CJ.movs.length} movimientos)</td><td class="n">${bm(CJ.ing)}</td><td class="n">${bm(CJ.egr)}</td><td class="n">${bm(CJ.saldo)}</td><td></td></tr></tfoot></table></div>`;
+}
+function openMovJ(id){
+  const prev=id?S.b.caja.find(x=>x.id===id):null;
+  const m=prev||{fecha:hoy(),dir:'E',docTipo:''};
+  const body=
+   fld('bj-fecha','Fecha',`<input id="bj-fecha" type="date" value="${esc(m.fecha||'')}">`)+
+   fld('bj-dir','Es un',`<select id="bj-dir"><option value="E" ${m.dir!=='I'?'selected':''}>Egreso (gasto)</option><option value="I" ${m.dir==='I'?'selected':''}>Ingreso (reposición)</option></select>`)+
+   fld('bj-desc','Descripción de la operación',`<input id="bj-desc" value="${esc(m.desc||'')}" autocomplete="off">`,'',true)+
+   fld('bj-monto','Importe',`<input id="bj-monto" type="number" min="0" step="0.01" inputmode="decimal" value="${m.monto==null?'':esc(m.monto)}">`)+
+   fld('bj-doct','Comprobante',`<select id="bj-doct">${BDOCS.map(d=>`<option value="${d}" ${m.docTipo===d?'selected':''}>${d||'Sin comprobante'}</option>`).join('')}</select>`)+
+   fld('bj-docs','Serie-número',`<input id="bj-docs" value="${esc(m.docSerie||'')}" autocomplete="off">`)+
+   fld('bj-tdoc','DNI o RUC',`<input id="bj-tdoc" inputmode="numeric" value="${esc(m.tercDoc||'')}" autocomplete="off">`)+
+   fld('bj-tnom','Proveedor o trabajador',`<input id="bj-tnom" value="${esc(m.tercNombre||'')}" autocomplete="off">`)+
+   `<div class="fld full"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bj-pend" ${m.pendiente?'checked':''}> Pendiente de devolución (se marca en rojo en el Excel)</label></div>`;
+  openModal(id?'Editar movimiento de caja':'Nuevo movimiento de caja',body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,delButtons('bj',id));
+  const f=$('#mf');f.dataset.kind='bj';f.dataset.id=id||'';
+}
+function saveMovJ(){
+  clearErrs();let ok=true;const id=$('#mf').dataset.id,prev=id?S.b.caja.find(x=>x.id===id):null;
+  const fecha=gv('bj-fecha'),monto=num(gv('bj-monto')),tdoc=gv('bj-tdoc');
+  if(!okIso(fecha)){setErr('bj-fecha','Indica la fecha.');ok=false}
+  if(!gv('bj-desc')){setErr('bj-desc','Describe el gasto o la reposición.');ok=false}
+  if(!(monto>0)){setErr('bj-monto','Escribe un importe mayor que 0.');ok=false}
+  if(tdoc&&!validDoc(tdoc)){setErr('bj-tdoc','El DNI o RUC no es válido. Déjalo vacío si no lo tienes.');ok=false}
+  if(gv('bj-doct')&&!gv('bj-docs')){setErr('bj-docs','Escribe la serie y número del comprobante.');ok=false}
+  if(!ok)return;
+  persist(()=>Store.set(BCOLS.caja,id||newId('j_'),{cuentaId:prev&&prev.cuentaId?prev.cuentaId:S.b.cta,fecha,dir:gv('bj-dir'),desc:gv('bj-desc'),monto:Math.round(monto*100)/100,docTipo:gv('bj-doct'),docSerie:gv('bj-docs'),tercDoc:tdoc,tercNombre:gv('bj-tnom'),pendiente:$('#bj-pend').checked,ts:prev&&prev.ts?prev.ts:Date.now()}),id?'Movimiento actualizado':'Movimiento registrado');
 }
 
 function bClick(a,b){
@@ -1438,6 +1620,10 @@ function bClick(a,b){
   if(a==='b-new'){openMovB();return}
   if(a==='b-edit'){openMovB(id);return}
   if(a==='b-settings'){openSettingsB();return}
+  if(a==='b-cta'){S.b.cta=id;S.b.fmes='';S.b.fq='';render();return}
+  if(a==='b-newcta'){openSettingsB(true);return}
+  if(a==='b-newj'){openMovJ();return}
+  if(a==='b-editj'){openMovJ(id);return}
   if(a==='b-export'){exportB();return}
   if(a==='b-go'){
     const al=S.BC.alerts[Number(b.dataset.i)];if(!al)return;const g=al.go||{};
@@ -1457,39 +1643,10 @@ function bChangeIn(t,k){
     if(cur===v)return;
     const val=f==='saldoEstado'?(v===''?'':num(v)):v;
     if(f==='saldoEstado'&&v!==''&&val==null){toast('Escribe un número válido.');render();return}
-    Store.set(BCOLS.cfg,'banco',{...B.cfg,[f]:val}).catch(()=>toast('No se pudo guardar.'));
+    const cur0=B.list.find(x=>x.id===B.cfgId)||{},{id:_i,...rest}=cur0;
+    Store.set(BCOLS.cfg,B.cfgId,{...rest,[f]:val}).catch(()=>toast('No se pudo guardar.'));
   }
 }
-
-async function exportB(){
-  const X=window.XLSX;if(!X){toast('No se pudo cargar el generador de Excel.');return}
-  const dl=DL;
-  const BC=S.BC,c=S.b.cfg,fm=[],mon=c.moneda==='USD'?'US$':'S/';
-  const ds=BC.movs.map(m=>m.fecha).filter(Boolean).sort();
-  const per=ds.length?(ds[0].slice(0,7)===ds[ds.length-1].slice(0,7)?mesLbl(ds[0].slice(0,7)):mesLbl(ds[0].slice(0,7))+' a '+mesLbl(ds[ds.length-1].slice(0,7))):'';
-  const a=[['MOVIMIENTOS BANCARIOS'],['BANCO',c.banco||'','NRO DE CUENTA',c.cuenta||''],['MONEDA',mon,'PERIODO',per],['EMPRESA',c.empresa||'','RUC',c.ruc||''],[],
-   ['Código único','Fecha de operación','Tipo de operación','N° de operación','Descripción','Tipo de documento','Serie-número','RUC/DNI','Cliente / proveedor / trabajador','Ingreso','Egreso','Saldo','Observación']];
-  a.push(['','','SALDO INICIAL','','','','','','','','',BC.T.si,'']);fm.push([0,a.length-1,11,'#,##0.00']);
-  BC.movs.forEach(m=>{const r=a.length,e=m.dir==='E';
-    a.push([m._cod,serial(m.fecha),m.tipoOp||'',m.nroOp||'',m.descripcion||'',m.docTipo||(sinComp(m)?'SIN COMPROBANTE':''),m.docSerie||'',m.tercDoc||'',m.tercNombre||'',e?'':m._m,e?m._m:'',m._saldo,m.obs||'']);
-    fm.push([0,r,1,'dd/mm/yyyy'],[0,r,9,'#,##0.00'],[0,r,10,'#,##0.00'],[0,r,11,'#,##0.00']);
-  });
-  const r0=a.length;a.push(['','','TOTALES','','','','','','',BC.T.ing,BC.T.egr,BC.T.saldo,'']);fm.push([0,r0,9,'#,##0.00'],[0,r0,10,'#,##0.00'],[0,r0,11,'#,##0.00']);
-  const co=[['CONCILIACIÓN BANCARIA'],[],['Saldo inicial',BC.T.si],['Ingresos',BC.movs.filter(m=>m.dir==='I'&&(!BC.fe||m.fecha<=BC.fe)).reduce((x,m)=>x+m._m,0)],['Egresos',BC.movs.filter(m=>m.dir==='E'&&(!BC.fe||m.fecha<=BC.fe)).reduce((x,m)=>x+m._m,0)],['Saldo según libro',BC.libro],['Saldo según estado de cuenta',BC.se==null?'':BC.se],['Diferencia',BC.dif==null?'':BC.dif],['Fecha de corte',BC.fe?serial(BC.fe):'']];
-  [2,3,4,5,6,7].forEach(r=>fm.push([1,r,1,'#,##0.00']));fm.push([1,8,1,'dd/mm/yyyy']);
-  const me=[['RESUMEN POR MES'],[],['Mes','Movimientos','Ingresos','Egresos','Neto','Saldo final']];
-  BC.meses.forEach(k=>{const o=BC.porMes[k];me.push([mesLbl(k),o.n,o.ing,o.egr,o.ing-o.egr,o.saldo]);[2,3,4,5].forEach(cc=>fm.push([2,me.length-1,cc,'#,##0.00']))});
-  const sheets=[['MOVIMIENTOS',a,[12,14,26,14,32,22,16,14,32,14,14,14,26]],['CONCILIACION',co,[32,16]],['RESUMEN',me,[12,12,14,14,14,14]]];
-  const wb=X.utils.book_new(),wss=[];
-  sheets.forEach(([n,aa,w])=>{const ws=X.utils.aoa_to_sheet(aa);ws['!cols']=w.map(x=>({wch:x}));X.utils.book_append_sheet(wb,ws,n);wss.push(ws)});
-  fm.forEach(([si,rr,cc,z])=>{const cell=wss[si][X.utils.encode_cell({r:rr,c:cc})];if(cell&&cell.v!=='')cell.z=z});
-  const q=[['Severidad','Hallazgo','Detalle']];BC.alerts.forEach(x=>q.push([SEV[x.sev].n,x.t,x.d||'']));
-  const w2=X.utils.aoa_to_sheet(q);w2['!cols']=[{wch:12},{wch:70},{wch:90}];X.utils.book_append_sheet(wb,w2,'Control de calidad');
-  const out=X.write(wb,{bookType:'xlsx',type:'array'});
-  try{await dl.save({filename:'Movimientos_bancarios_'+hoy()+'.xlsx',data:out});toast('Archivo listo')}
-  catch(e){if(!e||e.code!=='declined')toast('No se pudo guardar el archivo.')}
-}
-
 
 /* ---------- navegación ---------- */
 function setRoute(mod,tab){
@@ -1852,44 +2009,404 @@ function toast(msg){const t=$('#toast');t.innerHTML=`<div class="toast">${esc(ms
 
 /* ---------- exportar a Excel (mismo orden de cuadros que el formato) ---------- */
 function serial(iso){if(!/^\d{4}-\d{2}-\d{2}$/.test(iso||''))return '';const [y,m,d]=iso.split('-').map(Number);return (Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/86400000}
-async function exportXlsx(){
-  const X=window.XLSX;if(!X){toast('No se pudo cargar el generador de Excel.');return}
-  const dl=DL;
-  const C=S.C,yrs=years(),py=periodYear();
-  const aoa=[],fm=[];let r=0;
-  const row=(cells,start=1)=>{aoa[r]=[];cells.forEach((v,i)=>{aoa[r][start+i]=v});return r++};
-  const fmt=(rr,cc,z)=>fm.push([rr,cc,z]);
-  r=2;row(['LISTA DE PROYECTOS']);
-  row(['Cuadro con: nombre del proyecto, tipo, fecha de adquisición, importe de la compra, modalidad de compra y observaciones.']);r++;
-  row(['ITEM','NOMBRE DEL PROYECTO','TIPO DE PROYECTO','FECHA DE ADQUISICIÓN','IMPORTE DE LA COMPRA','MONEDA','MODALIDAD DE COMPRA','OBSERVACIONES']);
-  S.proyectos.slice().sort((a,b)=>(num(a.orden)||99)-(num(b.orden)||99)||cmpTxt(a.nombre,b.nombre)).forEach((p,i)=>{
-    const rr=row([i+1,p.nombre,tipoTxt(p),p.fechaAdq?serial(p.fechaAdq):(p.anioAdq||''),num(p.importe)||0,p.moneda==='USD'?'US$':'S/',p.modalidad==='otro'?(p.modalidadDetalle||MODALIDADES.otro):MODALIDADES[p.modalidad],p.obs||'']);
-    if(p.fechaAdq)fmt(rr,4,'dd/mm/yyyy');fmt(rr,5,'#,##0.00');
-  });
-  r+=2;row(['EN EL CASO DE PROYECTOS DE LOTIZACIÓN Y/O HABILITACIÓN']);r++;
-  row(['NOMBRE DEL PROYECTO','UBICACIÓN DEL PROYECTO','NRO. LOTES TOTAL','AÑO DE INICIO',...yrs.map(yearLabel),'SIN AÑO ASIGNADO','TOTAL VENDIDOS CON ESCRITURA','TOTAL LOTES PENDIENTE DE ESCRITURA','OBSERVACIÓN']);
-  C.lotProjs.forEach(p=>{const m=C.M[p.id];
-    row([p.nombre,ubic(p),m.total,num(p.anioInicio)||num(p.anioAdq)||'',...yrs.map(y=>{const v=num(p.ventasAnio&&p.ventasAnio[y]);return v==null?'':v}),m.sin||0,m.vend,m.pend,[p.obsLotes,p.pendienteRegistro?'Escrituras sin inscribir en Registros Públicos':''].filter(Boolean).join('. ')]);
-  });
-  row(['TOTAL','',C.T.total,'',...yrs.map(y=>C.lotProjs.reduce((a,p)=>a+(num(p.ventasAnio&&p.ventasAnio[y])||0),0)),'',C.T.vend,C.T.pend,'']);
-  r+=2;row([`PROYECTOS VENDIDOS CON ESCRITURA PÚBLICA, ${fdate(S.cfg.periodoDesde)} AL ${fdate(S.cfg.periodoHasta)}`]);
-  if(!C.esc.length)row(['No se realizaron escrituras durante el periodo solicitado.']);
-  row(['N.°','Nombre del Proyecto','Fecha de la Escritura','MZ','Nro. de Lote','Importe de la Venta','Observaciones']);
-  C.esc.forEach((e,i)=>{const rr=row([i+1,C.pName(e.proyectoId),serial(e.fecha),e.mz,e.lotes,e._imp,e.obs||'']);fmt(rr,3,'dd/mm/yyyy');fmt(rr,6,'"S/ "#,##0.00')});
-  if(C.esc.length){const rr=row(['','TOTAL','','',C.T.escN+' lotes',C.T.escImp,'']);fmt(rr,6,'"S/ "#,##0.00')}
-  r+=2;row(['EN CASO DE PRESTACIÓN DE SERVICIOS',S.cfg.serviciosAplica?'':'NO APLICA']);
-  if(S.cfg.serviciosAplica){row(['ITEM','ESPECIFICAR EL SERVICIO PRESTADO','OBSERVACIONES']);S.servicios.forEach((s,i)=>row([i+1,s.servicio,s.obs||'']))}
-  const ws=X.utils.aoa_to_sheet(aoa);
-  fm.forEach(([rr,cc,z])=>{const c=ws[X.utils.encode_cell({r:rr,c:cc})];if(c)c.z=z});
-  ws['!cols']=[{wch:2},{wch:28},{wch:34},{wch:22},{wch:20},{wch:20},{wch:30},{wch:26},{wch:14},{wch:16},{wch:16},{wch:16},{wch:22},{wch:22}];
-  const wb=X.utils.book_new();X.utils.book_append_sheet(wb,ws,'TABLA');
-  const q=[['Severidad','Hallazgo','Detalle']];C.alerts.forEach(a=>q.push([SEV[a.sev].n,a.t,a.d||'']));
-  const ws2=X.utils.aoa_to_sheet(q);ws2['!cols']=[{wch:12},{wch:70},{wch:90}];X.utils.book_append_sheet(wb,ws2,'Control de calidad');
-  const out=X.write(wb,{bookType:'xlsx',type:'array'});
-  const d=new Date(),stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  try{await dl.save({filename:'Informacion_Proyectos_'+stamp+'.xlsx',data:out});toast('Archivo listo')}
-  catch(e){if(!e||e.code!=='declined')toast('No se pudo guardar el archivo.')}
+/* ---------- exportar a Excel con el diseño de los formatos originales ---------- */
+const stamp=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+function newSheet(name,o){return Object.assign({name,rows:[],merges:[],heights:{},cols:[],validations:[]},o||{})}
+function put(sh,r,c,v,s){ // r y c empiezan en 1
+  const row=(sh.rows[r-1]=sh.rows[r-1]||[]);
+  row[c-1]=(v&&typeof v==='object'&&!(v instanceof Date))?{...v,s:{...(s||{}),...(v.s||{})}}:{v,s};
 }
+function box(sh,r1,c1,r2,c2,s){for(let r=r1;r<=r2;r++){const row=(sh.rows[r-1]=sh.rows[r-1]||[]);for(let c=c1;c<=c2;c++)if(row[c-1]==null)row[c-1]={v:null,s}}}
+function merge(sh,r1,c1,r2,c2,s){if(s)box(sh,r1,c1,r2,c2,s);sh.merges.push(XLX.colL(c1-1)+r1+':'+XLX.colL(c2-1)+r2)}
+const DT=(iso,s,nf)=>({v:XLX.serial(iso),s:{...(s||{}),nf:nf||'dd/mm/yyyy'}});
+const fnt=(o)=>o;
+async function saveBook(sheets,filename){
+  if(!window.JSZip){toast('No se pudo cargar el generador de Excel.');return}
+  try{
+    const data=await XLX.build(sheets,window.JSZip);
+    await DL.save({filename,data:new Blob([data],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})});
+    toast('Archivo listo');
+  }catch(e){toast('No se pudo generar el archivo.')}
+}
+const SEVFILL={c:'F4CCCC',a:'FCE4D6',m:'FFF2CC',b:'DDEBF7',i:'EDEDED'};
+function sheetCalidad(alerts,head,hfont,body){
+  const sh=newSheet('Control de calidad',{hideGrid:true,cols:[14,80,100],landscape:true});
+  put(sh,1,1,'CONTROL DE CALIDAD DE LA INFORMACIÓN',{font:{...hfont,sz:14,b:true},al:{v:'center'}});sh.heights[1]=24;
+  ['Severidad','Hallazgo','Detalle'].forEach((h,i)=>put(sh,3,i+1,h,head));
+  if(!alerts.length)put(sh,4,1,'Sin hallazgos',body);
+  alerts.forEach((a,i)=>{const r=4+i;
+    put(sh,r,1,SEV[a.sev].n,{...body,fill:SEVFILL[a.sev],font:{...(body.font||{}),b:true},al:{h:'center',v:'center'}});
+    put(sh,r,2,a.t,{...body,al:{v:'center',w:true}});put(sh,r,3,a.d||'',{...body,al:{v:'center',w:true}});
+  });
+  return sh;
+}
+
+/* ===================== PROYECTOS ===================== */
+async function exportXlsx(){
+  const C=S.C,yrs=years(),cfg=S.cfg;
+  const AMB='FFD966',AMBT='7F6000';
+  const base={font:{sz:14},al:{h:'center',v:'center'}};
+  const hdr={font:{sz:14,b:true,i:true,c:AMBT},fill:AMB,al:{h:'center',v:'center',w:true}};
+  const txt={font:{sz:14,c:'222222'},al:{h:'left',v:'top'}};
+  const sh=newSheet('TABLA',{hideGrid:true,zoom:70,cols:[11.4,35.6,85.1,29.1,30.6,26.4,32.9,24.4,16.4,16.4,22,30.4,31.9,59.3,11.4]});
+  let r=3;
+  put(sh,r,2,'LISTA DE PROYECTOS',{font:{sz:14,i:true,u:true},al:{h:'left',v:'center'}});sh.heights[r]=18.75;r++;
+  put(sh,r,2,'-Cuadro Excel, que contenga la siguiente información: Nombre del Proyecto, tipo del Proyecto, fecha de adquisición, importe de la compra, modalidad de la compra, y alguna observación adicional que tenga conveniente indicarnos.',txt);sh.heights[r]=18.75;r+=2;
+  ['ITEM','NOMBRE DEL PROYECTO','TIPO DE PROYECTO','FECHA DE ADQUISICIÓN','IMPORTE DE LA COMPRA','MODALIDAD DE COMPRA','OBSERVACIONES'].forEach((h,i)=>put(sh,r,2+i,h,hdr));sh.heights[r]=18.75;r++;
+  const plist=S.proyectos.slice().sort((a,b)=>(num(a.orden)||99)-(num(b.orden)||99)||cmpTxt(a.nombre,b.nombre));
+  plist.forEach((p,i)=>{
+    const usd=p.moneda==='USD';
+    put(sh,r,2,i+1,base);put(sh,r,3,p.nombre,base);put(sh,r,4,tipoTxt(p),base);
+    put(sh,r,5,p.fechaAdq?DT(p.fechaAdq):(p.anioAdq||''),base);
+    put(sh,r,6,{v:num(p.importe)||0,s:{nf:usd?'"US$ "#,##0.00':'"S/ "#,##0.00'}},base);
+    put(sh,r,7,p.modalidad==='otro'?(p.modalidadDetalle||MODALIDADES.otro):MODALIDADES[p.modalidad],p.modalidad==='otro'?{...base,fill:'F8CBAD'}:base);
+    put(sh,r,8,p.obs||'',base);sh.heights[r]=18.75;r++;
+  });
+  r+=2;
+  put(sh,r,2,'NOTA:',{font:{sz:14,b:true},fill:'BDD7EE',al:{h:'center',v:'center'}});sh.heights[r]=18.75;r++;
+  put(sh,r,2,'EN EL CASO DE PROYECTOS DE LOTIZACIÓN Y/O HABILITACIÓN: ADICIONAL ADJUNTAR LO SIGUIENTE:',{font:{sz:14,i:true},al:{h:'left',v:'top'}});r+=2;
+  put(sh,r,2,'-Cuadro Excel con Nombre del proyecto, ubicación del proyecto, Nro. de Lotes Total del proyecto, Nro. de Lotes Vendidos con escritura totalizados por año.',txt);r++;
+  r++;
+  const anySin=C.lotProjs.some(p=>C.M[p.id].sin>0);
+  const head=['NOMBRE DEL PROYECTO','UBICACIÓN DEL PROYECTO','NRO. LOTES TOTAL','(AÑO DE INICIO)',...yrs.map(yearLabel)];
+  if(anySin)head.push('SIN AÑO ASIGNADO');
+  head.push('TOTAL VENDIDOS CON ESCRITURA','TOTAL LOTES PENDIENTE DE ESCRITURA','OBSERVACIÓN');
+  head.forEach((h,i)=>put(sh,r,2+i,h,hdr));sh.heights[r]=37.5;r++;
+  const y0=6,ny=yrs.length,cSin=y0+ny,cTot=y0+ny+(anySin?1:0),cPen=cTot+1,cObs=cPen+1;
+  const first=r;
+  C.lotProjs.forEach(p=>{const m=C.M[p.id];
+    put(sh,r,2,p.nombre,base);put(sh,r,3,ubic(p),base);put(sh,r,4,m.total,base);put(sh,r,5,num(p.anioInicio)||num(p.anioAdq)||'',base);
+    yrs.forEach((y,i)=>{const v=num(p.ventasAnio&&p.ventasAnio[y]);put(sh,r,y0+i,v==null?'':v,base)});
+    if(anySin)put(sh,r,cSin,m.sin||0,base);
+    const rng=XLX.colL(y0-1)+r+':'+XLX.colL(cSin-1+(anySin?0:-1))+r;
+    put(sh,r,cTot,{v:m.vend,f:'SUM('+rng+')'},base);
+    put(sh,r,cPen,{v:m.pend,f:XLX.colL(3)+r+'-'+XLX.colL(cTot-1)+r},base);
+    put(sh,r,cObs,[p.obsLotes,p.pendienteRegistro?'Escrituras sin inscribir en Registros Públicos':''].filter(Boolean).join('. '),{font:{sz:11},al:{h:'center',v:'center',w:true}});
+    sh.heights[r]=18.75;r++;
+  });
+  if(C.lotProjs.length){
+    const last=r-1,tb={...base,font:{sz:14,b:true}};
+    put(sh,r,2,'TOTAL',tb);put(sh,r,3,'',tb);
+    put(sh,r,4,{v:C.T.total,f:'SUM(D'+first+':D'+last+')'},tb);
+    for(let c=y0;c<=cTot;c++)put(sh,r,c,{v:null,f:'SUM('+XLX.colL(c-1)+first+':'+XLX.colL(c-1)+last+')'},tb);
+    // valores en caché
+    yrs.forEach((y,i)=>{sh.rows[r-1][y0+i-1].v=C.lotProjs.reduce((a,p)=>a+(num(p.ventasAnio&&p.ventasAnio[y])||0),0)});
+    if(anySin)sh.rows[r-1][cSin-1].v=C.lotProjs.reduce((a,p)=>a+(C.M[p.id].sin||0),0);
+    sh.rows[r-1][cTot-1].v=C.T.vend;
+    put(sh,r,cPen,{v:C.T.pend,f:'D'+r+'-'+XLX.colL(cTot-1)+r},tb);
+    sh.heights[r]=18.75;r++;
+  }
+  r+=2;
+  put(sh,r,2,'-Cuadro Excel de los proyectos vendidos con Escritura Pública correspondiente al periodo del '+fdate(cfg.periodoDesde)+' al '+fdate(cfg.periodoHasta)+', que contenga la siguiente información:',txt);r++;
+  put(sh,r,2,'Nombre del Proyecto, Fecha de la escritura, MZ, y Nro de lote, Importe de la Venta. (Si no se ha realizado escrituras durante el periodo solicitado, nos confirma que no tuvo ventas con escritura)',txt);r+=2;
+  ['N.°','Nombre del Proyecto','Fecha de la Escritura','MZ','Nro. de Lote','Importe de la Venta','Observaciones'].forEach((h,i)=>put(sh,r,2+i,h,hdr));sh.heights[r]=33.75;r++;
+  const e0=r;
+  C.esc.forEach((e,i)=>{
+    put(sh,r,2,i+1,base);put(sh,r,3,C.pName(e.proyectoId),base);put(sh,r,4,DT(e.fecha),base);put(sh,r,5,e.mz||'',base);put(sh,r,6,e.lotes||'',base);
+    put(sh,r,7,{v:e._imp,s:{nf:'"S/ "#,##0.00'}},base);put(sh,r,8,e.obs||'',base);sh.heights[r]=18.75;r++;
+  });
+  if(C.esc.length){const tb={...base,font:{sz:14,b:true}};
+    put(sh,r,2,'',tb);put(sh,r,3,'TOTAL',tb);put(sh,r,4,'',tb);put(sh,r,5,'',tb);put(sh,r,6,C.T.escN+' lotes',tb);
+    put(sh,r,7,{v:C.T.escImp,f:'SUM(G'+e0+':G'+(r-1)+')',s:{nf:'"S/ "#,##0.00'}},tb);r++;
+  }else{put(sh,r,3,'NO SE REALIZARON ESCRITURAS EN EL PERIODO SOLICITADO',{font:{sz:14,b:true,c:'FF0000'},al:{h:'left',v:'center'}});r++}
+  r+=2;
+  put(sh,r,2,'EN CASO DE PRESTACIÓN DE SERVICIOS',{font:{sz:14,i:true,u:true},al:{h:'center',v:'center'}});
+  if(!cfg.serviciosAplica){put(sh,r,4,'NO APLICA',{font:{sz:14,b:true,c:'FF0000'},al:{h:'center',v:'center'}});r++}
+  else{
+    r+=2;put(sh,r,2,'-Cuadro Excel, que contenga la siguiente información:',txt);r+=2;
+    ['ITEM','ESPECIFICAR EL SERVICIO PRESTADO','OBSERVACIONES'].forEach((h,i)=>put(sh,r,2+i,h,hdr));sh.heights[r]=21.6;r++;
+    S.servicios.forEach((s,i)=>{put(sh,r,2,i+1,base);put(sh,r,3,s.servicio,base);put(sh,r,4,s.obs||'',base);sh.heights[r]=18.75;r++});
+  }
+  const cal=sheetCalidad(C.alerts,{font:{b:true,i:true,c:AMBT},fill:AMB,al:{h:'center',v:'center'}},{},{});
+  await saveBook([sh,cal],'Informacion_Proyectos_'+stamp()+'.xlsx');
+}
+
+/* ===================== KARDEX ===================== */
+async function exportK(){
+  const KC=S.KC,cfg=S.k.cfg;
+  const T1='17365D',H1='1F4E78',SUB='DDEBF7',IN='FFFDF2',INF='FFF2CC',KV='F8FBFD';
+  const title={font:{sz:10,b:true,c:'FFFFFF'},fill:T1,al:{h:'center',v:'center'}};
+  const sub={font:{sz:11,i:true,c:'1F1F1F'},fill:SUB,al:{v:'center',w:true}};
+  const head={font:{b:true,c:'FFFFFF'},fill:H1,al:{h:'center',v:'center',w:true}};
+  const cell={al:{v:'center',w:true}},inp={...cell,fill:IN};
+  const dates=KC.movs.map(m=>m.fecha).filter(Boolean).sort();
+  const per=dates.length?dates[0].slice(0,4):String(new Date().getFullYear());
+  const nCat=Math.max(S.k.cat.length,1);
+  // ---- CATALOGOS
+  const ca=newSheet('CATALOGOS',{cols:[18,28,18,12,14,32,3,20,22,16],landscape:false});
+  put(ca,1,1,'CATÁLOGO DE PREMIOS / REGALOS',title);merge(ca,1,1,1,6,title);ca.heights[1]=22.35;
+  ['Código Premio','Descripción','Marca','Unidad','Stock mínimo','Observación'].forEach((h,i)=>put(ca,3,i+1,h,head));
+  ['Tipo Movimiento','Tipo Sustento','Estado Stock'].forEach((h,i)=>put(ca,3,8+i,h,head));
+  const cats=S.k.cat.slice().sort((a,b)=>cmpTxt(a.codigo,b.codigo));
+  cats.forEach((c,i)=>{const r=4+i;put(ca,r,1,c.codigo,cell);put(ca,r,2,c.descripcion,cell);put(ca,r,3,c.marca||'',cell);put(ca,r,4,c.unidad||'UND',cell);put(ca,r,5,{v:num(c.stockMin)||0,s:{nf:'0'}},cell);put(ca,r,6,c.obs||'',cell)});
+  ['ENTRADA','SALIDA'].forEach((v,i)=>put(ca,4+i,8,v,{}));KSUST.forEach((v,i)=>put(ca,4+i,9,v,{}));['OK','Stock mínimo','Revisar'].forEach((v,i)=>put(ca,4+i,10,v,{}));
+  const catRng='CATALOGOS!$A$4:$F$103';
+  // ---- KARDEX
+  const kx=newSheet('KARDEX',{cols:[19.9,12,17,18,16,16,16,26,18,10,10,10,16,16,18,22,12,16,32,18,24,34],freeze:{r:7,c:0},landscape:true});
+  put(kx,1,1,'KARDEX DE REGALOS ENTREGADOS A CLIENTES',title);merge(kx,1,1,1,22,title);kx.heights[1]=24;
+  put(kx,2,1,'Registro formal para controlar compras, stock y entregas de premios/regalos a clientes. Adjuntar sustento: comprobante, acta/constancia, fotografía y documento interno cuando corresponda.',sub);merge(kx,2,1,2,22,sub);kx.heights[2]=28.05;
+  const lab={font:{b:true,c:'FFFFFF'},fill:H1},val={fill:INF};
+  put(kx,4,1,'Empresa',lab);put(kx,4,2,cfg.empresa||'',val);put(kx,4,3,'RUC',lab);put(kx,4,4,cfg.ruc||'',{...val,nf:'@'});
+  put(kx,5,1,'Periodo',lab);put(kx,5,2,per,val);put(kx,5,3,'Responsable',lab);put(kx,5,4,cfg.responsable||'',val);
+  ['Ítem','Fecha','Tipo Movimiento','Tipo Sustento','N° Documento','N° Acta/Constancia','Código Premio','Descripción','Marca','Unidad','Ingreso','Salida','Costo Unit. s/IGV','Valor Movimiento','Stock Acum. Producto','Proyecto','Lote','DNI/RUC Cliente','Cliente','Responsable','Sustento Adjunto','Observación'].forEach((h,i)=>put(kx,7,i+1,h,head));
+  kx.heights[7]=28.8;
+  const S_=pre=>({nf:'"S/ "#,##0.00',...pre});
+  const nMov=KC.movs.length,total=Math.max(nMov,40);
+  const lk=(r,col)=>({f:'IF($G'+r+'="","",IFERROR(VLOOKUP($G'+r+','+catRng+','+col+',FALSE),""))'});
+  for(let i=0;i<total;i++){
+    const r=8+i,m=KC.movs[i],cr=KC.rowBy[m?kcode(m.codigo):''];
+    const ent=m&&m.tipo==='ENTRADA';
+    put(kx,r,1,{v:m?m._i:'',f:'IF($B'+r+'="","",ROW()-7)'},cell);
+    put(kx,r,2,m?DT(m.fecha):{v:null,s:{nf:'dd/mm/yyyy'}},inp);
+    put(kx,r,3,m?m.tipo:'',inp);put(kx,r,4,m?(m.sustentoTipo||''):'',inp);
+    put(kx,r,5,m?(m.nroDoc||''):'',{...inp,nf:'@'});put(kx,r,6,m?(m.nroActa||''):'',{...inp,nf:'@'});put(kx,r,7,m?m.codigo:'',{...inp,nf:'@'});
+    put(kx,r,8,{...lk(r,2),v:m&&cr?cr.desc:''},cell);put(kx,r,9,{...lk(r,3),v:m&&cr?cr.marca:''},cell);put(kx,r,10,{...lk(r,4),v:m&&cr?cr.unidad:''},cell);
+    put(kx,r,11,m?{v:ent?m._q:0,s:{nf:'0'}}:{v:null,s:{nf:'0'}},inp);put(kx,r,12,m?{v:ent?0:m._q,s:{nf:'0'}}:{v:null,s:{nf:'0'}},inp);
+    put(kx,r,13,m?{v:m._cost,s:{nf:'"S/ "#,##0.00'}}:{v:null,s:{nf:'"S/ "#,##0.00'}},inp);
+    put(kx,r,14,{v:m?m._val:'',f:'IF($C'+r+'="","",IF($C'+r+'="ENTRADA",$K'+r+'*$M'+r+',$L'+r+'*$M'+r+'))',s:{nf:'"S/ "#,##0.00'}},cell);
+    put(kx,r,15,{v:m?m._stock:'',f:'IF($G'+r+'="","",SUMIFS($K$8:K'+r+',$G$8:G'+r+',$G'+r+')-SUMIFS($L$8:L'+r+',$G$8:G'+r+',$G'+r+'))',s:{nf:'0'}},m&&m._stock<0?{...cell,fill:'F4CCCC'}:cell);
+    put(kx,r,16,m?(m.proyecto||''):'',inp);put(kx,r,17,m?(m.lote||''):'',inp);put(kx,r,18,m?(m.docCliente||''):'',{...inp,nf:'@'});
+    put(kx,r,19,m?(m.cliente||''):'',inp);put(kx,r,20,m?(m.responsable||''):'',inp);put(kx,r,21,m?(m.adjuntos||[]).join(' / '):'',inp);put(kx,r,22,m?(m.obs||''):'',inp);
+  }
+  kx.validations.push({sqref:'C8:C506',list:['ENTRADA','SALIDA']},{sqref:'D8:D506',list:KSUST});
+  // ---- STOCK
+  const st=newSheet('STOCK',{cols:[18,28,18,10,12,12,14,16,16,16],landscape:true});
+  put(st,1,1,'STOCK CONSOLIDADO DE REGALOS',title);merge(st,1,1,1,10,title);st.heights[1]=24;
+  put(st,2,1,'El stock se calcula automáticamente desde la hoja KARDEX. Para agregar nuevos regalos, actualizar la hoja CATALOGOS.',sub);merge(st,2,1,2,10,sub);st.heights[2]=24;
+  ['Código Premio','Descripción','Marca','Unidad','Entradas','Salidas','Stock Actual','Costo Promedio','Valor Stock','Estado'].forEach((h,i)=>put(st,5,i+1,h,head));st.heights[5]=27.15;
+  const ESTF={'OK':'D9EAD3','Stock mínimo':'FFF2CC','Revisar':'F4CCCC'};
+  const rowsS=KC.rows;
+  const nS=Math.max(rowsS.length,5);
+  for(let i=0;i<nS;i++){
+    const r=6+i,x=rowsS[i];
+    const est=x?(x.q<0?'Revisar':(x.q<=x.min?'Stock mínimo':'OK')):'';
+    const lkS=(col)=>'IF($A'+r+'="","",IFERROR(VLOOKUP($A'+r+','+catRng+','+col+',FALSE),""))';
+    put(st,r,1,x?x.codigo:'',cell);
+    put(st,r,2,{v:x?x.desc:'',f:lkS(2)},cell);put(st,r,3,{v:x?x.marca:'',f:lkS(3)},cell);put(st,r,4,{v:x?x.unidad:'',f:lkS(4)},cell);
+    put(st,r,5,{v:x?x.ent:'',f:'IF($A'+r+'="","",SUMIF(KARDEX!$G:$G,$A'+r+',KARDEX!$K:$K))',s:{nf:'0'}},cell);
+    put(st,r,6,{v:x?x.sal:'',f:'IF($A'+r+'="","",SUMIF(KARDEX!$G:$G,$A'+r+',KARDEX!$L:$L))',s:{nf:'0'}},cell);
+    put(st,r,7,{v:x?x.q:'',f:'IF($A'+r+'="","",$E'+r+'-$F'+r+')',s:{nf:'0'}},cell);
+    put(st,r,8,{v:x?x.avg:'',s:{nf:'"S/ "#,##0.00'}},cell);
+    put(st,r,9,{v:x?x.val:'',f:'IF($A'+r+'="","",$G'+r+'*$H'+r+')',s:{nf:'"S/ "#,##0.00'}},cell);
+    put(st,r,10,{v:est,f:'IF($A'+r+'="","",IF($G'+r+'<0,"Revisar",IF($G'+r+'<=IFERROR(VLOOKUP($A'+r+','+catRng+',5,FALSE),0),"Stock mínimo","OK")))'},est?{...cell,fill:ESTF[est]}:cell);
+  }
+  // ---- RESUMEN
+  const rs=newSheet('RESUMEN',{hideGrid:true,cols:[18,28,18,18,18,18,18,18,18,18],landscape:true});
+  put(rs,1,1,'RESUMEN EJECUTIVO - KARDEX DE REGALOS A CLIENTES',title);merge(rs,1,1,1,10,title);rs.heights[1]=25.65;
+  put(rs,2,1,'Archivo preparado con base en el modelo de Stock de Premios 2025. Las cifras se actualizan desde KARDEX y STOCK.',sub);merge(rs,2,1,2,10,sub);rs.heights[2]=22.35;
+  const kl={font:{b:true,c:'FFFFFF'},fill:H1,al:{h:'center',v:'center',w:true}},kv=(nf)=>({font:{sz:14,b:true,c:T1},fill:KV,al:{h:'center',v:'center'},nf});
+  const enAlerta=KC.rows.filter(x=>x.q<0||(x.est!=='Sin movimientos'&&x.q<=x.min)).length;
+  const kp=(r,c,label,v,f,nf)=>{put(rs,r,c,label,kl);put(rs,r,c+1,{v,f},kv(nf))};
+  kp(4,1,'Productos registrados',S.k.cat.length,'COUNTIF(CATALOGOS!$A$4:$A$103,"?*")');
+  kp(4,4,'Unidades ingresadas',KC.T.ent,'SUM(KARDEX!$K:$K)');
+  kp(4,7,'Unidades entregadas',KC.T.sal,'SUM(KARDEX!$L:$L)');
+  kp(7,1,'Stock actual total',KC.T.stock,'SUM(STOCK!$G:$G)');
+  kp(7,4,'Valor entregado s/IGV',KC.T.valSal,'SUMIFS(KARDEX!$N:$N,KARDEX!$C:$C,"SALIDA")','"S/ "#,##0.00');
+  kp(7,7,'Productos en alerta',enAlerta,'COUNTIF(STOCK!$J:$J,"Stock mínimo")+COUNTIF(STOCK!$J:$J,"Revisar")');
+  rs.heights[4]=27.15;rs.heights[7]=27.15;
+  put(rs,10,1,'Uso recomendado del formato',{font:{b:true,c:'FFFFFF'},fill:H1,al:{h:'center'}});merge(rs,10,1,10,10,{font:{b:true,c:'FFFFFF'},fill:H1,al:{h:'center'}});
+  ['1. Registrar cada compra como ENTRADA en la hoja KARDEX, adjuntando factura/XML/PDF.','2. Registrar cada entrega al cliente como SALIDA, consignando DNI/RUC, cliente, proyecto, lote, boleta/acta y fotografía.','3. Revisar la hoja STOCK para validar existencias y alertas antes de nuevas entregas.'].forEach((t,i)=>{
+    const sx={fill:KV,al:{v:'center',w:true}};put(rs,11+i,1,t,sx);merge(rs,11+i,1,11+i,10,sx);rs.heights[11+i]=19.2});
+  ['Código','Descripción','Entradas','Salidas','Stock','Estado'].forEach((h,i)=>put(rs,16,i+1,h,kl));
+  KC.rows.forEach((x,i)=>{const r=17+i,sr=6+i,est=x.q<0?'Revisar':(x.q<=x.min?'Stock mínimo':'OK');
+    put(rs,r,1,{v:x.codigo,f:'IF(STOCK!A'+sr+'="","",STOCK!A'+sr+')'},cell);put(rs,r,2,{v:x.desc,f:'IF(STOCK!B'+sr+'="","",STOCK!B'+sr+')'},cell);
+    put(rs,r,3,{v:x.ent,f:'IF(STOCK!E'+sr+'="","",STOCK!E'+sr+')'},cell);put(rs,r,4,{v:x.sal,f:'IF(STOCK!F'+sr+'="","",STOCK!F'+sr+')'},cell);
+    put(rs,r,5,{v:x.q,f:'IF(STOCK!G'+sr+'="","",STOCK!G'+sr+')'},cell);put(rs,r,6,{v:est,f:'IF(STOCK!J'+sr+'="","",STOCK!J'+sr+')'},{...cell,fill:ESTF[est]});
+  });
+  const cal=sheetCalidad(KC.alerts,head,{},{});
+  await saveBook([rs,kx,st,ca,cal],'Kardex_Regalos_'+stamp()+'.xlsx');
+}
+
+/* ===================== ALQUILERES ===================== */
+async function exportA(){
+  const AC=S.AC,cfg=S.a.cfg;
+  const BL='335593',red='FF0000';
+  const hdrT={font:{n:'Times New Roman',sz:10,b:true,c:'FFFFFF'},fill:BL,al:{h:'center',v:'center',w:true}};
+  const hdr={font:{sz:11,b:true,c:'FFFFFF'},fill:BL,al:{h:'center',v:'center',w:true}};
+  const bold={font:{sz:11,b:true},al:{h:'center',v:'center'}},norm={font:{sz:11},al:{h:'center',v:'center'}};
+  const sh=newSheet('CONFIRMACION DE ALQUILER',{hideGrid:true,cols:[31.1,27.6,27.1,32,32,28.3,26.1,38,31.1,25.7,23.3,41.4]});
+  put(sh,2,1,'ADJUNTAR',{font:{sz:18,b:true,c:red},al:{h:'left'}});merge(sh,2,1,2,4);sh.heights[2]=23.25;
+  put(sh,3,1,'-Contratos y adendas de contratos de Alquiler Vigentes al '+fdate(AC.ref)+', por ejemplo alquiler de Oficina, Vehículos, Maquinaria, etc',{font:{n:'Times New Roman',sz:16,b:true}});sh.heights[3]=20.25;
+  put(sh,6,1,'COMPLETAR LOS SIGUIENTES DATOS',{font:{sz:18,b:true,c:red},al:{h:'left'}});merge(sh,6,1,6,4);sh.heights[6]=23.25;
+  const H=['NRO DE CONTRATO','DETALLE','NRO DE MESES','FECHA DE INICIO','FECHA DE TERMINO','ARRENDADOR:','DNI/RUC:','TIPO DE BIEN MUEBLE O INMUEBLE','PLACA (EN CASO DE VEHICULOS)','IMPORTE MENSUAL','MONEDA','FORMA DE PAGO'];
+  const block=(r,title,list,first)=>{
+    put(sh,r,1,title,{font:{sz:18,b:true,c:'FFFFFF'},fill:BL,al:{v:'center'}});box(sh,r,2,r,2,{fill:BL});sh.heights[r]=23.25;
+    r+=2;H.forEach((h,i)=>put(sh,r,i+1,i===0?first:h,hdrT));sh.heights[r]=18;r++;
+    const n=Math.max(list.length,6),r0=r;
+    for(let i=0;i<n;i++,r++){
+      const c=list[i];
+      put(sh,r,1,c?c.nro:i+1,bold);
+      if(c){
+        put(sh,r,2,c.detalle||'',{...bold,al:{h:'left',v:'center'}});put(sh,r,3,c._meses,norm);put(sh,r,4,DT(c.inicio),norm);
+        put(sh,r,5,{v:XLX.serial(c._fin),f:'EDATE(D'+r+',C'+r+')',s:{nf:'dd/mm/yyyy'}},norm);
+        put(sh,r,6,c.arrendador||'',norm);put(sh,r,7,{v:c.doc||'',s:{nf:'@'}},norm);put(sh,r,8,String(c.bien||'').toUpperCase(),norm);put(sh,r,9,c.placa||'-',norm);
+        put(sh,r,10,{v:c._imp,s:{nf:'#,##0.00'}},norm);put(sh,r,11,c.moneda==='USD'?'DOLARES':'SOLES',norm);put(sh,r,12,String(c.formaPago||'').toUpperCase(),norm);
+      }
+      sh.heights[r]=16.5;
+    }
+    return r;
+  };
+  const cons=AC.con.filter(c=>c.tipoDoc!=='ADENDA'),ads=AC.con.filter(c=>c.tipoDoc==='ADENDA');
+  let r=block(9,'LISTA DE CONTRATOS DE ALQUILER',cons,'NRO DE CONTRATO');
+  r++;
+  put(sh,r,1,'LISTA DE ADENDAS CONTRATOS DE ALQUILER',{font:{sz:14,b:true,c:BL}});sh.heights[r]=18.75;r++;
+  const H2=H.slice();
+  H2.forEach((h,i)=>put(sh,r,i+1,i===0?'NRO DE ADENDA':h,hdrT));sh.heights[r]=18;r++;
+  const n2=Math.max(ads.length,6);
+  for(let i=0;i<n2;i++,r++){const c=ads[i];
+    put(sh,r,1,c?c.nro:i+1,bold);
+    if(c){put(sh,r,2,c.detalle||'',{...bold,al:{h:'left',v:'center'}});put(sh,r,3,c._meses,norm);put(sh,r,4,DT(c.inicio),norm);
+      put(sh,r,5,{v:XLX.serial(c._fin),f:'EDATE(D'+r+',C'+r+')',s:{nf:'dd/mm/yyyy'}},norm);put(sh,r,6,c.arrendador||'',norm);put(sh,r,7,{v:c.doc||'',s:{nf:'@'}},norm);
+      put(sh,r,8,String(c.bien||'').toUpperCase(),norm);put(sh,r,9,c.placa||'-',norm);put(sh,r,10,{v:c._imp,s:{nf:'#,##0.00'}},norm);put(sh,r,11,c.moneda==='USD'?'DOLARES':'SOLES',norm);put(sh,r,12,String(c.formaPago||'').toUpperCase(),norm)}
+    sh.heights[r]=16.5;
+  }
+  const sheets=[sh];
+  // una hoja de pagos por contrato / adenda (como el original)
+  AC.con.forEach(c=>{
+    const nm=String(c.arrendador||'Contrato').toUpperCase().replace(/[^A-Z0-9ÁÉÍÓÚÑ ]/g,'').trim()||'CONTRATO';
+    const ps=newSheet(nm,{hideGrid:true,cols:[14,16,14,18,26,28,20,22,16],landscape:true});
+    const t=(c.tipoDoc==='ADENDA'?'ADENDA':'CONTRATO')+' NRO '+(c.nro||'');
+    put(ps,1,1,t,{font:{sz:18,b:true,c:'FFFFFF'},fill:BL,al:{v:'center'}});box(ps,1,2,1,9,{fill:BL});ps.heights[1]=23.25;
+    put(ps,2,1,(c.arrendador||'')+' · '+(c.detalle||'')+' · '+(c.moneda==='USD'?'US$ ':'S/ ')+nf(c._imp,2)+' mensual',{font:{sz:14,b:true},al:{v:'center'}});ps.heights[2]=18.75;
+    ['N° MESES','PERIODO','RENTA','FECHA DE DEVENGO','FECHA DE PAGO DE ALQUILER','TIPO DE DOCUMENTO','FECHA DE EMISION','SERIE-NUMERO','ESTADO'].forEach((h,i)=>put(ps,3,i+1,h,hdr));ps.heights[3]=18;
+    const EF={'Pagada':'E2EFDA','Vencida':'F8CBAD','Por pagar':'EDEDED'};
+    c.cuotas.forEach((q,i)=>{const r=4+i;
+      put(ps,r,1,q.n,norm);put(ps,r,2,DT(q.per),norm);put(ps,r,3,{v:q.renta,s:{nf:'#,##0.00'}},norm);put(ps,r,4,DT(q.dev),norm);
+      put(ps,r,5,DT(q.fechaPago),norm);put(ps,r,6,q.tipoDoc||'',norm);put(ps,r,7,DT(q.fechaEm),norm);put(ps,r,8,q.serie||'',norm);
+      put(ps,r,9,q.estado,{...norm,fill:EF[q.estado]});
+    });
+    const last=3+c.cuotas.length,rt=last+2;
+    put(ps,rt,1,'TOTAL',{font:{sz:11,b:true},al:{h:'center'}});
+    put(ps,rt,3,{v:c._total,f:'SUM(C4:C'+last+')',s:{nf:'#,##0.00'}},{font:{sz:11,b:true},al:{h:'center'}});
+    put(ps,rt,5,'Pagadas: '+c._pagadas+' de '+c._meses,{font:{sz:11,b:true},al:{h:'center'}});
+    sheets.push(ps);
+  });
+  sheets.push(sheetCalidad(AC.alerts,hdr,{},{}));
+  await saveBook(sheets,'Alquileres_'+stamp()+'.xlsx');
+}
+
+/* ===================== MOVIMIENTOS BANCARIOS (formato de conciliación) ===================== */
+const MESES_FULL=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+function periodoTxt(fechas){
+  const ds=fechas.filter(Boolean).sort();if(!ds.length)return '';
+  const f=k=>MESES_FULL[Number(k.slice(5,7))-1]+' '+k.slice(0,4);
+  const a=f(ds[0]),b=f(ds[ds.length-1]);return a===b?a:a+' A '+b;
+}
+async function exportB(){
+  const BC=S.BC,c=S.b.cfg,CJ=BC.cj,usd=c.moneda==='USD';
+  const ACC=usd?'_-"US$"\\ * #,##0.00_-;\\-"US$"\\ * #,##0.00_-;_-"US$"\\ * "-"??_-;_-@_-':'_-"S/"\\ * #,##0.00_-;\\-"S/"\\ * #,##0.00_-;_-"S/"\\ * "-"??_-;_-@_-';
+  const NUM='#,##0.00';
+  const A='Arial',BD='9AC3DA',BDL='CDE1ED',NAVY='17365D',HD='D9E7F5',HD2='DCE6F1';
+  const line=(c)=>({s:'thin',c});
+  const hd={font:{n:A,sz:9,b:true,c:NAVY},fill:HD,bd:{all:line(BD)},al:{h:'center',v:'center',w:true}};
+  const dtx=(h)=>({font:{n:A,sz:9,c:'1F1F1F'},bd:{all:line(BDL)},al:{h:h||'left',v:'center',w:true}});
+  const per=periodoTxt(BC.movs.map(m=>m.fecha).concat(CJ.movs.map(m=>m.fecha)));
+  const sh=newSheet('DETALLE MOVIMIENTO BANCOS',{hideGrid:true,zoom:80,cols:[22,16.9,25.9,35.2,19.7,17.5,18,25,30.1,17,18.8],landscape:true});
+  // datos de la cuenta
+  const lb={font:{n:A,sz:11,b:true,c:NAVY},al:{v:'center'}},vl={font:{n:A,sz:11,b:true,c:'1F1F1F'},al:{h:'left',v:'center'}};
+  put(sh,3,1,'BANCO:',lb);put(sh,3,2,c.banco||'',vl);
+  put(sh,4,1,'NRO. DE CUENTA:',lb);put(sh,4,2,{v:c.cuenta||'',s:{nf:'@'}},vl);
+  put(sh,5,1,'MONEDA:',lb);put(sh,5,2,usd?'DÓLARES':'SOLES',vl);
+  put(sh,6,1,'PERIODO:',lb);put(sh,6,2,per,vl);
+  if(c.empresa){put(sh,7,1,'EMPRESA:',lb);put(sh,7,2,c.empresa+(c.ruc?'  ·  RUC '+c.ruc:''),vl)}
+  sh.heights[2]=19.25;for(let r=3;r<=8;r++)sh.heights[r]=17.55;
+  // leyenda
+  const lg=(r,cc,t,b)=>put(sh,r,cc,t,{font:{n:A,sz:10,b:true,c:'1F1F1F'},al:{v:'center'},bd:b});
+  const L={l:line(BD)},R={r:line(BD)};
+  put(sh,2,6,'DATOS DEL DOCUMENTO DE REFERENCIA',{font:{n:A,sz:10,b:true,c:'1F1F1F'},al:{v:'center'},bd:{l:line(BD),t:line(BD)}});
+  box(sh,2,7,2,8,{font:{n:A,sz:10},bd:{t:line(BD)}});sh.rows[1][7]={v:null,s:{bd:{t:line(BD),r:line(BD)}}};
+  const leg=[[3,'LEYENDA','FT','FACTURA'],[5,'','BV','BOLETA'],[6,'','PL','PLANILLA'],[7,'','RH','RECIBO POR HONORARIO'],[8,'','OT','OTROS']];
+  for(let r=3;r<=8;r++){const row=leg.find(x=>x[0]===r),bot=r===8?{b:line(BD)}:{};
+    lg(r,6,row?row[1]:'',{l:line(BD),...bot});lg(r,7,row?row[2]:'',{...bot});lg(r,8,row?row[3]:'',{r:line(BD),...bot})}
+  // cabecera
+  const mh=(r1,c1,r2,c2,t,fill)=>{put(sh,r1,c1,t,{...hd,fill:fill||HD});merge(sh,r1,c1,r2,c2,{...hd,fill:fill||HD})};
+  mh(11,1,12,1,'NÚMERO CORRELATIVO DEL REGISTRO O CÓDIGO ÚNICO DE LA OPERACIÓN');mh(11,2,12,2,'FECHA DE LA OPERACIÓN');mh(11,3,12,3,'DESCRIPCIÓN DE LA EE.CC');mh(11,4,12,4,'DESCRIPCIÓN DE LA OPERACIÓN');mh(11,5,12,5,'NÚMERO DE OPERACIÓN');
+  mh(11,6,11,7,'DATOS DEL DOCUMENTO DE REFERENCIA');mh(11,8,11,9,'DATOS DE CLIENTE/PROVEEDOR/OTROS');mh(11,10,11,11,'SALDOS Y MOVIMIENTOS');
+  put(sh,12,6,'TIPO (FACTURA, BOLETA, ENTRE OTROS)',{...hd,fill:HD2});
+  [[7,'SERIE-NÚMERO'],[8,'RUC/DNI'],[9,'RAZÓN SOCIAL Y/O APELLIDOS Y NOMBRES COMPLETOS '],[10,'INGRESO'],[11,'EGRESO']].forEach(([cc,t])=>put(sh,12,cc,t,hd));
+  sh.heights[11]=33.6;sh.heights[12]=33.6;
+  // saldo inicial
+  const si={font:{n:A,sz:10,c:'333333'},bd:{all:line(BD)},al:{h:'center',v:'center',w:true}};
+  put(sh,13,1,'SALDO INICIAL',si);[2,3].forEach(k=>put(sh,13,k,'',si));put(sh,13,4,'SALDO ANTERIOR',{...si,al:{v:'center'}});
+  [5,6,7,8,9].forEach(k=>put(sh,13,k,'',si));
+  put(sh,13,10,{v:BC.T.si,s:{nf:NUM}},{...si,al:{h:'right',v:'center'}});put(sh,13,11,'',{...si,nf:NUM,al:{h:'right',v:'center'}});
+  sh.heights[13]=17.55;
+  if(c.fechaInicial)put(sh,13,2,DT(c.fechaInicial,null,'dd-mm'),si);
+  const nB=BC.movs.length,rows=Math.max(nB,6);
+  for(let i=0;i<rows;i++){
+    const r=14+i,m=BC.movs[i],e=m&&m.dir==='E',sc=m&&sinComp(m);
+    put(sh,r,1,m?m._i:'',{...dtx('center'),font:{n:A,sz:10,c:'333333'}});
+    put(sh,r,2,m?DT(m.fecha,null,'dd-mm'):'',dtx('left'));
+    put(sh,r,3,m?(m.descEECC||''):'',dtx('left'));
+    put(sh,r,4,m?(m.descripcion||''):'',dtx('left'));
+    put(sh,r,5,m?{v:m.nroOp||'',s:{nf:'@'}}:'',dtx('center'));
+    put(sh,r,6,m?(m.docTipo||(sc?'SIN COMPROBANTE':'')):'',sc?{...dtx('left'),fill:'FFF2CC'}:dtx('left'));
+    put(sh,r,7,m?{v:m.docSerie||'',s:{nf:'@'}}:'',dtx('left'));
+    put(sh,r,8,m?{v:m.tercDoc||'',s:{nf:'@'}}:'',dtx('center'));
+    put(sh,r,9,m?(m.tercNombre||''):'',dtx('left'));
+    put(sh,r,10,m&&!e?{v:m._m,s:{nf:ACC}}:{v:null,s:{nf:ACC}},dtx('right'));
+    put(sh,r,11,m&&e?{v:-m._m,s:{nf:ACC}}:{v:null,s:{nf:ACC}},dtx('right'));
+    if(!m)sh.heights[r]=17.55;
+  }
+  const f1=14,fl=13+rows,rt=fl+1,tt={font:{n:A,sz:10,b:true,c:NAVY},fill:HD,bd:{l:line(BD),r:line(BD),t:line(BD),b:line(BD)},al:{h:'right',v:'center'}};
+  put(sh,rt,9,'TOTALES',{...tt,al:{h:'left',v:'center'}});
+  put(sh,rt,10,{v:BC.T.ing,f:'SUM(J'+f1+':J'+fl+')',s:{nf:NUM}},tt);put(sh,rt,11,{v:-BC.T.egr,f:'SUM(K'+f1+':K'+fl+')',s:{nf:NUM}},tt);
+  put(sh,rt+1,9,'SALDO FINAL',{...tt,al:{h:'left',v:'center'}});
+  put(sh,rt+1,10,{v:BC.T.saldo,f:'J13+J'+rt+'+K'+rt,s:{nf:NUM}},tt);put(sh,rt+1,11,'',tt);
+  sh.heights[rt]=17.55;sh.heights[rt+1]=17.55;
+
+  // ---------------- CAJA CHICA ----------------
+  const CB='7F9DB9',CL='8798A6';
+  const ch={font:{n:A,sz:9,b:true,c:NAVY},fill:HD2,bd:{all:line(CB)},al:{h:'center',v:'center',w:true}};
+  const cd=(h)=>({font:{n:A,sz:10,c:'1F1F1F'},bd:{all:line(CL)},al:{h:h||'left',v:'center',w:true}});
+  const cj=newSheet('DETALLE MOVIMIENTOS CAJA CHICA',{hideGrid:true,zoom:80,cols:[24,15,34,22,20,27.1,34,16,16],landscape:true});
+  cj.heights[1]=22.05;cj.heights[2]=24;for(let r=3;r<=9;r++)cj.heights[r]=22.05;
+  put(cj,2,4,'DATOS DEL DOCUMENTO DE REFERENCIA',ch);merge(cj,2,4,2,6,ch);
+  put(cj,3,1,'CAJA CHICA'+(c.nombre?' · '+c.nombre:' '),{font:{n:A,sz:14,b:true,c:NAVY},al:{v:'center'}});merge(cj,3,1,3,3);
+  put(cj,4,1,'MONEDA:',{font:{n:A,sz:10,b:true,c:'1F1F1F'},al:{v:'center'}});put(cj,4,2,usd?'DÓLARES':'SOLES',{font:{n:A,sz:10,b:true,c:'1F1F1F'},al:{v:'center'}});
+  put(cj,5,1,'PERIODO:',{font:{n:A,sz:10,b:true,c:'1F1F1F'},al:{v:'center'}});put(cj,5,2,per,{font:{n:A,sz:10,b:true,c:'1F1F1F'},al:{h:'left',v:'center'}});
+  const lj=[[3,'LEYENDA','FT','FACTURA'],[4,'','BV','BOLETA'],[5,'','PL','PLANILLA'],[6,'','OT','OTROS'],[7,'','RH','RECIBO POR HONORARIO']];
+  lj.forEach(([r,a,b,d])=>{const bot=r===7?{b:line(CB)}:{};const f={font:{n:A,sz:10,b:true,c:'1F1F1F'},al:{h:'left',v:'center'}};
+    put(cj,r,4,a,{...f,al:{h:'center',v:'center'},bd:{l:line(CB),...bot,...(r===3?{t:line(CB)}:{})}});put(cj,r,5,b,{...f,bd:{...bot,...(r===3?{t:line(CB)}:{})}});put(cj,r,6,d,{...f,bd:{r:line(CB),...bot,...(r===3?{t:line(CB)}:{})}})});
+  const cm=(r1,c1,r2,c2,t)=>{put(cj,r1,c1,t,ch);merge(cj,r1,c1,r2,c2,ch)};
+  cm(10,1,11,1,'NÚMERO CORRELATIVO DEL REGISTRO    O CÓDIGO ÚNICO DE LA OPERACIÓN');cm(10,2,11,2,'FECHA DE   LA OPERACIÓN');cm(10,3,11,3,'DESCRIPCIÓN DE LA OPERACIÓN');
+  cm(10,4,10,5,'DATOS DEL DOCUMENTO DE REFERENCIA');cm(10,6,10,7,'DATOS DE CLIENTE/PROVEEDOR/TRABAJADOR/OTROS');cm(10,8,10,9,'SALDOS Y MOVIMIENTOS');
+  [[4,'TIPO (FACTURA, BOLETA, ENTRE OTROS)'],[5,'SERIE-NUMERO'],[6,'RUC/DNI'],[7,'RAZON SOCIAL Y/O APELLIDOS Y NOMBRES'],[8,'INGRESO'],[9,'EGRESO']].forEach(([k,t])=>put(cj,11,k,t,ch));
+  cj.heights[10]=42;cj.heights[11]=42;
+  const NJ='#,##0.00_);[Red](#,##0.00)';
+  put(cj,12,1,'SALDO INICIAL',cd('center'));[2,3,4,5,6,7,9].forEach(k=>put(cj,12,k,'',cd()));
+  put(cj,12,8,{v:CJ.si,s:{nf:NJ}},cd('right'));cj.heights[12]=26;
+  const nJ=CJ.movs.length,rJ=Math.max(nJ,6);
+  for(let i=0;i<rJ;i++){
+    const r=13+i,m=CJ.movs[i],e=m&&m.dir==='E';
+    put(cj,r,1,m?m._n:'',cd('center'));
+    put(cj,r,2,m?DT(m.fecha):'',{...cd('center'),nf:'dd/mm/yyyy'});
+    put(cj,r,3,m?(m.desc||'')+(m.pendiente?' (PENDIENTE DE DEVOLUCIÓN)':''):'',m&&m.pendiente?{...cd('left'),font:{n:A,sz:10,c:'FF0000'}}:cd('left'));
+    put(cj,r,4,m?(m.docTipo||''):'',cd('center'));put(cj,r,5,m?(m.docSerie||''):'',cd('center'));
+    put(cj,r,6,m?{v:m.tercDoc||'',s:{nf:'@'}}:'',cd('center'));put(cj,r,7,m?(m.tercNombre||''):'',cd('left'));
+    put(cj,r,8,m&&!e?{v:m._m,s:{nf:NJ}}:{v:null,s:{nf:NJ}},cd('right'));put(cj,r,9,m&&e?{v:m._m,s:{nf:NJ}}:{v:null,s:{nf:NJ}},cd('right'));
+    if(!m)cj.heights[r]=26;
+  }
+  const j1=13,jl=12+rJ,jt=jl+1,tb={font:{n:A,sz:10,b:true,c:'1F1F1F'},al:{h:'right',v:'center'}};
+  put(cj,jt,7,'TOTALES',tb);put(cj,jt,8,{v:CJ.ing,f:'SUM(H'+j1+':H'+jl+')',s:{nf:NJ}},tb);put(cj,jt,9,{v:CJ.egr,f:'SUM(I'+j1+':I'+jl+')',s:{nf:NJ}},tb);
+  put(cj,jt+1,7,'SALDO FINAL',tb);put(cj,jt+1,8,{v:CJ.saldo,f:'H12+H'+jt+'-I'+jt,s:{nf:NJ}},tb);
+
+  // ---------------- CONCILIACIÓN ----------------
+  const cs=newSheet('CONCILIACION',{hideGrid:true,cols:[46,20,4,60],landscape:false});
+  put(cs,1,1,'CONCILIACIÓN BANCARIA',{font:{n:A,sz:14,b:true,c:NAVY}});cs.heights[1]=24;
+  put(cs,2,1,(c.banco||'')+(c.cuenta?' · cuenta '+c.cuenta:'')+' · '+(usd?'Dólares':'Soles'),{font:{n:A,sz:10,i:true,c:'333333'}});
+  const fe=BC.fe||hoy();
+  const rowsC=[['Saldo inicial',BC.T.si],['(+) Ingresos hasta '+fdate(fe),BC.movs.filter(m=>m.dir==='I'&&(!BC.fe||m.fecha<=BC.fe)).reduce((a,m)=>a+m._m,0)],['(−) Egresos hasta '+fdate(fe),BC.movs.filter(m=>m.dir==='E'&&(!BC.fe||m.fecha<=BC.fe)).reduce((a,m)=>a+m._m,0)],['Saldo según el libro',BC.libro],['Saldo según el estado de cuenta',BC.se==null?null:BC.se],['Diferencia',BC.dif==null?null:BC.dif]];
+  rowsC.forEach(([t,v],i)=>{const r=4+i,strong=i>=3;
+    put(cs,r,1,t,{font:{n:A,sz:10,b:strong,c:'1F1F1F'},bd:{all:line(BD)},al:{v:'center'}});
+    const f=i===3?'B4+B5-B6':i===5&&BC.se!=null?'B7-B8':null;
+    put(cs,r,2,{v,f,s:{nf:NUM}},{font:{n:A,sz:10,b:strong,c:'1F1F1F'},bd:{all:line(BD)},al:{h:'right',v:'center'},fill:i===5&&BC.dif!=null?(BC.dif===0?'E2EFDA':'F8CBAD'):(strong?HD:undefined)});cs.heights[r]=22});
+  put(cs,11,1,'Fecha de corte del estado de cuenta',{font:{n:A,sz:10,c:'1F1F1F'},bd:{all:line(BD)}});put(cs,11,2,BC.fe?DT(BC.fe):'',{font:{n:A,sz:10},bd:{all:line(BD)},al:{h:'right'}});
+  const cal=sheetCalidad(BC.alerts,{font:{n:A,sz:10,b:true,c:NAVY},fill:HD,bd:{all:line(BD)},al:{h:'center',v:'center'}},{n:A},{font:{n:A,sz:10},bd:{all:line(BDL)}});
+  const slug=String(c.nombre||c.banco||'cuenta').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'');
+  await saveBook([sh,cj,cs,cal],'CONCILIACION_'+slug+'_'+(per?per.replace(/ A .*$/,'').replace(' ','_'):stamp())+'.xlsx');
+}
+
 
 /* ---------- eventos ---------- */
 document.addEventListener('click',ev=>{
@@ -1919,7 +2436,7 @@ document.addEventListener('click',ev=>{
 document.addEventListener('submit',ev=>{
   if(ev.target.id!=='mf')return;ev.preventDefault();
   const k=ev.target.dataset.kind;
-  if(k==='p')saveProyecto();else if(k==='e')saveEscritura();else if(k==='s')saveServicio();else if(k==='c')saveSettings();else if(k==='kp')saveProdK();else if(k==='km')saveMovK();else if(k==='kc')saveSettingsK();else if(k==='ac')saveContratoA();else if(k==='ag')saveSettingsAq();else if(k==='bm')saveMovB();else if(k==='bg')saveSettingsB();
+  if(k==='p')saveProyecto();else if(k==='e')saveEscritura();else if(k==='s')saveServicio();else if(k==='c')saveSettings();else if(k==='kp')saveProdK();else if(k==='km')saveMovK();else if(k==='kc')saveSettingsK();else if(k==='ac')saveContratoA();else if(k==='ag')saveSettingsAq();else if(k==='bm')saveMovB();else if(k==='bj')saveMovJ();else if(k==='bg')saveSettingsB();
 });
 document.addEventListener('input',ev=>{
   const f=ev.target.closest&&ev.target.closest('#mf');
@@ -1975,8 +2492,9 @@ function mark(k){S.ready[k]=true;render()}
   Store.watch(ACOLS.con,l=>{S.a.con=l;S.a.ready.con=true;render()},onErr);
   Store.watch(ACOLS.pag,l=>{S.a.pag=l;S.a.ready.pag=true;render()},onErr);
   Store.watch(ACOLS.cfg,l=>{const d=l.find(x=>x.id==='alquileres');S.a.cfg={...ADEF,...(d||{})};S.a.ready.cfg=true;render()},onErr);
-  Store.watch(BCOLS.mov,l=>{S.b.mov=l;S.b.ready.mov=true;render()},onErr);
-  Store.watch(BCOLS.cfg,l=>{const d=l.find(x=>x.id==='banco');S.b.cfg={...BDEF,...(d||{})};S.b.ready.cfg=true;render()},onErr);
+  Store.watch(BCOLS.mov,l=>{S.b.all=l;S.b.ready.mov=true;render()},onErr);
+  Store.watch(BCOLS.caja,l=>{S.b.caja=l;S.b.ready.caja=true;render()},onErr);
+  Store.watch(BCOLS.cfg,l=>{S.b.cfgs=l;S.b.ready.cfg=true;render()},onErr);
   setTimeout(()=>{const r=S.ready;if(!(r.proyectos&&r.escrituras&&r.servicios&&r.config)){S.timeout=true;render()}},10000);
 })();
 })();
