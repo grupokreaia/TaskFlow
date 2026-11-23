@@ -217,6 +217,40 @@ td .small.warn{color:var(--hi);font-weight:500}
 #gate .box{max-width:420px;display:flex;flex-direction:column;gap:12px;align-items:center}
 #gate[hidden]{display:none}
 #gate h1{font-size:20px;margin:0}#gate p{margin:0;color:var(--ink2)}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.sinsust{display:inline-block;background:#3A2E0F;color:#FFD43B;font-weight:700;font-size:11px;letter-spacing:.04em;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.adjrow{display:flex;flex-direction:column;gap:4px;padding:6px 0}
+.adjrow input[type=url]{width:100%}
+.chip a{color:inherit;text-decoration:underline}
+.dl{display:grid;grid-template-columns:minmax(120px,36%) 1fr;margin:0;grid-column:1/-1;width:100%}
+.dl dt{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;padding:9px 12px 9px 0;border-bottom:1px solid var(--line)}
+.dl dd{margin:0;padding:9px 0;border-bottom:1px solid var(--line);word-break:break-word}
+.dl dd .small{display:block}
+td.act{white-space:nowrap;text-align:right}
+@media (max-width:760px){
+ .scroll:has(.rec){overflow:visible;border:0;background:transparent}
+ .rec thead{display:none}
+ .rec,.rec tbody,.rec tfoot,.rec tr{display:block;width:100%}
+ .rec tbody tr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 12px;margin-bottom:10px}
+ .rec td{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border:0;padding:5px 0;text-align:right}
+ .rec td[data-l]::before{content:attr(data-l);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;text-align:left;flex:0 0 38%;padding-top:2px}
+ .rec td{flex-wrap:wrap}
+ .rec td>.small,.rec td>.pill+.small{flex:0 0 100%;text-align:right;white-space:normal}
+ .rec td>.pill{white-space:normal}
+ .rec td.act{justify-content:flex-start;flex-wrap:wrap;gap:6px;padding-top:8px;border-top:1px solid var(--line);margin-top:4px}
+ .rec td.act::before{display:none}
+ .rec td:empty{display:none}
+ .rec tfoot tr{display:flex;flex-wrap:wrap;gap:4px 14px;background:var(--surface2);border-radius:10px;padding:8px 12px}
+ .rec tfoot td{display:block;padding:0;text-align:left}
+}
+td.act .btn+.btn{margin-left:4px}
+@media (max-width:520px){.dl{grid-template-columns:1fr}.dl dt{border:0;padding:8px 0 0}.dl dd{padding:2px 0 8px}}
+.lotgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;align-items:end}
+.lotgrp{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.lotgrp .rg{color:var(--ink2);font-size:12.5px;word-break:break-word}
+#modal2 .overlay{z-index:70}
+.lotstat{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 </style>
 </head><body>
 <div id="gate"><div class="box"><p>Verificando acceso…</p></div></div>
@@ -232,7 +266,7 @@ td .small.warn{color:var(--hi);font-weight:500}
   </aside>
   <main class="main" id="main"></main>
 </div>
-<div id="modal"></div>
+<div id="modal"></div><div id="modal2"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -474,6 +508,16 @@ function parseLotes(str){
   });
   return Array.from(new Set(out));
 }
+const ZONAS=['Manzana','Etapa','Sector','Zona','Bloque'];
+const zonaTipo=e=>e.mz?(e.mzTipo||'Manzana'):(e.mzTipo||'');
+const zonaKey=e=>String(e.mz||'').trim()?zonaTipo(e)+'|'+String(e.mz).trim().toUpperCase():'';
+const zonaTxt=e=>{const v=String(e.mz||'').trim();return v?(zonaTipo(e)==='Manzana'?v:zonaTipo(e)+' '+v):''};
+const ldet=p=>(p&&Array.isArray(p.lotesDetalle)?p.lotesDetalle:[]);
+const lkey=(t,z,l)=>{z=String(z||'').trim().toUpperCase();return (z?(t||'Manzana')+'|'+z:'')+'|'+String(l).trim().toUpperCase()};
+const lkParse=v=>{const a=String(v||'').split('|');return a.length===3?{t:a[0],z:a[1],l:a[2]}:{t:'',z:'',l:a[a.length-1]}};
+const natCmp=(a,b)=>String(a).localeCompare(String(b),'es',{numeric:true});
+const lotSort=arr=>arr.sort((a,b)=>natCmp(a.z?a.t+' '+a.z:'',b.z?b.t+' '+b.z:'')||natCmp(a.l,b.l));
+const zLbl=(t,z)=>z?(t==='Manzana'?'Manzana '+z:t+' '+z):'Sin manzana ni etapa';
 const esLote=p=>(p.tipos||[]).some(t=>t==='Lotización'||t==='Habilitación urbana');
 const years=()=>{const a=[];for(let y=S.cfg.anioMin;y<=S.cfg.anioMax;y++)a.push(y);return a};
 const periodYear=()=>Number(String(S.cfg.periodoHasta).slice(0,4));
@@ -483,6 +527,28 @@ const yearLabel=y=>{
   if(d.slice(5)==='01-01'&&h.slice(5)==='12-31')return String(y);
   return y+' ('+MES[+d.slice(5,7)-1]+'-'+MES[+h.slice(5,7)-1]+')';
 };
+const UBIGEO={"Amazonas":{"Chachapoyas":["Chachapoyas","Asunción","Balsas","Cheto","Chiliquin","Chuquibamba","Granada","Huancas","La Jalca","Leimebamba","Levanto","Magdalena","Mariscal Castilla","Molinopampa","Montevideo","Olleros","Quinjalca","San Francisco de Daguas","San Isidro de Maino","Soloco","Sonche"],"Bagua":["Bagua","Aramango","Copallin","El Parco","Imaza","La Peca"],"Bongará":["Jumbilla","Chisquilla","Churuja","Corosha","Cuispes","Florida","Jazan","Recta","San Carlos","Shipasbamba","Valera","Yambrasbamba"],"Condorcanqui":["Nieva","El Cenepa","Río Santiago"],"Luya":["Lamud","Camporredondo","Cocabamba","Colcamar","Conila","Inguilpata","Longuita","Lonya Chico","Luya","Luya Viejo","María","Ocalli","Ocumal","Pisuquia","Providencia","San Cristóbal","San Francisco de Yeso","San Jerónimo","San Juan de Lopecancha","Santa Catalina","Santo Tomas","Tingo","Trita"],"Rodríguez de Mendoza":["San Nicolás","Chirimoto","Cochamal","Huambo","Limabamba","Longar","Mariscal Benavides","Milpuc","Omia","Santa Rosa","Totora","Vista Alegre"],"Utcubamba":["Bagua Grande","Cajaruro","Cumba","El Milagro","Jamalca","Lonya Grande","Yamon"]},"Áncash":{"Huaraz":["Huaraz","Cochabamba","Colcabamba","Huanchay","Independencia","Jangas","La Libertad","Olleros","Pampas Grande","Pariacoto","Pira","Tarica"],"Aija":["Aija","Coris","Huacllan","La Merced","Succha"],"Antonio Raymondi":["Llamellin","Aczo","Chaccho","Chingas","Mirgas","San Juan de Rontoy"],"Asunción":["Chacas","Acochaca"],"Bolognesi":["Chiquian","Abelardo Pardo Lezameta","Antonio Raymondi","Aquia","Cajacay","Canis","Colquioc","Huallanca","Huasta","Huayllacayan","La Primavera","Mangas","Pacllon","San Miguel de Corpanqui","Ticllos"],"Carhuaz":["Carhuaz","Acopampa","Amashca","Anta","Ataquero","Marcara","Pariahuanca","San Miguel de Aco","Shilla","Tinco","Yungar"],"Carlos Fermín Fitzcarrald":["San Luis","San Nicolás","Yauya"],"Casma":["Casma","Buena Vista Alta","Comandante Noel","Yautan"],"Corongo":["Corongo","Aco","Bambas","Cusca","La Pampa","Yanac","Yupan"],"Huari":["Huari","Anra","Cajay","Chavin de Huantar","Huacachi","Huacchis","Huachis","Huantar","Masin","Paucas","Ponto","Rahuapampa","Rapayan","San Marcos","San Pedro de Chana","Uco"],"Huarmey":["Huarmey","Cochapeti","Culebras","Huayan","Malvas"],"Huaylas":["Caraz","Huallanca","Huata","Huaylas","Mato","Pamparomas","Pueblo Libre","Santa Cruz","Santo Toribio","Yuracmarca"],"Mariscal Luzuriaga":["Piscobamba","Casca","Eleazar Guzmán Barron","Fidel Olivas Escudero","Llama","Llumpa","Lucma","Musga"],"Ocros":["Ocros","Acas","Cajamarquilla","Carhuapampa","Cochas","Congas","Llipa","San Cristóbal de Rajan","San Pedro","Santiago de Chilcas"],"Pallasca":["Cabana","Bolognesi","Conchucos","Huacaschuque","Huandoval","Lacabamba","Llapo","Pallasca","Pampas","Santa Rosa","Tauca"],"Pomabamba":["Pomabamba","Huayllan","Parobamba","Quinuabamba"],"Recuay":["Recuay","Catac","Cotaparaco","Huayllapampa","Llacllin","Marca","Pampas Chico","Pararin","Tapacocha","Ticapampa"],"Santa":["Chimbote","Cáceres del Perú","Coishco","Macate","Moro","Nepeña","Samanco","Santa","Nuevo Chimbote"],"Sihuas":["Sihuas","Acobamba","Alfonso Ugarte","Cashapampa","Chingalpo","Huayllabamba","Quiches","Ragash","San Juan","Sicsibamba"],"Yungay":["Yungay","Cascapara","Mancos","Matacoto","Quillo","Ranrahirca","Shupluy","Yanama"]},"Apurímac":{"Abancay":["Abancay","Chacoche","Circa","Curahuasi","Huanipaca","Lambrama","Pichirhua","San Pedro de Cachora","Tamburco"],"Andahuaylas":["Andahuaylas","Andarapa","Chiara","Huancarama","Huancaray","Huayana","Kishuara","Pacobamba","Pacucha","Pampachiri","Pomacocha","San Antonio de Cachi","San Jerónimo","San Miguel de Chaccrampa","Santa María de Chicmo","Talavera","Tumay Huaraca","Turpo","Kaquiabamba","José María Arguedas"],"Antabamba":["Antabamba","El Oro","Huaquirca","Juan Espinoza Medrano","Oropesa","Pachaconas","Sabaino"],"Aymaraes":["Chalhuanca","Capaya","Caraybamba","Chapimarca","Colcabamba","Cotaruse","Ihuayllo","Justo Apu Sahuaraura","Lucre","Pocohuanca","San Juan de Chacña","Sañayca","Soraya","Tapairihua","Tintay","Toraya","Yanaca"],"Cotabambas":["Tambobamba","Cotabambas","Coyllurqui","Haquira","Mara","Challhuahuacho"],"Chincheros":["Chincheros","Anco_Huallo","Cocharcas","Huaccana","Ocobamba","Ongoy","Uranmarca","Ranracancha","Rocchacc","El Porvenir","Los Chankas","Ahuayro"],"Grau":["Chuquibambilla","Curpahuasi","Gamarra","Huayllati","Mamara","Micaela Bastidas","Pataypampa","Progreso","San Antonio","Santa Rosa","Turpay","Vilcabamba","Virundo","Curasco"]},"Arequipa":{"Arequipa":["Arequipa","Alto Selva Alegre","Cayma","Cerro Colorado","Characato","Chiguata","Jacobo Hunter","La Joya","Mariano Melgar","Miraflores","Mollebaya","Paucarpata","Pocsi","Polobaya","Quequeña","Sabandia","Sachaca","San Juan de Siguas","San Juan de Tarucani","Santa Isabel de Siguas","Santa Rita de Siguas","Socabaya","Tiabaya","Uchumayo","Vitor","Yanahuara","Yarabamba","Yura","José Luis Bustamante Y Rivero"],"Camaná":["Camaná","José María Quimper","Mariano Nicolás Valcárcel","Mariscal Cáceres","Nicolás de Pierola","Ocoña","Quilca","Samuel Pastor"],"Caravelí":["Caravelí","Acarí","Atico","Atiquipa","Bella Unión","Cahuacho","Chala","Chaparra","Huanuhuanu","Jaqui","Lomas","Quicacha","Yauca"],"Castilla":["Aplao","Andagua","Ayo","Chachas","Chilcaymarca","Choco","Huancarqui","Machaguay","Orcopampa","Pampacolca","Tipan","Uñon","Uraca","Viraco"],"Caylloma":["Chivay","Achoma","Cabanaconde","Callalli","Caylloma","Coporaque","Huambo","Huanca","Ichupampa","Lari","Lluta","Maca","Madrigal","San Antonio de Chuca","Sibayo","Tapay","Tisco","Tuti","Yanque","Majes"],"Condesuyos":["Chuquibamba","Andaray","Cayarani","Chichas","Iray","Río Grande","Salamanca","Yanaquihua"],"Islay":["Mollendo","Cocachacra","Dean Valdivia","Islay","Mejia","Punta de Bombón"],"La Uniòn":["Cotahuasi","Alca","Charcana","Huaynacotas","Pampamarca","Puyca","Quechualla","Sayla","Tauria","Tomepampa","Toro"]},"Ayacucho":{"Huamanga":["Ayacucho","Acocro","Acos Vinchos","Carmen Alto","Chiara","Ocros","Pacaycasa","Quinua","San José de Ticllas","San Juan Bautista","Santiago de Pischa","Socos","Tambillo","Vinchos","Jesús Nazareno","Andrés Avelino Cáceres Dorregaray"],"Cangallo":["Cangallo","Chuschi","Los Morochucos","María Parado de Bellido","Paras","Totos"],"Huanca Sancos":["Sancos","Carapo","Sacsamarca","Santiago de Lucanamarca"],"Huanta":["Huanta","Ayahuanco","Huamanguilla","Iguain","Luricocha","Santillana","Sivia","Llochegua","Canayre","Uchuraccay","Pucacolpa","Chaca","Putis"],"La Mar":["San Miguel","Anco","Ayna","Chilcas","Chungui","Luis Carranza","Santa Rosa","Tambo","Samugari","Anchihuay","Oronccoy","Unión Progreso","Rio Magdalena","Ninabamba","Patibamba"],"Lucanas":["Puquio","Aucara","Cabana","Carmen Salcedo","Chaviña","Chipao","Huac-Huas","Laramate","Leoncio Prado","Llauta","Lucanas","Ocaña","Otoca","Saisa","San Cristóbal","San Juan","San Pedro","San Pedro de Palco","Sancos","Santa Ana de Huaycahuacho","Santa Lucia"],"Parinacochas":["Coracora","Chumpi","Coronel Castañeda","Pacapausa","Pullo","Puyusca","San Francisco de Rivacayco","Upahuacho"],"Pàucar del Sara Sara":["Pausa","Colta","Corculla","Lampa","Marcabamba","Oyolo","Pararca","San Javier de Alpabamba","San José de Ushua","Sara Sara"],"Sucre":["Querobamba","Belén","Chalcos","Chilcayoc","Huacaña","Morcolla","Paico","San Pedro de Larcay","San Salvador de Quije","Santiago de Paucaray","Soras"],"Víctor Fajardo":["Huancapi","Alcamenca","Apongo","Asquipata","Canaria","Cayara","Colca","Huamanquiquia","Huancaraylla","Hualla","Sarhua","Vilcanchos"],"Vilcas Huamán":["Vilcas Huaman","Accomarca","Carhuanca","Concepción","Huambalpa","Independencia","Saurama","Vischongo"]},"Cajamarca":{"Cajamarca":["Cajamarca","Asunción","Chetilla","Cospan","Encañada","Jesús","Llacanora","Los Baños del Inca","Magdalena","Matara","Namora","San Juan"],"Cajabamba":["Cajabamba","Cachachi","Condebamba","Sitacocha"],"Celendín":["Celendín","Chumuch","Cortegana","Huasmin","Jorge Chávez","José Gálvez","Miguel Iglesias","Oxamarca","Sorochuco","Sucre","Utco","La Libertad de Pallan"],"Chota":["Chota","Anguia","Chadin","Chiguirip","Chimban","Choropampa","Cochabamba","Conchan","Huambos","Lajas","Llama","Miracosta","Paccha","Pion","Querocoto","San Juan de Licupis","Tacabamba","Tocmoche","Chalamarca"],"Contumazá":["Contumaza","Chilete","Cupisnique","Guzmango","San Benito","Santa Cruz de Toledo","Tantarica","Yonan"],"Cutervo":["Cutervo","Callayuc","Choros","Cujillo","La Ramada","Pimpingos","Querocotillo","San Andrés de Cutervo","San Juan de Cutervo","San Luis de Lucma","Santa Cruz","Santo Domingo de la Capilla","Santo Tomas","Socota","Toribio Casanova"],"Hualgayoc":["Bambamarca","Chugur","Hualgayoc"],"Jaén":["Jaén","Bellavista","Chontali","Colasay","Huabal","Las Pirias","Pomahuaca","Pucara","Sallique","San Felipe","San José del Alto","Santa Rosa"],"San Ignacio":["San Ignacio","Chirinos","Huarango","La Coipa","Namballe","San José de Lourdes","Tabaconas"],"San Marcos":["Pedro Gálvez","Chancay","Eduardo Villanueva","Gregorio Pita","Ichocan","José Manuel Quiroz","José Sabogal"],"San Miguel":["San Miguel","Bolívar","Calquis","Catilluc","El Prado","La Florida","Llapa","Nanchoc","Niepos","San Gregorio","San Silvestre de Cochan","Tongod","Unión Agua Blanca"],"San Pablo":["San Pablo","San Bernardino","San Luis","Tumbaden"],"Santa Cruz":["Santa Cruz","Andabamba","Catache","Chancaybaños","La Esperanza","Ninabamba","Pulan","Saucepampa","Sexi","Uticyacu","Yauyucan"]},"Callao":{"Prov. Const. del Callao":["Callao","Bellavista","Carmen de la Legua Reynoso","La Perla","La Punta","Ventanilla","Mi Perú"]},"Cusco":{"Cusco":["Cusco","Ccorca","Poroy","San Jerónimo","San Sebastian","Santiago","Saylla","Wanchaq"],"Acomayo":["Acomayo","Acopia","Acos","Mosoc Llacta","Pomacanchi","Rondocan","Sangarara"],"Anta":["Anta","Ancahuasi","Cachimayo","Chinchaypujio","Huarocondo","Limatambo","Mollepata","Pucyura","Zurite"],"Calca":["Calca","Coya","Lamay","Lares","Pisac","San Salvador","Taray","Yanatile"],"Canas":["Yanaoca","Checca","Kunturkanki","Langui","Layo","Pampamarca","Quehue","Tupac Amaru"],"Canchis":["Sicuani","Checacupe","Combapata","Marangani","Pitumarca","San Pablo","San Pedro","Tinta"],"Chumbivilcas":["Santo Tomas","Capacmarca","Chamaca","Colquemarca","Livitaca","Llusco","Quiñota","Velille"],"Espinar":["Espinar","Condoroma","Coporaque","Ocoruro","Pallpata","Pichigua","Suyckutambo","Alto Pichigua"],"La Convención":["Santa Ana","Echarate","Huayopata","Maranura","Ocobamba","Quellouno","Kimbiri","Santa Teresa","Vilcabamba","Pichari","Inkawasi","Villa Virgen","Villa Kintiarina","Megantoni","Kumpirushiato","Cielo Punco","Manitea","Unión Ashaninka"],"Paruro":["Paruro","Accha","Ccapi","Colcha","Huanoquite","Omacha","Paccaritambo","Pillpinto","Yaurisque"],"Paucartambo":["Paucartambo","Caicay","Challabamba","Colquepata","Huancarani","Kosñipata"],"Quispicanchi":["Urcos","Andahuaylillas","Camanti","Ccarhuayo","Ccatca","Cusipata","Huaro","Lucre","Marcapata","Ocongate","Oropesa","Quiquijana"],"Urubamba":["Urubamba","Chinchero","Huayllabamba","Machupicchu","Maras","Ollantaytambo","Yucay"]},"Huancavelica":{"Huancavelica":["Huancavelica","Acobambilla","Acoria","Conayca","Cuenca","Huachocolpa","Huayllahuara","Izcuchaca","Laria","Manta","Mariscal Cáceres","Moya","Nuevo Occoro","Palca","Pilchaca","Vilca","Yauli","Ascensión","Huando"],"Acobamba":["Acobamba","Andabamba","Anta","Caja","Marcas","Paucara","Pomacocha","Rosario"],"Angaraes":["Lircay","Anchonga","Callanmarca","Ccochaccasa","Chincho","Congalla","Huanca-Huanca","Huayllay Grande","Julcamarca","San Antonio de Antaparco","Santo Tomas de Pata","Secclla"],"Castrovirreyna":["Castrovirreyna","Arma","Aurahua","Capillas","Chupamarca","Cocas","Huachos","Huamatambo","Mollepampa","San Juan","Santa Ana","Tantara","Ticrapo"],"Churcampa":["Churcampa","Anco","Chinchihuasi","El Carmen","La Merced","Locroja","Paucarbamba","San Miguel de Mayocc","San Pedro de Coris","Pachamarca","Cosme"],"Huaytará":["Huaytara","Ayavi","Córdova","Huayacundo Arma","Laramarca","Ocoyo","Pilpichaca","Querco","Quito-Arma","San Antonio de Cusicancha","San Francisco de Sangayaico","San Isidro","Santiago de Chocorvos","Santiago de Quirahuara","Santo Domingo de Capillas","Tambo"],"Tayacaja":["Pampas","Acostambo","Acraquia","Ahuaycha","Colcabamba","Daniel Hernández","Huachocolpa","Huaribamba","Ñahuimpuquio","Pazos","Quishuar","Salcabamba","Salcahuasi","San Marcos de Rocchac","Surcubamba","Tintay Puncu","Quichuas","Andaymarca","Roble","Pichos","Santiago de Tucuma","Lambras","Cochabamba"]},"Huánuco":{"Huánuco":["Huanuco","Amarilis","Chinchao","Churubamba","Margos","Quisqui (Kichki)","San Francisco de Cayran","San Pedro de Chaulan","Santa María del Valle","Yarumayo","Pillco Marca","Yacus","San Pablo de Pillao"],"Ambo":["Ambo","Cayna","Colpas","Conchamarca","Huacar","San Francisco","San Rafael","Tomay Kichwa"],"Dos de Mayo":["La Unión","Chuquis","Marías","Pachas","Quivilla","Ripan","Shunqui","Sillapata","Yanas"],"Huacaybamba":["Huacaybamba","Canchabamba","Cochabamba","Pinra"],"Huamalíes":["Llata","Arancay","Chavín de Pariarca","Jacas Grande","Jircan","Miraflores","Monzón","Punchao","Puños","Singa","Tantamayo"],"Leoncio Prado":["Rupa-Rupa","Daniel Alomía Robles","Hermílio Valdizan","José Crespo y Castillo","Luyando","Mariano Damaso Beraun","Pucayacu","Castillo Grande","Pueblo Nuevo","Santo Domingo de Anda"],"Marañón":["Huacrachuco","Cholon","San Buenaventura","La Morada","Santa Rosa de Alto Yanajanca"],"Pachitea":["Panao","Chaglla","Molino","Umari"],"Puerto Inca":["Puerto Inca","Codo del Pozuzo","Honoria","Tournavista","Yuyapichis"],"Lauricocha":["Jesús","Baños","Jivia","Queropalca","Rondos","San Francisco de Asís","San Miguel de Cauri"],"Yarowilca":["Chavinillo","Cahuac","Chacabamba","Aparicio Pomares","Jacas Chico","Obas","Pampamarca","Choras"]},"Ica":{"Ica":["Ica","La Tinguiña","Los Aquijes","Ocucaje","Pachacutec","Parcona","Pueblo Nuevo","Salas","San José de Los Molinos","San Juan Bautista","Santiago","Subtanjalla","Tate","Yauca del Rosario"],"Chincha":["Chincha Alta","Alto Laran","Chavin","Chincha Baja","El Carmen","Grocio Prado","Pueblo Nuevo","San Juan de Yanac","San Pedro de Huacarpana","Sunampe","Tambo de Mora"],"Nasca":["Nasca","Changuillo","El Ingenio","Marcona","Vista Alegre"],"Palpa":["Palpa","Llipata","Río Grande","Santa Cruz","Tibillo"],"Pisco":["Pisco","Huancano","Humay","Independencia","Paracas","San Andrés","San Clemente","Tupac Amaru Inca"]},"Junín":{"Huancayo":["Huancayo","Carhuacallanga","Chacapampa","Chicche","Chilca","Chongos Alto","Chupuro","Colca","Cullhuas","El Tambo","Huacrapuquio","Hualhuas","Huancan","Huasicancha","Huayucachi","Ingenio","Pariahuanca","Pilcomayo","Pucara","Quichuay","Quilcas","San Agustín","San Jerónimo de Tunan","Saño","Sapallanga","Sicaya","Santo Domingo de Acobamba","Viques"],"Concepción":["Concepción","Aco","Andamarca","Chambara","Cochas","Comas","Heroínas Toledo","Manzanares","Mariscal Castilla","Matahuasi","Mito","Nueve de Julio","Orcotuna","San José de Quero","Santa Rosa de Ocopa"],"Chanchamayo":["Chanchamayo","Perene","Pichanaqui","San Luis de Shuaro","San Ramón","Vitoc","Sangani"],"Jauja":["Jauja","Acolla","Apata","Ataura","Canchayllo","Curicaca","El Mantaro","Huamali","Huaripampa","Huertas","Janjaillo","Julcán","Leonor Ordóñez","Llocllapampa","Marco","Masma","Masma Chicche","Molinos","Monobamba","Muqui","Muquiyauyo","Paca","Paccha","Pancan","Parco","Pomacancha","Ricran","San Lorenzo","San Pedro de Chunan","Sausa","Sincos","Tunan Marca","Yauli","Yauyos"],"Junín":["Junin","Carhuamayo","Ondores","Ulcumayo"],"Satipo":["Satipo","Coviriali","Llaylla","Mazamari","Pampa Hermosa","Pangoa","Río Negro","Río Tambo","Vizcatán del Ene"],"Tarma":["Tarma","Acobamba","Huaricolca","Huasahuasi","La Unión","Palca","Palcamayo","San Pedro de Cajas","Tapo"],"Yauli":["La Oroya","Chacapalpa","Huay-Huay","Marcapomacocha","Morococha","Paccha","Santa Bárbara de Carhuacayan","Santa Rosa de Sacco","Suitucancha","Yauli"],"Chupaca":["Chupaca","Ahuac","Chongos Bajo","Huachac","Huamancaca Chico","San Juan de Iscos","San Juan de Jarpa","Tres de Diciembre","Yanacancha"]},"La Libertad":{"Trujillo":["Trujillo","El Porvenir","Florencia de Mora","Huanchaco","La Esperanza","Laredo","Moche","Poroto","Salaverry","Simbal","Victor Larco Herrera","Alto Trujillo"],"Ascope":["Ascope","Chicama","Chocope","Magdalena de Cao","Paijan","Rázuri","Santiago de Cao","Casa Grande"],"Bolívar":["Bolívar","Bambamarca","Condormarca","Longotea","Uchumarca","Ucuncha"],"Chepén":["Chepen","Pacanga","Pueblo Nuevo"],"Julcán":["Julcan","Calamarca","Carabamba","Huaso"],"Otuzco":["Otuzco","Agallpampa","Charat","Huaranchal","La Cuesta","Mache","Paranday","Salpo","Sinsicap","Usquil"],"Pacasmayo":["San Pedro de Lloc","Guadalupe","Jequetepeque","Pacasmayo","San José"],"Pataz":["Tayabamba","Buldibuyo","Chillia","Huancaspata","Huaylillas","Huayo","Ongon","Parcoy","Pataz","Pias","Santiago de Challas","Taurija","Urpay"],"Sánchez Carrión":["Huamachuco","Chugay","Cochorco","Curgos","Marcabal","Sanagoran","Sarin","Sartimbamba"],"Santiago de Chuco":["Santiago de Chuco","Angasmarca","Cachicadan","Mollebamba","Mollepata","Quiruvilca","Santa Cruz de Chuca","Sitabamba"],"Gran Chimú":["Cascas","Lucma","Marmot","Sayapullo"],"Virú":["Viru","Chao","Guadalupito"]},"Lambayeque":{"Chiclayo":["Chiclayo","Chongoyape","Eten","Eten Puerto","José Leonardo Ortiz","La Victoria","Lagunas","Monsefu","Nueva Arica","Oyotun","Picsi","Pimentel","Reque","Santa Rosa","Saña","Cayalti","Patapo","Pomalca","Pucala","Tuman"],"Ferreñafe":["Ferreñafe","Cañaris","Incahuasi","Manuel Antonio Mesones Muro","Pitipo","Pueblo Nuevo"],"Lambayeque":["Lambayeque","Chochope","Illimo","Jayanca","Mochumi","Morrope","Motupe","Olmos","Pacora","Salas","San José","Tucume"]},"Lima":{"Lima":["Lima","Ancón","Ate","Barranco","Breña","Carabayllo","Chaclacayo","Chorrillos","Cieneguilla","Comas","El Agustino","Independencia","Jesús María","La Molina","La Victoria","Lince","Los Olivos","Lurigancho","Lurin","Magdalena del Mar","Pueblo Libre","Miraflores","Pachacamac","Pucusana","Puente Piedra","Punta Hermosa","Punta Negra","Rímac","San Bartolo","San Borja","San Isidro","San Juan de Lurigancho","San Juan de Miraflores","San Luis","San Martín de Porres","San Miguel","Santa Anita","Santa María del Mar","Santa Rosa","Santiago de Surco","Surquillo","Villa El Salvador","Villa María del Triunfo"],"Barranca":["Barranca","Paramonga","Pativilca","Supe","Supe Puerto"],"Cajatambo":["Cajatambo","Copa","Gorgor","Huancapon","Manas"],"Canta":["Canta","Arahuay","Huamantanga","Huaros","Lachaqui","San Buenaventura","Santa Rosa de Quives"],"Cañete":["San Vicente de Cañete","Asia","Calango","Cerro Azul","Chilca","Coayllo","Imperial","Lunahuana","Mala","Nuevo Imperial","Pacaran","Quilmana","San Antonio","San Luis","Santa Cruz de Flores","Zúñiga"],"Huaral":["Huaral","Atavillos Alto","Atavillos Bajo","Aucallama","Chancay","Ihuari","Lampian","Pacaraos","San Miguel de Acos","Santa Cruz de Andamarca","Sumbilca","Veintisiete de Noviembre"],"Huarochirí":["Matucana","Antioquia","Callahuanca","Carampoma","Chicla","Cuenca","Huachupampa","Huanza","Huarochiri","Lahuaytambo","Langa","Laraos","Mariatana","Ricardo Palma","San Andrés de Tupicocha","San Antonio","San Bartolomé","San Damian","San Juan de Iris","San Juan de Tantaranche","San Lorenzo de Quinti","San Mateo","San Mateo de Otao","San Pedro de Casta","San Pedro de Huancayre","Sangallaya","Santa Cruz de Cocachacra","Santa Eulalia","Santiago de Anchucaya","Santiago de Tuna","Santo Domingo de Los Olleros","Surco"],"Huaura":["Huacho","Ambar","Caleta de Carquin","Checras","Hualmay","Huaura","Leoncio Prado","Paccho","Santa Leonor","Santa María","Sayan","Vegueta"],"Oyón":["Oyon","Andajes","Caujul","Cochamarca","Navan","Pachangara"],"Yauyos":["Yauyos","Alis","Allauca","Ayaviri","Azángaro","Cacra","Carania","Catahuasi","Chocos","Cochas","Colonia","Hongos","Huampara","Huancaya","Huangascar","Huantan","Huañec","Laraos","Lincha","Madean","Miraflores","Omas","Putinza","Quinches","Quinocay","San Joaquín","San Pedro de Pilas","Tanta","Tauripampa","Tomas","Tupe","Viñac","Vitis"]},"Loreto":{"Maynas":["Iquitos","Alto Nanay","Fernando Lores","Indiana","Las Amazonas","Mazan","Napo","Punchana","Torres Causana","Belén","San Juan Bautista"],"Alto Amazonas":["Yurimaguas","Balsapuerto","Jeberos","Lagunas","Santa Cruz","Teniente Cesar López Rojas"],"Loreto":["Nauta","Parinari","Tigre","Trompeteros","Urarinas"],"Mariscal Ramón Castilla":["Ramón Castilla","Pebas","Yavari","San Pablo","Santa Rosa de Loreto"],"Requena":["Requena","Alto Tapiche","Capelo","Emilio San Martín","Maquia","Puinahua","Saquena","Soplin","Tapiche","Jenaro Herrera","Yaquerana"],"Ucayali":["Contamana","Inahuaya","Padre Márquez","Pampa Hermosa","Sarayacu","Vargas Guerra"],"Datem del Marañón":["Barranca","Cahuapanas","Manseriche","Morona","Pastaza","Andoas"],"Putumayo":["Putumayo","Rosa Panduro","Teniente Manuel Clavero","Yaguas"]},"Madre de Dios":{"Tambopata":["Tambopata","Inambari","Las Piedras","Laberinto"],"Manu":["Manu","Fitzcarrald","Madre de Dios","Huepetuhe"],"Tahuamanu":["Iñapari","Iberia","Tahuamanu"]},"Moquegua":{"Mariscal Nieto":["Moquegua","Carumas","Cuchumbaya","Samegua","San Cristóbal","Torata","San Antonio"],"General Sánchez Cerro":["Omate","Chojata","Coalaque","Ichuña","La Capilla","Lloque","Matalaque","Puquina","Quinistaquillas","Ubinas","Yunga"],"Ilo":["Ilo","El Algarrobal","Pacocha"]},"Pasco":{"Pasco":["Chaupimarca","Huachon","Huariaca","Huayllay","Ninacaca","Pallanchacra","Paucartambo","San Francisco de Asís de Yarusyacan","Simon Bolívar","Ticlacayan","Tinyahuarco","Vicco","Yanacancha"],"Daniel Alcides Carrión":["Yanahuanca","Chacayan","Goyllarisquizga","Paucar","San Pedro de Pillao","Santa Ana de Tusi","Tapuc","Vilcabamba"],"Oxapampa":["Oxapampa","Chontabamba","Huancabamba","Palcazu","Pozuzo","Puerto Bermúdez","Villa Rica","Constitución"]},"Piura":{"Piura":["Piura","Castilla","Catacaos","Cura Mori","El Tallan","La Arena","La Unión","Las Lomas","Tambo Grande","Veintiseis de Octubre"],"Ayabaca":["Ayabaca","Frias","Jilili","Lagunas","Montero","Pacaipampa","Paimas","Sapillica","Sicchez","Suyo"],"Huancabamba":["Huancabamba","Canchaque","El Carmen de la Frontera","Huarmaca","Lalaquiz","San Miguel de El Faique","Sondor","Sondorillo"],"Morropón":["Chulucanas","Buenos Aires","Chalaco","La Matanza","Morropon","Salitral","San Juan de Bigote","Santa Catalina de Mossa","Santo Domingo","Yamango"],"Paita":["Paita","Amotape","Arenal","Colan","La Huaca","Tamarindo","Vichayal"],"Sullana":["Sullana","Bellavista","Ignacio Escudero","Lancones","Marcavelica","Miguel Checa","Querecotillo","Salitral"],"Talara":["Pariñas","El Alto","La Brea","Lobitos","Los Organos","Mancora"],"Sechura":["Sechura","Bellavista de la Unión","Bernal","Cristo Nos Valga","Vice","Rinconada Llicuar"]},"Puno":{"Puno":["Puno","Acora","Amantani","Atuncolla","Capachica","Chucuito","Coata","Huata","Mañazo","Paucarcolla","Pichacani","Plateria","San Antonio","Tiquillaca","Vilque"],"Azángaro":["Azángaro","Achaya","Arapa","Asillo","Caminaca","Chupa","José Domingo Choquehuanca","Muñani","Potoni","Saman","San Anton","San José","San Juan de Salinas","Santiago de Pupuja","Tirapata"],"Carabaya":["Macusani","Ajoyani","Ayapata","Coasa","Corani","Crucero","Ituata","Ollachea","San Gaban","Usicayos"],"Chucuito":["Juli","Desaguadero","Huacullani","Kelluyo","Pisacoma","Pomata","Zepita"],"El Collao":["Ilave","Capazo","Pilcuyo","Santa Rosa","Conduriri"],"Huancané":["Huancane","Cojata","Huatasani","Inchupalla","Pusi","Rosaspata","Taraco","Vilque Chico"],"Lampa":["Lampa","Cabanilla","Calapuja","Nicasio","Ocuviri","Palca","Paratia","Pucara","Santa Lucia","Vilavila"],"Melgar":["Ayaviri","Antauta","Cupi","Llalli","Macari","Nuñoa","Orurillo","Santa Rosa","Umachiri"],"Moho":["Moho","Conima","Huayrapata","Tilali"],"San Antonio de Putina":["Putina","Ananea","Pedro Vilca Apaza","Quilcapuncu","Sina"],"San Román":["Juliaca","Cabana","Cabanillas","Caracoto","San Miguel"],"Sandia":["Sandia","Cuyocuyo","Limbani","Patambuco","Phara","Quiaca","San Juan del Oro","Yanahuaya","Alto Inambari","San Pedro de Putina Punco"],"Yunguyo":["Yunguyo","Anapia","Copani","Cuturapi","Ollaraya","Tinicachi","Unicachi"]},"San Martín":{"Moyobamba":["Moyobamba","Calzada","Habana","Jepelacio","Soritor","Yantalo"],"Bellavista":["Bellavista","Alto Biavo","Bajo Biavo","Huallaga","San Pablo","San Rafael"],"El Dorado":["San José de Sisa","Agua Blanca","San Martín","Santa Rosa","Shatoja"],"Huallaga":["Saposoa","Alto Saposoa","El Eslabón","Piscoyacu","Sacanche","Tingo de Saposoa"],"Lamas":["Lamas","Alonso de Alvarado","Barranquita","Caynarachi","Cuñumbuqui","Pinto Recodo","Rumisapa","San Roque de Cumbaza","Shanao","Tabalosos","Zapatero"],"Mariscal Cáceres":["Juanjuí","Campanilla","Huicungo","Pachiza","Pajarillo"],"Picota":["Picota","Buenos Aires","Caspisapa","Pilluana","Pucacaca","San Cristóbal","San Hilarión","Shamboyacu","Tingo de Ponasa","Tres Unidos"],"Rioja":["Rioja","Awajun","Elías Soplin Vargas","Nueva Cajamarca","Pardo Miguel","Posic","San Fernando","Yorongos","Yuracyacu"],"San Martín":["Tarapoto","Alberto Leveau","Cacatachi","Chazuta","Chipurana","El Porvenir","Huimbayoc","Juan Guerra","La Banda de Shilcayo","Morales","Papaplaya","San Antonio","Sauce","Shapaja"],"Tocache":["Tocache","Nuevo Progreso","Polvora","Shunte","Uchiza","Santa Lucia"]},"Tacna":{"Tacna":["Tacna","Alto de la Alianza","Calana","Ciudad Nueva","Inclan","Pachia","Palca","Pocollay","Sama","Coronel Gregorio Albarracín Lanchipa","La Yarada los Palos"],"Candarave":["Candarave","Cairani","Camilaca","Curibaya","Huanuara","Quilahuani"],"Jorge Basadre":["Locumba","Ilabaya","Ite"],"Tarata":["Tarata","Héroes Albarracín","Estique","Estique-Pampa","Sitajara","Susapaya","Tarucachi","Ticaco"]},"Tumbes":{"Tumbes":["Tumbes","Corrales","La Cruz","Pampas de Hospital","San Jacinto","San Juan de la Virgen"],"Contralmirante Villar":["Zorritos","Casitas","Canoas de Punta Sal"],"Zarumilla":["Zarumilla","Aguas Verdes","Matapalo","Papayal"]},"Ucayali":{"Coronel Portillo":["Calleria","Campoverde","Iparia","Masisea","Yarinacocha","Nueva Requena","Manantay"],"Atalaya":["Raymondi","Sepahua","Tahuania","Yurua"],"Padre Abad":["Padre Abad","Irazola","Curimana","Neshuya","Alexander Von Humboldt","Huipoca","Boqueron"],"Purús":["Purus"]}};
+const nzU=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+const ubFind=(list,v)=>{const n=nzU(v);return list.find(x=>nzU(x)===n)||''};
+function ubOpts(list,val,ph){
+  const m=ubFind(list,val);
+  let h='<option value="">'+ph+'</option>'+list.map(x=>`<option value="${esc(x)}" ${x===m?'selected':''}>${esc(x)}</option>`).join('');
+  if(val&&!m)h+=`<option value="${esc(val)}" selected>${esc(val)} (valor anterior)</option>`;
+  return h;
+}
+function ubProvs(dep){const d=ubFind(Object.keys(UBIGEO),dep);return d?Object.keys(UBIGEO[d]):[]}
+function ubDists(dep,prov){const d=ubFind(Object.keys(UBIGEO),dep);if(!d)return[];const p=ubFind(Object.keys(UBIGEO[d]),prov);return p?UBIGEO[d][p]:[]}
+function ubCascade(id){
+  const dep=gv('p-departamento');
+  if(id==='p-departamento'){
+    $('#p-provincia').innerHTML=ubOpts(ubProvs(dep),'','Selecciona provincia');
+    $('#p-distrito').innerHTML=ubOpts([],'','Selecciona distrito');
+  }else if(id==='p-provincia'){
+    $('#p-distrito').innerHTML=ubOpts(ubDists(dep,gv('p-provincia')),'','Selecciona distrito');
+  }
+  $('#p-provincia').disabled=!dep;
+  $('#p-distrito').disabled=!gv('p-provincia');
+}
 const ubic=p=>[p.referencia,p.distrito,p.provincia,p.departamento].filter(Boolean).join(', ');
 const tipoTxt=p=>(p.tipos||[]).map(t=>t==='Otros'&&p.tipoOtro?p.tipoOtro:t).join(' y ');
 const adqTxt=p=>p.fechaAdq?fdate(p.fechaAdq):(p.anioAdq?String(p.anioAdq):'');
@@ -492,11 +558,13 @@ function compute(){
   const projById={};S.proyectos.forEach(p=>projById[p.id]=p);
   const pName=id=>projById[id]?projById[id].nombre:'(proyecto eliminado)';
   const esc=S.escrituras.map(e=>{const l=parseLotes(e.lotes);const imp=num(e.importe)||0;return {...e,_l:l,_n:l.length,_imp:imp,_pl:l.length?imp/l.length:null}});
-  esc.sort((a,b)=>cmpTxt(a.fecha,b.fecha)||cmpTxt(pName(a.proyectoId),pName(b.proyectoId))||cmpTxt(a.mz,b.mz)||cmpTxt(a._l[0],b._l[0]));
+  esc.sort((a,b)=>cmpTxt(a.fecha,b.fecha)||cmpTxt(pName(a.proyectoId),pName(b.proyectoId))||cmpTxt(a.nroEscritura||'',b.nroEscritura||'')||cmpTxt(zonaTxt(a),zonaTxt(b))||cmpTxt(a._l[0],b._l[0]));
   const seen={};
-  const key=(e,l)=>e.proyectoId+'|'+String(e.mz||'').trim().toUpperCase()+'|'+l;
+  const key=(e,l)=>e.proyectoId+'|'+zonaKey(e)+'|'+l;
   esc.forEach(e=>e._l.forEach(l=>{(seen[key(e,l)]=seen[key(e,l)]||[]).push(e.id)}));
   esc.forEach(e=>{e._dup=e._l.filter(l=>seen[key(e,l)].length>1);e._fuera=!!e.fecha&&(e.fecha<cfg.periodoDesde||e.fecha>cfg.periodoHasta)});
+  const grp={};esc.forEach(e=>{const n=String(e.nroEscritura||'').trim();e._nro=n;if(n){const k=e.proyectoId+'|'+n.toUpperCase();(grp[k]=grp[k]||[]).push(e)}});
+  esc.forEach(e=>{const g=e._nro?grp[e.proyectoId+'|'+e._nro.toUpperCase()]:null;e._grp=g?g.length:1;e._fechasDist=g?new Set(g.map(x=>x.fecha)).size>1:false});
   const byProj={};esc.forEach(e=>{(byProj[e.proyectoId]=byProj[e.proyectoId]||[]).push(e)});
   Object.keys(byProj).forEach(id=>{
     const lots=byProj[id].reduce((a,e)=>a+e._n,0),imp=byProj[id].reduce((a,e)=>a+e._imp,0);
@@ -505,11 +573,11 @@ function compute(){
   });
   const M={};
   S.proyectos.forEach(p=>{
-    const sumY=yrs.reduce((a,y)=>a+(num(p.ventasAnio&&p.ventasAnio[y])||0),0);
-    const sin=num(p.sinDesglose)||0,total=num(p.lotesTotal)||0,vend=sumY+sin;
     const le=byProj[p.id]||[];
-    const declP=num(p.ventasAnio&&p.ventasAnio[periodYear()]);
-    M[p.id]={vend,total,pend:total-vend,avance:total?vend/total:0,sumY,sin,escN:le.reduce((a,e)=>a+e._n,0),escImp:le.reduce((a,e)=>a+e._imp,0),declP:declP==null?0:declP};
+    const byY={};yrs.forEach(y=>{byY[y]=0});let sin=0;
+    le.forEach(e=>{const y=e.fecha?Number(String(e.fecha).slice(0,4)):null;if(y!=null&&y in byY)byY[y]+=e._n;else sin+=e._n});
+    const sumY=yrs.reduce((a,y)=>a+byY[y],0),total=num(p.lotesTotal)||0,vend=sumY+sin;
+    M[p.id]={vend,total,pend:total-vend,avance:total?vend/total:0,sumY,sin,byY,escN:vend,escImp:le.reduce((a,e)=>a+e._imp,0)};
   });
   const lotProjs=S.proyectos.filter(esLote);
   const T={proy:S.proyectos.length,
@@ -519,7 +587,7 @@ function compute(){
     escN:esc.reduce((a,e)=>a+e._n,0),escImp:esc.reduce((a,e)=>a+e._imp,0)};
   T.pend=T.total-T.vend;T.avance=T.total?T.vend/T.total:0;T.pl=T.escN?T.escImp/T.escN:0;
   const porMes={};esc.forEach(e=>{if(e.fecha){const k=e.fecha.slice(0,7);porMes[k]=(porMes[k]||0)+e._imp}});
-  const mzMap={};esc.forEach(e=>{const k=e.proyectoId+'|'+String(e.mz||'').trim().toUpperCase();const o=mzMap[k]=mzMap[k]||{pid:e.proyectoId,mz:String(e.mz||'').trim().toUpperCase(),n:0,imp:0,lotes:[]};o.n+=e._n;o.imp+=e._imp;o.lotes.push(...e._l)});
+  const mzMap={};esc.forEach(e=>{const k=e.proyectoId+'|'+zonaKey(e);const o=mzMap[k]=mzMap[k]||{pid:e.proyectoId,mz:zonaTxt(e).toUpperCase(),n:0,imp:0,lotes:[]};o.n+=e._n;o.imp+=e._imp;o.lotes.push(...e._l)});
   const porMz=Object.values(mzMap).sort((a,b)=>cmpTxt(pName(a.pid),pName(b.pid))||cmpTxt(a.mz,b.mz));
   const C={esc,M,T,porMes,porMz,projById,pName,lotProjs};
   C.alerts=buildAlerts(C);
@@ -533,11 +601,10 @@ function buildAlerts(C){
     const m=C.M[p.id];
     if(!m.total)add('a',p.nombre+': falta el total de lotes','Sin el total no se calculan los lotes pendientes.',{tab:'lotes'});
     if(m.pend<0)add('c',p.nombre+': hay más lotes vendidos que lotes totales','Vendidos '+m.vend+' y total '+m.total+'.',{tab:'lotes'});
-    if(m.sin>0)add('a',p.nombre+': '+m.sin+' lotes vendidos sin año asignado','El cuadro por año pide el total de lotes vendidos con escritura por año. Reparte esos lotes por año.',{tab:'lotes'});
-    if(m.escN!==m.declP)add('a',p.nombre+': el cuadro de lotes y las escrituras no coinciden ('+py+')','El cuadro por año declara '+m.declP+' lotes en '+py+' y las escrituras registradas suman '+m.escN+'. Corrige uno de los dos.',{tab:'escrituras'});
+    if(m.sin>0)add('a',p.nombre+': '+m.sin+' lotes con escritura sin fecha o fuera de los años del cuadro','Revisa la fecha de esas escrituras: el cuadro por año se llena solo con la fecha de cada escritura.',{tab:'escrituras'});
     const first=num(p.anioInicio)||num(p.anioAdq);
-    const early=years().filter(y=>first&&y<first&&(num(p.ventasAnio&&p.ventasAnio[y])||0)>0);
-    if(early.length)add('m',p.nombre+': ventas en años anteriores al inicio del proyecto','Hay ventas en '+early.join(', ')+' y el proyecto empieza en '+first+'.',{tab:'lotes'});
+    const early=years().filter(y=>first&&y<first&&(m.byY[y]||0)>0);
+    if(early.length)add('m',p.nombre+': ventas en años anteriores al inicio del proyecto','Hay escrituras en '+early.join(', ')+' y el proyecto empieza en '+first+'.',{tab:'escrituras'});
   });
   S.proyectos.forEach(p=>{
     if(!(p.tipos||[]).length)add('m',p.nombre+': falta el tipo de proyecto','Marca al menos una opción.',{edit:{k:'p',id:p.id}});
@@ -545,15 +612,22 @@ function buildAlerts(C){
     if(!p.fechaAdq)add('m',p.nombre+': la fecha de adquisición tiene solo el año ('+(p.anioAdq||'sin dato')+')','La solicitud pide la fecha de adquisición. Regístrala completa.',{edit:{k:'p',id:p.id}});
     if(p.monedaConfirmada!==true)add('m',p.nombre+': moneda sin confirmar','El encabezado del formato dice soles (S/), pero el importe estaba con formato de dólar en el Excel. Confirma la moneda.',{edit:{k:'p',id:p.id}});
     if(esLote(p)&&!(p.departamento&&p.provincia&&p.distrito))add('m',p.nombre+': ubicación incompleta','Completa departamento, provincia y distrito.',{edit:{k:'p',id:p.id}});
+    if(esLote(p)){const nd=ldet(p).length,tt=num(p.lotesTotal)||0;
+      if(!nd)add('m',p.nombre+': faltan registrar los lotes','Registra las manzanas o etapas y los lotes del proyecto. Así las escrituras se cargan eligiendo el lote de una lista, sin errores de digitación.',{edit:{k:'p',id:p.id}});
+      else if(nd!==tt)add('m',p.nombre+': los lotes registrados ('+nd+') no coinciden con el total ('+tt+')','Completa o corrige la lista de lotes del proyecto.',{edit:{k:'p',id:p.id}});}
     if(p.modalidad==='otro'&&!p.modalidadDetalle)add('b',p.nombre+': falta especificar la modalidad "Otro"','',{edit:{k:'p',id:p.id}});
     if(p.pendienteRegistro)add('a',p.nombre+': escrituras sin inscribir en Registros Públicos','Aclara si la escritura pública está firmada y cuándo se elevará a registro. La solicitud pide ventas con escritura.',{edit:{k:'p',id:p.id}});
     if(p.notaImport)add('i',p.nombre+': corrección respecto al Excel',p.notaImport,{edit:{k:'p',id:p.id}});
   });
   C.esc.forEach(e=>{
-    const nm=C.pName(e.proyectoId),ref=nm+' · Mz '+(e.mz||'?')+' · lote(s) '+(e.lotes||'?');
-    if(e._dup.length)add('c','Lote repetido: '+nm+' · Mz '+e.mz+' · '+e._dup.join(', '),'Está registrado en más de una escritura (escritura del '+fdate(e.fecha)+').',{edit:{k:'e',id:e.id}});
+    const nm=C.pName(e.proyectoId),ref=nm+(zonaTxt(e)?' · '+zonaTxt(e):'')+' · lote '+(e.lotes||'?');
+    if(e._dup.length)add('c','Lote repetido: '+nm+(zonaTxt(e)?' · '+zonaTxt(e):'')+' · '+e._dup.join(', '),'Está registrado en más de una escritura (escritura del '+fdate(e.fecha)+').',{edit:{k:'e',id:e.id}});
+    {const P=S.proyectos.find(x=>x.id===e.proyectoId);
+     if(P&&ldet(P).length&&e._l.length===1&&!ldet(P).some(d=>lkey(d.t,d.z,d.l)===lkey(zonaTipo(e),e.mz,e._l[0])))add('m','Lote fuera de la lista del proyecto: '+ref,'Esa manzana o etapa y ese lote no están en los lotes registrados del proyecto. Corrígelo o actualiza la lista de lotes.',{edit:{k:'e',id:e.id}});}
     if(e._fuera)add('m','Escritura fuera del periodo: '+ref,'Fecha '+fdate(e.fecha)+'; el periodo es '+fdate(cfg.periodoDesde)+' al '+fdate(cfg.periodoHasta)+'.',{edit:{k:'e',id:e.id}});
     if(e._n===0)add('a','Escritura sin lotes válidos: '+ref,'',{edit:{k:'e',id:e.id}});
+    if(e._n>1)add('m','Registro con varios lotes: '+ref,'Cada registro debe ser de un solo lote. Edítalo, deja un lote y agrega los demás con la misma escritura.',{edit:{k:'e',id:e.id}});
+    if(e._fechasDist)add('a','La escritura N.° '+e._nro+' de '+nm+' tiene fechas distintas','Los lotes de una misma escritura deben tener la misma fecha.',{edit:{k:'e',id:e.id}});
     if(e._dev!=null&&Math.abs(e._dev)>0.45)add('b','Precio por lote atípico: '+ref,money(e._pl,'PEN',0)+' por lote, '+(e._dev>0?'+':'')+Math.round(e._dev*100)+'% frente al promedio del proyecto. Verifica el importe.',{edit:{k:'e',id:e.id}});
   });
   if(S.proyectos.length&&!S.escrituras.length)add('i','Sin escrituras en el periodo','La solicitud pide confirmar por escrito que no hubo ventas con escritura entre el '+fdate(cfg.periodoDesde)+' y el '+fdate(cfg.periodoHasta)+'.',{tab:'escrituras'});
@@ -641,7 +715,7 @@ function alertsK(KC){
     if(!r.enCat)add('a','El código '+r.codigo+' tiene movimientos, pero no está en el catálogo','Agrégalo al catálogo para ver su descripción y su stock mínimo.',{tab:'catalogo'});
     if(r.est==='Revisar')add('c',nm+': stock negativo ('+nf(r.q)+')','Se entregó más de lo que ingresó. Revisa las fechas y las cantidades de sus movimientos.',{tab:'movimientos',prod:r.codigo});
     else if(r.est==='Stock mínimo')add('m',nm+': llegó al stock mínimo','Quedan '+nf(r.q)+' y el mínimo es '+nf(r.min)+'. Conviene reponer.',{tab:'stock'});
-    if(r.enCat&&r.est!=='Sin movimientos'&&!(r.min>0))add('b',nm+': sin stock mínimo definido','Define un mínimo para recibir el aviso antes de que se agote.',{tab:'stock'});
+    if(r.enCat&&r.est!=='Sin movimientos'&&!(r.min>0))add('b',nm+': sin stock mínimo definido','Define un mínimo en el Catálogo para recibir el aviso antes de que se agote.',{tab:'catalogo'});
   });
   const dupKey={};
   KC.movs.forEach(m=>{const k=m.tipo+'|'+String(m.nroDoc||'').trim().toUpperCase()+'|'+kcode(m.codigo);(dupKey[k]=dupKey[k]||[]).push(m.id)});
@@ -658,7 +732,7 @@ function alertsK(KC){
       if(!String(m.cliente||'').trim())add('a',ref+': falta el nombre del cliente','',go);
       if(!(m._cost>0))add('m',ref+': entrega sin costo','El producto no tiene compras anteriores, así que el valor entregado sale en 0.',go);
     }
-    if(!(m.adjuntos||[]).length)add('m',ref+': sin sustento adjunto marcado','Marca qué sustento guardaste (comprobante, XML, acta o fotografía).',go);
+    if(!(m.adjuntos||[]).length)add('m',ref+': SIN SUSTENTO','Marca el sustento que tienes (comprobante, XML, acta o fotografía) y pega su enlace.',go);
     if(m.fecha>today)add('m',ref+': la fecha es futura','',go);
   });
   if(!String(cfg.empresa||'').trim()||!String(cfg.ruc||'').trim())add('b','Faltan los datos de la empresa','Completa empresa, RUC y responsable en Ajustes para que salgan en el Excel.',{settings:true});
@@ -736,29 +810,24 @@ function kMovs(){
   const q=K.fq.trim().toLowerCase();
   const list=KC.movs.filter(m=>(!K.fprod||kcode(m.codigo)===kcode(K.fprod))&&(!K.ftipo||m.tipo===K.ftipo)&&(!q||[m.cliente,m.docCliente,m.nroDoc,m.nroActa].some(x=>String(x||'').toLowerCase().includes(q))));
   const rows=list.map(m=>{const r=KC.rowBy[kcode(m.codigo)];const ent=m.tipo==='ENTRADA';
-    return `<tr><td class="n">${m._i}</td><td class="n">${fdate(m.fecha)}</td><td><span class="pill ${ent?'ok':'i'}">${ent?'Compra':'Entrega'}</span></td>
-    <td class="wrap">${esc(m.sustentoTipo||'')}<span class="small mono">${esc(m.nroDoc||'')}${m.nroActa?' · acta '+esc(m.nroActa):''}</span></td>
-    <td class="wrap"><b>${esc(r?r.desc:m.codigo)}</b><span class="small mono">${esc(m.codigo)}${r&&r.marca?' · '+esc(r.marca):''}</span></td>
-    <td class="n">${ent?nf(m._q):''}</td><td class="n">${ent?'':nf(m._q)}</td><td class="n">${money(m._cost,'PEN',2)}</td><td class="n">${money(m._val)}</td>
-    <td class="n" style="${m._stock<0?'color:var(--bad);font-weight:600':''}">${nf(m._stock)}</td>
-    <td class="wrap">${ent?'':esc(m.proyecto||'')+(m.lote?'<span class="small mono">lote '+esc(m.lote)+'</span>':'')}</td>
-    <td class="wrap">${ent?'':esc(m.cliente||'')+'<span class="small mono">'+esc(m.docCliente||'')+'</span>'}</td>
-    <td>${(m.adjuntos||[]).map(a=>`<span class="chip">${esc(a.split(' ')[0])}</span>`).join(' ')||'<span class="small warn">sin sustento</span>'}</td>
-    <td class="wrap">${esc(m.obs||'')}</td><td><button class="btn sm" data-act="k-edit-m" data-id="${m.id}">Editar</button></td></tr>`}).join('');
+    return `<tr><td class="n">${m._i}</td><td class="n">${fdate(m.fecha)}</td><td><span class="pill ${ent?'ok':'i'}">${ent?'Compra':'Entrega'}</span><span class="small mono">${esc(m.nroDoc||'')}</span></td>
+    <td class="wrap"><b>${esc(r?r.desc:m.codigo)}</b><span class="small mono">${esc(m.codigo)}${!ent&&m.cliente?' · '+esc(m.cliente):''}</span></td>
+    <td class="n">${ent?nf(m._q):''}</td><td class="n">${ent?'':nf(m._q)}</td><td class="n">${money(m._val)}</td>
+    <td>${(m.adjuntos||[]).map(a=>{const lk=(m.adjLinks||{})[a];return `<span class="chip">${lk?`<a href="${esc(lk)}" target="_blank" rel="noopener noreferrer">${esc(a.split(' ')[0])}</a>`:esc(a.split(' ')[0])}</span>`}).join(' ')||'<span class="sinsust">SIN SUSTENTO</span>'}</td>
+    <td class="act">${detBtn('km',m.id)}<button class="btn sm" data-act="k-edit-m" data-id="${m.id}">Editar</button></td></tr>`}).join('');
   const ei=list.filter(m=>m.tipo==='ENTRADA').reduce((a,m)=>a+m._q,0),es=list.filter(m=>m.tipo==='SALIDA').reduce((a,m)=>a+m._q,0);
-  return bar+`<div class="scroll"><table><thead><tr><th class="n">Ítem</th><th class="n">Fecha</th><th>Tipo</th><th>Documento</th><th>Producto</th><th class="n">Ingreso</th><th class="n">Salida</th><th class="n">Costo unit. s/IGV</th><th class="n">Valor</th><th class="n">Stock</th><th>Proyecto y lote</th><th>Cliente</th><th>Sustento</th><th>Observación</th><th></th></tr></thead><tbody>${rows}</tbody>
-  <tfoot><tr><td></td><td colspan="4">Total (${list.length} movimientos)</td><td class="n">${nf(ei)}</td><td class="n">${nf(es)}</td><td colspan="8"></td></tr></tfoot></table></div>`;
+  return bar+`<div class="scroll"><table><thead><tr><th class="n">Ítem</th><th class="n">Fecha</th><th>Tipo</th><th>Producto</th><th class="n">Ingreso</th><th class="n">Salida</th><th class="n">Valor</th><th>Sustento</th><th></th></tr></thead><tbody>${rows}</tbody>
+  <tfoot><tr><td></td><td colspan="3">Total (${list.length} movimientos)</td><td class="n">${nf(ei)}</td><td class="n">${nf(es)}</td><td colspan="3"></td></tr></tfoot></table></div>`;
 }
 
 function kStock(){
   const KC=S.KC;
   if(!S.k.cat.length)return kEmpty();
-  const rows=KC.rows.map(r=>`<tr><td class="mono">${esc(r.codigo)}</td><td class="wrap"><b>${esc(r.desc)}</b></td><td>${esc(r.marca)}</td><td>${esc(r.unidad)}</td>
-   <td class="n">${nf(r.ent)}</td><td class="n">${nf(r.sal)}</td><td class="n"><b>${nf(r.q)}</b></td><td class="n">${money(r.avg,'PEN',2)}</td><td class="n">${money(r.val)}</td>
-   <td class="n">${r.enCat?`<input class="cell-in" type="number" min="0" step="1" inputmode="numeric" data-fk="kmin:${r.id}" data-act-in="kmin" data-id="${r.id}" value="${r.min}" aria-label="Stock mínimo de ${esc(r.desc)}">`:'-'}</td><td>${estPill(r.est)}</td></tr>`).join('');
-  return `<div class="note">El stock se calcula solo desde los movimientos. Escribe el <b>stock mínimo</b> en cada fila: cuando el stock llega a ese número el producto se marca como "Stock mínimo".</div>
-  <div class="scroll"><table><thead><tr><th>Código</th><th>Producto</th><th>Marca</th><th>Unid.</th><th class="n">Entradas</th><th class="n">Salidas</th><th class="n">Stock actual</th><th class="n">Costo promedio</th><th class="n">Valor stock</th><th class="n">Mínimo</th><th>Estado</th></tr></thead><tbody>${rows}</tbody>
-  <tfoot><tr><td colspan="4">Totales</td><td class="n">${nf(KC.T.ent)}</td><td class="n">${nf(KC.T.sal)}</td><td class="n">${nf(KC.T.stock)}</td><td></td><td class="n">${money(KC.T.valStock)}</td><td colspan="2"></td></tr></tfoot></table></div>`;
+  const rows=KC.rows.map(r=>`<tr><td class="mono">${esc(r.codigo)}</td><td class="wrap"><b>${esc(r.desc)}</b>${r.marca?'<span class="small">'+esc(r.marca)+'</span>':''}</td>
+   <td class="n">${nf(r.ent)}</td><td class="n">${nf(r.sal)}</td><td class="n"><b>${nf(r.q)}</b></td><td>${estPill(r.est)}</td><td class="act">${detBtn('ks',r.codigo)}</td></tr>`).join('');
+  return `<div class="note">El stock se calcula solo desde los movimientos. El <b>stock mínimo</b> se define al crear o editar el producto en la pestaña Catálogo; cuando el stock llega a ese número el producto se marca como "Stock mínimo". En "Ver detalles" ves el costo promedio, el valor del stock y el mínimo.</div>
+  <div class="scroll"><table><thead><tr><th>Código</th><th>Producto</th><th class="n">Entradas</th><th class="n">Salidas</th><th class="n">Stock actual</th><th>Estado</th><th></th></tr></thead><tbody>${rows}</tbody>
+  <tfoot><tr><td colspan="2">Totales</td><td class="n">${nf(KC.T.ent)}</td><td class="n">${nf(KC.T.sal)}</td><td class="n">${nf(KC.T.stock)}</td><td colspan="2"></td></tr></tfoot></table></div>`;
 }
 
 function kCatalogo(){
@@ -766,8 +835,8 @@ function kCatalogo(){
   const head=`<div class="toolbar"><span class="hint">Lista maestra de regalos. El código identifica al producto en todos los movimientos.</span><button class="btn primary" data-act="k-new-p">Nuevo producto</button></div>`;
   if(!K.cat.length)return kEmpty();
   const rows=K.cat.slice().sort((a,b)=>cmpTxt(a.codigo,b.codigo)).map(c=>{const n=KC.movs.filter(m=>kcode(m.codigo)===kcode(c.codigo)).length;
-    return `<tr><td class="mono">${esc(c.codigo)}</td><td class="wrap"><b>${esc(c.descripcion)}</b></td><td>${esc(c.marca||'')}</td><td>${esc(c.unidad||'UND')}</td><td class="n">${nf(num(c.stockMin)||0)}</td><td class="n">${n}</td><td class="wrap">${esc(c.obs||'')}</td><td><button class="btn sm" data-act="k-edit-p" data-id="${c.id}">Editar</button></td></tr>`}).join('');
-  return head+`<div class="scroll"><table><thead><tr><th>Código</th><th>Descripción</th><th>Marca</th><th>Unidad</th><th class="n">Stock mínimo</th><th class="n">Movimientos</th><th>Observación</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    return `<tr><td class="mono">${esc(c.codigo)}</td><td class="wrap"><b>${esc(c.descripcion)}</b>${c.marca?'<span class="small">'+esc(c.marca)+'</span>':''}</td><td class="n">${nf(num(c.stockMin)||0)}</td><td class="n">${n}</td><td class="act">${detBtn('kp',c.id)}<button class="btn sm" data-act="k-edit-p" data-id="${c.id}">Editar</button></td></tr>`}).join('');
+  return head+`<div class="scroll"><table><thead><tr><th>Código</th><th>Descripción</th><th class="n">Stock mínimo</th><th class="n">Movimientos</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 function kCalidad(){
@@ -838,7 +907,7 @@ function openMovK(tipo,id){
    fld('m-nrodoc',ent?'N.° de factura o comprobante':'N.° de boleta o documento',`<input id="m-nrodoc" value="${esc(m.nroDoc||'')}" autocomplete="off">`)+
    (ent?'':fld('m-acta','N.° de acta o constancia',`<input id="m-acta" value="${esc(m.nroActa||'')}" autocomplete="off">`,'Si la entrega tiene acta.'))+
    fld('m-resp','Responsable',`<input id="m-resp" value="${esc(m.responsable||'')}" autocomplete="off">`)+
-   `<div class="fld full"><span class="lb">Sustento guardado</span><div class="checks" id="m-adj">${KADJ.map(a=>`<label><input type="checkbox" value="${a}" ${(m.adjuntos||[]).includes(a)?'checked':''}>${a}</label>`).join('')}</div></div>`+
+   `<div class="fld full"><span class="lb">Sustento guardado</span><div id="m-adj">${KADJ.map((a,i)=>{const on=(m.adjuntos||[]).includes(a),lk=(m.adjLinks||{})[a]||'';return `<div class="adjrow"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${a}" ${on?'checked':''} style="width:auto">${a}</label><input type="url" class="adjlink" data-for="${esc(a)}" value="${esc(lk)}" placeholder="Pega el enlace de: ${esc(a)}" autocomplete="off" ${on?'':'hidden'}><div class="err" id="e-m-adj-${i}" role="alert"></div></div>`}).join('')}</div><div class="hint">Marca cada sustento que tienes y pega su enlace. Si no marcas ninguno, el registro quedará como SIN SUSTENTO.</div></div>`+
    fld('m-obs','Observación',`<input id="m-obs" value="${esc(m.obs||'')}">`,'',true)+
    `<div class="preview" id="m-prev" aria-live="polite"></div>`;
   openModal(id?(ent?'Editar compra':'Editar entrega'):(ent?'Nueva compra (entrada)':'Nueva entrega a cliente (salida)'),body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,delButtons('km',id));
@@ -849,7 +918,7 @@ function openMovK(tipo,id){
 function fillLotes(){
   const dl=$('#dl-lote');if(!dl)return;
   const pid=gv('m-proy'),opts=[];
-  S.C.esc.filter(e=>e.proyectoId===pid).forEach(e=>e._l.forEach(l=>opts.push(String(e.mz||'').toUpperCase()+'-'+l)));
+  S.C.esc.filter(e=>e.proyectoId===pid).forEach(e=>e._l.forEach(l=>opts.push((zonaTxt(e)?zonaTxt(e).toUpperCase()+'-':'')+l)));
   dl.innerHTML=Array.from(new Set(opts)).map(o=>`<option value="${esc(o)}"></option>`).join('');
 }
 function kAvail(code,prev){
@@ -887,6 +956,7 @@ function kInput(ev){
 }
 function kChange(ev){
   const t=ev.target;
+  if(t.type==='checkbox'&&t.closest('#m-adj')){const l=t.closest('.adjrow').querySelector('.adjlink');l.hidden=!t.checked;if(t.checked)l.focus();else l.value=''}
   if(t.id==='m-proy'){const w=$('#w-proyotro');if(w)w.hidden=t.value!=='__otro';fillLotes()}
   updatePreviewK();
 }
@@ -901,7 +971,15 @@ function saveMovK(){
   if(!nro){setErr('m-nrodoc','Escribe el número del documento.');ok=false}
   else if(codigo&&S.k.mov.some(x=>x.id!==id&&x.tipo===tipo&&String(x.nroDoc||'').trim().toUpperCase()===nro.toUpperCase()&&kcode(x.codigo)===kcode(codigo))){setErr('m-nrodoc','Ese documento ya está registrado para este producto.');ok=false}
   const data={tipo,fecha,codigo,cantidad:qty,sustentoTipo:gv('m-sust'),nroDoc:nro,responsable:gv('m-resp'),obs:gv('m-obs'),
-    adjuntos:[...document.querySelectorAll('#m-adj input:checked')].map(i=>i.value),ts:prev&&prev.ts?prev.ts:Date.now()};
+    adjuntos:[],adjLinks:{},ts:prev&&prev.ts?prev.ts:Date.now()};
+  document.querySelectorAll('#m-adj .adjrow').forEach((row,i)=>{
+    const cb=row.querySelector('input[type=checkbox]');if(!cb.checked)return;
+    let lk=row.querySelector('.adjlink').value.trim();
+    if(/^www\./i.test(lk))lk='https://'+lk;
+    if(!lk){setErr('m-adj-'+i,'Pega el enlace de este sustento o desmárcalo.');ok=false}
+    else if(!/^https?:\/\/\S+\.\S+/i.test(lk)){setErr('m-adj-'+i,'El enlace debe empezar con https:// (por ejemplo, el de Drive).');ok=false}
+    else{data.adjuntos.push(cb.value);data.adjLinks[cb.value]=lk}
+  });
   if(ent){
     const p=num(gv('m-precio'));
     if(!(p>0)){setErr('m-precio','Escribe el precio unitario.');ok=false}
@@ -961,13 +1039,6 @@ function kChangeIn(t,k){
   if(k==='kfprod'){K.fprod=t.value;render();return}
   if(k==='kftipo'){K.ftipo=t.value;render();return}
   if(k==='kfq'){K.fq=t.value;render();return}
-  if(k==='kmin'){
-    const v=num(t.value),c=K.cat.find(x=>x.id===t.dataset.id);
-    if(!c)return;
-    if(v==null||v<0){toast('Escribe 0 o un número mayor.');render();return}
-    if((num(c.stockMin)||0)===Math.round(v))return;
-    Store.update(KCOLS.cat,c.id,{stockMin:Math.round(v)}).catch(()=>toast('No se pudo guardar.'));
-  }
 }
 
 
@@ -1117,11 +1188,10 @@ function aContratos(){
   const q=A.fq.trim().toLowerCase();
   const list=AC.con.filter(c=>(!A.fvig||c._vig===A.fvig)&&(!q||[c.arrendador,c.nro,c.detalle,c.placa,c.doc].some(x=>String(x||'').toLowerCase().includes(q))));
   const rows=list.map(c=>`<tr><td class="wrap"><span class="pill ${c.tipoDoc==='ADENDA'?'i':'b'}">${c.tipoDoc==='ADENDA'?'Adenda':'Contrato'}</span><span class="small mono">${esc(c.nro||'')}${c.tipoDoc==='ADENDA'&&AC.byId[c.contratoRef]?' → '+esc(AC.byId[c.contratoRef].nro||''):''}</span></td>
-   <td class="wrap">${esc(c.detalle||'')}</td><td class="wrap"><b>${esc(c.arrendador||'')}</b><span class="small mono">${esc(c.doc||'')}</span></td>
-   <td>${esc(c.bien||'')}${c.placa?'<span class="small mono">'+esc(c.placa)+'</span>':''}</td>
-   <td class="n">${fdate(c.inicio)}</td><td class="n">${c._meses||''}</td><td class="n">${fdate(c._fin)}</td><td class="n">${cur$(c._imp,c.moneda)}</td><td>${esc(c.formaPago||'')}</td>
-   <td>${vigPill(c._vig)}</td><td class="n">${c._pagadas}/${c._meses}</td><td><button class="btn sm" data-act="a-go-pagos" data-id="${c.id}">Pagos</button> <button class="btn sm" data-act="a-edit" data-id="${c.id}">Editar</button></td></tr>`).join('');
-  return bar+`<div class="scroll"><table><thead><tr><th>Documento</th><th>Detalle</th><th>Arrendador</th><th>Bien</th><th class="n">Inicio</th><th class="n">Meses</th><th class="n">Término</th><th class="n">Importe mensual</th><th>Forma de pago</th><th>Vigencia</th><th class="n">Pagos</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+   <td class="wrap"><b>${esc(c.arrendador||'')}</b><span class="small">${esc(c.bien||'')}${c.placa?' · '+esc(c.placa):''}</span></td>
+   <td class="n">${cur$(c._imp,c.moneda)}</td><td>${vigPill(c._vig)}</td><td class="n">${c._pagadas}/${c._meses}</td>
+   <td class="act">${detBtn('a',c.id)}<button class="btn sm" data-act="a-go-pagos" data-id="${c.id}">Pagos</button><button class="btn sm" data-act="a-edit" data-id="${c.id}">Editar</button></td></tr>`).join('');
+  return bar+`<div class="scroll"><table><thead><tr><th>Documento</th><th>Arrendador</th><th class="n">Importe mensual</th><th>Vigencia</th><th class="n">Pagos</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 function aPagos(){
@@ -1132,18 +1202,33 @@ function aPagos(){
   const bar=`<div class="toolbar"><div class="grp"><select class="cell-in" style="width:auto;max-width:100%;text-align:left" data-act-in="afcon" aria-label="Contrato">${opts}</select></div><span class="hint">${vigPill(c._vig)} ${c._fin?'Término '+fdate(c._fin):''}</span></div>`;
   if(!c.cuotas.length)return bar+'<div class="empty"><b>Faltan datos para generar el calendario</b><span>Completa la fecha de inicio y el número de meses del contrato.</span><button class="btn primary" data-act="a-edit" data-id="'+c.id+'">Editar contrato</button></div>';
   const sug=sugDoc(c.doc);
-  const rows=c.cuotas.map(q=>{const k=(f)=>`apg:${c.id}:${q.n}:${f}`;
-    const inp=(f,type,val,w)=>`<input class="cell-in" type="${type}" style="width:${w}px;${type==='text'?'text-align:left':''}" data-fk="${k(f)}" data-act-in="apg" data-c="${c.id}" data-n="${q.n}" data-f="${f}" value="${esc(val)}" aria-label="${f} cuota ${q.n}">`;
-    return `<tr><td class="n">${q.n}</td><td class="n">${fdate(q.per)}</td><td class="n">${cur$(q.renta,c.moneda)}</td><td class="n">${fdate(q.dev)}</td>
-    <td>${inp('fechaPago','date',q.fechaPago,140)}</td>
-    <td><select class="cell-in" style="width:190px;text-align:left" data-fk="${k('tipoDoc')}" data-act-in="apg" data-c="${c.id}" data-n="${q.n}" data-f="tipoDoc" aria-label="Tipo de comprobante cuota ${q.n}"><option value=""></option>${ADOCS.map(d=>`<option ${q.tipoDoc===d?'selected':''}>${d}</option>`).join('')}</select></td>
-    <td>${inp('fechaEmision','date',q.fechaEm,140)}</td><td>${inp('serie','text',q.serie,130)}</td>
-    <td><span class="pill ${cuoCls(q.estado)}">${q.estado}</span></td><td class="n">${q.atraso?q.atraso+' d':''}</td></tr>`}).join('');
-  return bar+`<div class="note">Las cuotas se generan solas desde el contrato. Escribe la <b>fecha de pago</b> (según el voucher) y el comprobante. Para ${esc(c.arrendador||'este arrendador')} corresponde: <b>${sug}</b>. Al poner la fecha de pago, el tipo de comprobante se propone solo.</div>
-  <div class="scroll"><table><thead><tr><th class="n">N.°</th><th class="n">Periodo desde</th><th class="n">Renta</th><th class="n">Devengo</th><th>Fecha de pago</th><th>Tipo de comprobante</th><th>Fecha de emisión</th><th>Serie-número</th><th>Estado</th><th class="n">Atraso</th></tr></thead><tbody>${rows}</tbody>
-  <tfoot><tr><td colspan="2">Total contrato</td><td class="n">${cur$(c._total,c.moneda)}</td><td colspan="2">Pagado: ${cur$(c._cobrado,c.moneda)} (${c._pagadas} de ${c._meses})</td><td colspan="2">Pendiente: ${cur$(c._total-c._cobrado,c.moneda)}</td><td colspan="3"></td></tr></tfoot></table></div>`;
+  const rows=c.cuotas.map(q=>`<tr><td class="n">${q.n}</td><td class="n">${fdate(q.per)}</td><td class="n">${cur$(q.renta,c.moneda)}</td>
+    <td class="n">${q.fechaPago?fdate(q.fechaPago):'<span class="small">sin pago</span>'}</td>
+    <td><span class="pill ${cuoCls(q.estado)}">${q.estado}</span>${q.atraso?'<span class="small warn">'+q.atraso+' d de atraso</span>':''}</td>
+    <td class="act">${detBtn('ap',c.id+'_'+q.n)}<button class="btn sm ${q.fechaPago?'':'primary'}" data-act="a-pago" data-id="${c.id}_${q.n}">${q.fechaPago?'Editar pago':'Registrar pago'}</button></td></tr>`).join('');
+  return bar+`<div class="note">Las cuotas se generan solas desde el contrato. Usa <b>Registrar pago</b> para anotar la fecha de pago (según el voucher) y el comprobante. Para ${esc(c.arrendador||'este arrendador')} corresponde: <b>${sug}</b>.</div>
+  <div class="scroll"><table><thead><tr><th class="n">N.°</th><th class="n">Periodo desde</th><th class="n">Renta</th><th class="n">Fecha de pago</th><th>Estado</th><th></th></tr></thead><tbody>${rows}</tbody>
+  <tfoot><tr><td colspan="2">Total contrato</td><td class="n">${cur$(c._total,c.moneda)}</td><td colspan="3">Pagado: ${cur$(c._cobrado,c.moneda)} (${c._pagadas} de ${c._meses}) · Pendiente: ${cur$(c._total-c._cobrado,c.moneda)}</td></tr></tfoot></table></div>`;
 }
 
+function openPagoA(pid){
+  const i=pid.lastIndexOf('_'),cid=pid.slice(0,i),n=Number(pid.slice(i+1)),c=S.AC.byId[cid],q=c&&c.cuotas.find(x=>x.n===n);if(!q)return;
+  const body=
+   `<div class="fld full"><div class="preview">Cuota <b>${q.n}</b> · periodo desde ${fdate(q.per)} · renta <b>${cur$(q.renta,c.moneda)}</b> · devengo ${fdate(q.dev)}</div></div>`+
+   fld('ap-fp','Fecha de pago',`<input id="ap-fp" type="date" value="${esc(q.fechaPago||'')}">`,'Según el voucher.')+
+   fld('ap-td','Tipo de comprobante',`<select id="ap-td"><option value=""></option>${ADOCS.map(d=>`<option ${q.tipoDoc===d?'selected':''}>${d}</option>`).join('')}</select>`,'Si lo dejas vacío, se propone según el DNI o RUC: '+sugDoc(c.doc)+'.')+
+   fld('ap-fe','Fecha de emisión',`<input id="ap-fe" type="date" value="${esc(q.fechaEm||'')}">`)+
+   fld('ap-sr','Serie-número',`<input id="ap-sr" value="${esc(q.serie||'')}" autocomplete="off">`);
+  openModal('Pago de la cuota '+q.n+' · '+(c.arrendador||''),body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,q.fechaPago||q.tipoDoc||q.fechaEm||q.serie?`<button type="button" class="btn danger" data-act="a-pago-del" data-id="${pid}">Borrar pago</button>`:'');
+  const f=$('#mf');f.dataset.kind='ap';f.dataset.id=pid;
+}
+function savePagoA(){
+  clearErrs();const pid=$('#mf').dataset.id,i=pid.lastIndexOf('_'),cid=pid.slice(0,i),n=Number(pid.slice(i+1)),c=S.AC.byId[cid];if(!c)return;
+  const next={contrato:cid,n,fechaPago:gv('ap-fp'),tipoDoc:gv('ap-td'),fechaEmision:gv('ap-fe'),serie:gv('ap-sr')};
+  if(next.fechaPago&&!next.tipoDoc)next.tipoDoc=sugDoc(c.doc);
+  const empty=!next.fechaPago&&!next.tipoDoc&&!next.fechaEmision&&!next.serie;
+  persist(()=>empty?Store.del(ACOLS.pag,pid):Store.set(ACOLS.pag,pid,next),'Pago guardado');
+}
 function aCalidad(){
   const AC=S.AC;
   if(!AC.alerts.length)return '<div class="empty"><b>Todo en orden</b><span>Los contratos están completos, vigentes y los pagos al día.</span></div>';
@@ -1248,6 +1333,8 @@ function aClick(a,b){
   if(a==='atab'){setRoute('alquileres',id);return}
   if(a==='a-new'){openContratoA(null,b.dataset.t);return}
   if(a==='a-edit'){openContratoA(id);return}
+  if(a==='a-pago'){openPagoA(id);return}
+  if(a==='a-pago-del'){persist(()=>Store.del(ACOLS.pag,id),'Pago borrado');return}
   if(a==='a-settings'){openSettingsAq();return}
   if(a==='a-export'){exportA();return}
   if(a==='a-go-pagos'){S.a.fcon=id;setRoute('alquileres','pagos');return}
@@ -1424,15 +1511,13 @@ function bMovs(){
   if(!BC.movs.length)return bar+bEmpty();
   const q=B.fq.trim().toLowerCase();
   const list=BC.movs.filter(m=>(!B.fmes||m.fecha.slice(0,7)===B.fmes)&&(!B.fdir||m.dir===B.fdir)&&(!B.fsin||sinComp(m))&&(!q||[m.descripcion,m.descEECC,m.tercNombre,m.tercDoc,m.nroOp,m.docSerie].some(x=>String(x||'').toLowerCase().includes(q))));
-  const first=B.fmes||B.fq||B.fdir||B.fsin?'':`<tr><td></td><td></td><td colspan="4"><b>SALDO INICIAL</b></td><td></td><td></td><td class="n"><b>${bm(BC.T.si)}</b></td><td></td><td></td></tr>`;
+  const first=B.fmes||B.fq||B.fdir||B.fsin?'':`<tr><td></td><td></td><td><b>SALDO INICIAL</b></td><td></td><td></td><td class="n"><b>${bm(BC.T.si)}</b></td><td></td></tr>`;
   const rows=list.map(m=>{const e=m.dir==='E';
-    return `<tr><td class="mono">${m._cod}</td><td class="n">${fdate(m.fecha)}</td><td class="wrap">${esc(m.tipoOp||'')}<span class="small mono">${esc(m.nroOp||'')}</span></td><td class="wrap">${esc(m.descripcion||'')}${m.descEECC?'<span class="small">EE.CC: '+esc(m.descEECC)+'</span>':''}</td>
-    <td class="wrap">${m.docTipo?esc(m.docTipo)+'<span class="small mono">'+esc(m.docSerie||'')+'</span>':(sinComp(m)?'<span class="pill a">Sin comprobante</span>':'<span class="small">No requiere</span>')}</td>
-    <td class="wrap">${esc(m.tercNombre||'')}<span class="small mono">${esc(m.tercDoc||'')}</span></td>
-    <td class="n">${e?'':bm(m._m)}</td><td class="n">${e?bm(m._m):''}</td><td class="n" style="${m._saldo<0?'color:var(--bad);font-weight:600':''}"><b>${bm(m._saldo)}</b></td><td class="wrap">${esc(m.obs||'')}</td><td><button class="btn sm" data-act="b-edit" data-id="${m.id}">Editar</button></td></tr>`}).join('');
+    return `<tr><td class="mono">${m._cod}</td><td class="n">${fdate(m.fecha)}</td><td class="wrap">${esc(m.descripcion||'')}<span class="small mono">${esc(m.tipoOp||'')}${m.nroOp?' · '+esc(m.nroOp):''}</span>${sinComp(m)?'<span class="pill a">Sin comprobante</span>':''}</td>
+    <td class="n">${e?'':bm(m._m)}</td><td class="n">${e?bm(m._m):''}</td><td class="n" style="${m._saldo<0?'color:var(--bad);font-weight:600':''}"><b>${bm(m._saldo)}</b></td><td class="act">${detBtn('b',m.id)}<button class="btn sm" data-act="b-edit" data-id="${m.id}">Editar</button></td></tr>`}).join('');
   const ti=list.filter(m=>m.dir==='I').reduce((a,m)=>a+m._m,0),te=list.filter(m=>m.dir==='E').reduce((a,m)=>a+m._m,0);
-  return bar+`<div class="scroll"><table><thead><tr><th>Código</th><th class="n">Fecha</th><th>Operación</th><th>Descripción</th><th>Comprobante</th><th>Cliente / proveedor</th><th class="n">Ingreso</th><th class="n">Egreso</th><th class="n">Saldo</th><th>Observación</th><th></th></tr></thead><tbody>${first}${rows}</tbody>
-  <tfoot><tr><td colspan="6">Total (${list.length} movimientos)</td><td class="n">${bm(ti)}</td><td class="n">${bm(te)}</td><td colspan="3"></td></tr></tfoot></table></div>`;
+  return bar+`<div class="scroll"><table><thead><tr><th>Código</th><th class="n">Fecha</th><th>Descripción</th><th class="n">Ingreso</th><th class="n">Egreso</th><th class="n">Saldo</th><th></th></tr></thead><tbody>${first}${rows}</tbody>
+  <tfoot><tr><td colspan="3">Total (${list.length} movimientos)</td><td class="n">${bm(ti)}</td><td class="n">${bm(te)}</td><td colspan="2"></td></tr></tfoot></table></div>`;
 }
 
 function bConc(){
@@ -1579,12 +1664,10 @@ function bCaja(){
    <div class="kpi"><span class="l">Pendiente de devolución</span><span class="v" style="color:${CJ.pend?'var(--hi)':'var(--ok)'}">${CJ.pend}</span><span class="s">${CJ.pend?bm(CJ.pendMonto):'nada pendiente'}</span></div></div>`;
   if(!CJ.movs.length)return bar+`<div class="empty"><b>Aún no hay movimientos de caja chica</b><span>Registra cada gasto o reposición en efectivo. Salen en la hoja “Detalle movimientos caja chica” del Excel.</span><button class="btn primary" data-act="b-newj">Nuevo movimiento de caja</button></div>`;
   const rows=CJ.movs.map(m=>{const e=m.dir==='E';
-    return `<tr><td class="mono">${m._n}</td><td class="n">${fdate(m.fecha)}</td><td class="wrap">${esc(m.desc||'')}${m.pendiente?' <span class="pill a">Pendiente de devolución</span>':''}</td>
-    <td class="wrap">${m.docTipo?esc(m.docTipo)+'<span class="small mono">'+esc(m.docSerie||'')+'</span>':'<span class="pill m">Sin comprobante</span>'}</td>
-    <td class="wrap">${esc(m.tercNombre||'')}<span class="small mono">${esc(m.tercDoc||'')}</span></td>
-    <td class="n">${e?'':bm(m._m)}</td><td class="n">${e?bm(m._m):''}</td><td class="n" style="${m._saldo<0?'color:var(--bad);font-weight:600':''}"><b>${bm(m._saldo)}</b></td><td><button class="btn sm" data-act="b-editj" data-id="${m.id}">Editar</button></td></tr>`}).join('');
-  return bar+kpis+`<div class="scroll"><table><thead><tr><th>N.°</th><th class="n">Fecha</th><th>Descripción</th><th>Comprobante</th><th>Proveedor / trabajador</th><th class="n">Ingreso</th><th class="n">Egreso</th><th class="n">Saldo</th><th></th></tr></thead><tbody>${rows}</tbody>
-  <tfoot><tr><td colspan="5">Total (${CJ.movs.length} movimientos)</td><td class="n">${bm(CJ.ing)}</td><td class="n">${bm(CJ.egr)}</td><td class="n">${bm(CJ.saldo)}</td><td></td></tr></tfoot></table></div>`;
+    return `<tr><td class="mono">${m._n}</td><td class="n">${fdate(m.fecha)}</td><td class="wrap">${esc(m.desc||'')}${m.pendiente?' <span class="pill a">Pendiente de devolución</span>':''}${m.docTipo?'':'<span class="pill m">Sin comprobante</span>'}</td>
+    <td class="n">${e?'':bm(m._m)}</td><td class="n">${e?bm(m._m):''}</td><td class="n" style="${m._saldo<0?'color:var(--bad);font-weight:600':''}"><b>${bm(m._saldo)}</b></td><td class="act">${detBtn('bj',m.id)}<button class="btn sm" data-act="b-editj" data-id="${m.id}">Editar</button></td></tr>`}).join('');
+  return bar+kpis+`<div class="scroll"><table><thead><tr><th>N.°</th><th class="n">Fecha</th><th>Descripción</th><th class="n">Ingreso</th><th class="n">Egreso</th><th class="n">Saldo</th><th></th></tr></thead><tbody>${rows}</tbody>
+  <tfoot><tr><td colspan="3">Total (${CJ.movs.length} movimientos)</td><td class="n">${bm(CJ.ing)}</td><td class="n">${bm(CJ.egr)}</td><td class="n">${bm(CJ.saldo)}</td><td></td></tr></tfoot></table></div>`;
 }
 function openMovJ(id){
   const prev=id?S.b.caja.find(x=>x.id===id):null;
@@ -1670,12 +1753,21 @@ function readHash(){
 
 /* ---------- render ---------- */
 let lastFocus=null;
+function cardTables(){
+  document.querySelectorAll('#main table').forEach(t=>{
+    if(!t.querySelector('tbody td.act'))return;
+    t.classList.add('rec');
+    const hs=[...t.querySelectorAll('thead th')].map(h=>h.textContent.trim());
+    t.querySelectorAll('tbody tr').forEach(tr=>{const c=[...tr.children];if(c.length!==hs.length)return;c.forEach((td,i)=>{if(hs[i])td.setAttribute('data-l',hs[i])})});
+  });
+}
 function render(){
   const a=document.activeElement;lastFocus=a&&a.dataset&&a.dataset.fk?a.dataset.fk:null;
   S.C=compute();S.KC=computeK();S.AC=computeA();S.BC=computeB();
   renderSide();
   const main=$('#main');
   if(S.mod==='proyectos')main.innerHTML=viewProyectos();else if(S.mod==='kardex')main.innerHTML=viewKardex();else if(S.mod==='alquileres')main.innerHTML=viewAlq();else if(S.mod==='banco')main.innerHTML=viewBanco();else main.innerHTML=viewPending(MODULES.find(m=>m.id===S.mod));
+  cardTables();
   if(lastFocus){const el=main.querySelector('[data-fk="'+lastFocus+'"]');if(el){el.focus();try{if(el.type==='text'||el.type==='search'){const n=el.value.length;el.setSelectionRange(n,n)}else el.select()}catch(e){}}}
 }
 function renderSide(){
@@ -1726,7 +1818,7 @@ function tResumen(){
   const prog=C.lotProjs.map(p=>{const m=C.M[p.id],w=Math.max(0,Math.min(100,m.avance*100));
     return `<div class="prog" title="${esc(p.nombre)}: ${m.vend} de ${m.total} lotes vendidos"><div class="prog-top"><span class="nm">${esc(p.nombre)}</span><span class="mono">${nf(m.vend)} / ${nf(m.total)} · ${nf(m.avance*100,1)}%</span></div>
     <div class="track" role="img" aria-label="${esc(p.nombre)}: ${nf(m.avance*100,1)} por ciento vendido"><div class="fill ${m.pend<0?'over':''}" style="width:${w}%"></div></div></div>`}).join('')||'<p class="hint">Sin proyectos de lotización o habilitación.</p>';
-  const mz=C.porMz.length?`<div class="scroll"><table><thead><tr><th>Proyecto</th><th>Mz</th><th class="n">Lotes</th><th class="n">Importe</th><th class="n">Por lote</th></tr></thead><tbody>${C.porMz.map(o=>`<tr><td>${esc(C.pName(o.pid))}</td><td class="mono">${esc(o.mz)}</td><td class="n">${o.n}</td><td class="n">${money(o.imp,'PEN',0)}</td><td class="n">${o.n?money(o.imp/o.n,'PEN',0):'-'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="hint">Aún no hay escrituras registradas.</p>';
+  const mz=C.porMz.length?`<div class="scroll"><table><thead><tr><th>Proyecto</th><th>Manzana / etapa</th><th class="n">Lotes</th><th class="n">Importe</th><th class="n">Por lote</th></tr></thead><tbody>${C.porMz.map(o=>`<tr><td>${esc(C.pName(o.pid))}</td><td class="mono">${esc(o.mz)||'<span class="small">sin definir</span>'}</td><td class="n">${o.n}</td><td class="n">${money(o.imp,'PEN',0)}</td><td class="n">${o.n?money(o.imp/o.n,'PEN',0):'-'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="hint">Aún no hay escrituras registradas.</p>';
   const top=C.alerts.filter(a=>a.sev!=='i').slice(0,5).map(a=>`<div class="alert"><span class="pill ${a.sev}">${SEV[a.sev].n}</span><div><b>${esc(a.t)}</b>${a.d?`<span class="d">${esc(a.d)}</span>`:''}</div><button class="btn sm" data-act="go" data-i="${C.alerts.indexOf(a)}">Revisar</button></div>`).join('');
   return kpis+`<div class="grid2">
     <div class="card"><h2>Avance de ventas por proyecto</h2>${prog}</div>
@@ -1769,37 +1861,30 @@ function tProyectos(){
   const head=`<div class="toolbar"><span class="hint">Lista de proyectos: nombre, tipo, fecha de adquisición, importe, modalidad y observaciones.</span><button class="btn primary" data-act="new-p">Nuevo proyecto</button></div>`;
   if(!S.proyectos.length)return emptyProy();
   const rows=S.proyectos.slice().sort((a,b)=>(num(a.orden)||99)-(num(b.orden)||99)||cmpTxt(a.nombre,b.nombre)).map((p,i)=>`<tr>
-    <td class="n">${i+1}</td><td class="wrap"><b>${esc(p.nombre)}</b></td><td class="wrap">${esc(tipoTxt(p))}</td>
-    <td class="n">${esc(adqTxt(p))}${p.fechaAdq?'':'<span class="small warn">solo año</span>'}</td>
+    <td class="n">${i+1}</td><td class="wrap"><b>${esc(p.nombre)}</b>${esLote(p)&&ldet(p).length!==(num(p.lotesTotal)||0)?'<span class="small warn">Falta registrar los lotes ('+ldet(p).length+' de '+nf(num(p.lotesTotal)||0)+')</span>':''}</td><td class="wrap">${esc(tipoTxt(p))}</td>
     <td class="n">${money(p.importe,p.moneda)}${p.monedaConfirmada===true?'':'<span class="small warn">moneda sin confirmar</span>'}</td>
-    <td class="wrap">${esc(p.modalidad==='otro'?(p.modalidadDetalle||MODALIDADES.otro):MODALIDADES[p.modalidad]||'')}</td>
-    <td class="wrap">${esc(p.obs||'')}</td><td><button class="btn sm" data-act="edit-p" data-id="${p.id}">Editar</button></td></tr>`).join('');
+    <td class="act">${detBtn('p',p.id)}<button class="btn sm" data-act="edit-p" data-id="${p.id}">Editar</button></td></tr>`).join('');
   const T=C.T;
-  return head+`<div class="scroll"><table><thead><tr><th class="n">Ítem</th><th>Proyecto</th><th>Tipo</th><th class="n">Adquisición</th><th class="n">Importe de la compra</th><th>Modalidad</th><th>Observaciones</th><th></th></tr></thead><tbody>${rows}</tbody>
-  <tfoot><tr><td></td><td colspan="3">Total (${T.proy} proyectos)</td><td class="n">${money(T.invPEN)}${T.invUSD?'<br>'+money(T.invUSD,'USD'):''}</td><td colspan="3"></td></tr></tfoot></table></div>`;
+  return head+`<div class="scroll"><table><thead><tr><th class="n">Ítem</th><th>Proyecto</th><th>Tipo</th><th class="n">Importe de la compra</th><th></th></tr></thead><tbody>${rows}</tbody>
+  <tfoot><tr><td></td><td colspan="2">Total (${T.proy} proyectos)</td><td class="n">${money(T.invPEN)}${T.invUSD?'<br>'+money(T.invUSD,'USD'):''}</td><td></td></tr></tfoot></table></div>`;
 }
 
 /* ----- Lotes por año (cuadro B) ----- */
 function tLotes(){
-  const C=S.C,yrs=years(),py=periodYear();
+  const C=S.C,yrs=years();
   const list=C.lotProjs.slice().sort((a,b)=>(num(a.orden)||99)-(num(b.orden)||99)||cmpTxt(a.nombre,b.nombre));
   if(!S.proyectos.length)return emptyProy();
   if(!list.length)return '<div class="note">Ningún proyecto es de lotización o habilitación. Este cuadro aplica solo a esos proyectos.</div>';
-  const inp=(p,f,val,extra='')=>`<input class="cell-in" type="number" min="0" step="1" inputmode="numeric" data-fk="${p.id}:${f}" data-act-in="lot" data-p="${p.id}" data-f="${f}" value="${val==null?'':val}" ${extra} aria-label="${esc(p.nombre)} ${f}">`;
+  const z=v=>v?`<b>${nf(v)}</b>`:'<span class="small">0</span>';
   const rows=list.map(p=>{const m=C.M[p.id];
-    const ycells=yrs.map(y=>{const v=num(p.ventasAnio&&p.ventasAnio[y]);
-      let sub='';if(y===py){const ok=m.escN===m.declP;sub=`<span class="small ${ok?'':'warn'}">escrituras: ${m.escN}</span>`}
-      return `<td class="n">${inp(p,'y'+y,v)}${sub}</td>`}).join('');
-    return `<tr><td class="wrap"><b>${esc(p.nombre)}</b></td><td class="wrap">${esc(ubic(p))||'<span class="small warn">sin ubicación</span>'}</td>
-    <td class="n">${inp(p,'lotesTotal',num(p.lotesTotal))}</td><td class="n">${esc(num(p.anioInicio)||num(p.anioAdq)||'')}</td>${ycells}
-    <td class="n">${inp(p,'sinDesglose',num(p.sinDesglose)||0)}</td>
+    return `<tr><td class="wrap"><b>${esc(p.nombre)}</b>${p.pendienteRegistro?'<span class="small warn">sin inscribir en Registros Públicos</span>':''}</td>
+    <td class="n">${m.total?nf(m.total):'<span class="small warn">falta</span>'}</td>
     <td class="n"><b>${nf(m.vend)}</b></td><td class="n"><b style="color:${m.pend<0?'var(--bad)':'inherit'}">${nf(m.pend)}</b></td>
-    <td class="n">${nf(m.avance*100,1)}%</td><td class="wrap">${esc(p.obsLotes||'')}${p.pendienteRegistro?'<span class="small warn">sin inscribir en Registros Públicos</span>':''}</td></tr>`}).join('');
-  const sumY=yrs.map(y=>list.reduce((a,p)=>a+(num(p.ventasAnio&&p.ventasAnio[y])||0),0));
-  const foot=`<tr><td colspan="2">Totales</td><td class="n">${nf(C.T.total)}</td><td></td>${sumY.map(v=>`<td class="n">${nf(v)}</td>`).join('')}<td class="n">${nf(list.reduce((a,p)=>a+(num(p.sinDesglose)||0),0))}</td><td class="n">${nf(C.T.vend)}</td><td class="n">${nf(C.T.pend)}</td><td class="n">${nf(C.T.avance*100,1)}%</td><td></td></tr>`;
+    <td class="n">${nf(m.avance*100,1)}%</td><td class="act">${detBtn('lt',p.id)}</td></tr>`}).join('');
+  const foot=`<tr><td>Totales</td><td class="n">${nf(C.T.total)}</td><td class="n">${nf(C.T.vend)}</td><td class="n">${nf(C.T.pend)}</td><td class="n">${nf(C.T.avance*100,1)}%</td><td></td></tr>`;
   const hidden=S.proyectos.length-list.length;
-  return `<div class="note">Escribe en los recuadros: <b>Vendidos y Pendientes se calculan solos</b> (pendientes = lotes totales − vendidos). "Sin año" es para lotes vendidos con escritura cuyo año aún no se reparte.${hidden?` · ${hidden} proyecto(s) sin lotes no aparecen aquí.`:''}</div>
-  <div class="scroll"><table><thead><tr><th>Proyecto</th><th>Ubicación</th><th class="n">Lotes total</th><th class="n">Año de inicio</th>${yrs.map(y=>`<th class="n">${yearLabel(y)}</th>`).join('')}<th class="n">Sin año</th><th class="n">Vendidos con escritura</th><th class="n">Pendientes de escritura</th><th class="n">Avance</th><th>Observación</th></tr></thead><tbody>${rows}</tbody><tfoot>${foot}</tfoot></table></div>`;
+  return `<div class="note">Este cuadro <b>se llena solo</b>: cuenta los lotes de cada escritura según su fecha. Los lotes totales se definen al crear o editar el proyecto. Con "Ver detalles" ves la ubicación, los lotes por año y la observación.${hidden?` · ${hidden} proyecto(s) sin lotes no aparecen aquí.`:''}</div>
+  <div class="scroll"><table><thead><tr><th>Proyecto</th><th class="n">Lotes total</th><th class="n">Vendidos con escritura</th><th class="n">Pendientes de escritura</th><th class="n">Avance</th><th></th></tr></thead><tbody>${rows}</tbody><tfoot>${foot}</tfoot></table></div>`;
 }
 
 /* ----- Escrituras (cuadro C) ----- */
@@ -1810,15 +1895,15 @@ function tEscrituras(){
   const opts=`<option value="">Todos los proyectos</option>`+S.proyectos.map(p=>`<option value="${p.id}" ${f===p.id?'selected':''}>${esc(p.nombre)}</option>`).join('');
   const bar=`<div class="toolbar"><div class="grp"><label class="hint" for="fesc">Ver</label><select id="fesc" data-act-in="fesc" class="cell-in" style="width:auto;text-align:left">${opts}</select></div><button class="btn primary" data-act="new-e">Nueva escritura</button></div>`;
   if(!C.esc.length)return bar+`<div class="empty"><b>Sin escrituras registradas</b><span>Si no hubo ventas con escritura entre el ${fdate(S.cfg.periodoDesde)} y el ${fdate(S.cfg.periodoHasta)}, queda como confirmación de que no hubo ventas.</span></div>`;
-  const rows=list.map((e,i)=>`<tr><td class="n">${i+1}</td><td class="wrap">${esc(C.pName(e.proyectoId))}</td>
-    <td class="n">${fdate(e.fecha)}${e._fuera?'<span class="small warn">fuera del periodo</span>':''}</td><td class="mono">${esc(e.mz)}</td>
+  const rows=list.map((e,i)=>`<tr><td class="n">${i+1}</td><td class="wrap">${esc(C.pName(e.proyectoId))}${e._nro?'<span class="small mono">escritura '+esc(e._nro)+'</span>':''}</td>
+    <td class="n">${fdate(e.fecha)}${e._fuera?'<span class="small warn">fuera del periodo</span>':''}</td><td class="mono">${esc(zonaTxt(e))||'<span class="small">–</span>'}</td>
     <td class="wrap"><div class="chips">${e._l.map(l=>`<span class="chip ${e._dup.includes(l)?'dup':''}">${esc(l)}</span>`).join('')}</div></td>
-    <td class="n">${e._n}</td><td class="n">${money(e._imp)}</td>
-    <td class="n">${e._pl!=null?money(e._pl,'PEN',0):'-'}${e._dev!=null&&Math.abs(e._dev)>.45?`<span class="small warn">${e._dev>0?'+':''}${Math.round(e._dev*100)}% vs prom.</span>`:''}</td>
-    <td class="wrap">${esc(e.obs||'')}</td><td><button class="btn sm" data-act="edit-e" data-id="${e.id}">Editar</button></td></tr>`).join('');
+    <td class="n">${money(e._imp)}${e._dev!=null&&Math.abs(e._dev)>.45?`<span class="small warn">${e._dev>0?'+':''}${Math.round(e._dev*100)}% vs prom.</span>`:''}</td>
+    <td class="act">${detBtn('e',e.id)}<button class="btn sm" data-act="edit-e" data-id="${e.id}">Editar</button></td></tr>`).join('');
   const n=list.reduce((a,e)=>a+e._n,0),imp=list.reduce((a,e)=>a+e._imp,0);
-  return bar+`<div class="scroll"><table><thead><tr><th class="n">N.°</th><th>Proyecto</th><th class="n">Fecha de escritura</th><th>Mz</th><th>Lotes</th><th class="n">N.° lotes</th><th class="n">Importe de la venta</th><th class="n">Por lote</th><th>Observaciones</th><th></th></tr></thead><tbody>${rows}</tbody>
-  <tfoot><tr><td></td><td colspan="4">Total (${list.length} escrituras)</td><td class="n">${n}</td><td class="n">${money(imp)}</td><td class="n">${n?money(imp/n,'PEN',0):'-'}</td><td colspan="2"></td></tr></tfoot></table></div>`;
+  const nEsc=new Set(list.map(e=>e._nro?e.proyectoId+'|'+e._nro.toUpperCase():e.id)).size;
+  return bar+`<div class="note">Cada fila es <b>un lote</b>. Si varios lotes se vendieron en la misma escritura, repite su N.° de escritura y su fecha (con "Guardar y agregar otro lote" se copian solos).</div><div class="scroll"><table><thead><tr><th class="n">N.°</th><th>Proyecto</th><th class="n">Fecha</th><th>Manzana / etapa</th><th>Lote</th><th class="n">Importe</th><th></th></tr></thead><tbody>${rows}</tbody>
+  <tfoot><tr><td></td><td colspan="4">Total (${n} lotes · ${nEsc} escrituras)</td><td class="n">${money(imp)}</td><td></td></tr></tfoot></table></div>`;
 }
 
 /* ----- Servicios (cuadro D) ----- */
@@ -1855,7 +1940,64 @@ function openModal(title,body,footR,footL=''){
    <div class="body">${body}</div><footer><div>${footL}</div><div class="r">${footR}</div></footer></form></div>`;
   const first=$('#mf input:not([type=checkbox]),#mf select,#mf textarea');if(first)first.focus();
 }
-function closeModal(){$('#modal').innerHTML=''}
+const detBtn=(k,id)=>`<button class="btn sm" data-act="detail" data-k="${k}" data-id="${esc(id)}">Ver detalles</button>`;
+const dv=v=>(v===''||v==null||v===false)?'<span class="small">—</span>':v;
+function openDetail(k,id){
+  const fn=DET[k],d=fn&&fn(id);if(!d)return;
+  openModal(d.t,`<dl class="dl">${d.r.map(([l,v])=>`<dt>${l}</dt><dd>${dv(v)}</dd>`).join('')}</dl>`,
+    `<button type="button" class="btn" data-act="close">Cerrar</button>${d.e?`<button type="button" class="btn primary" data-act="${d.e[0]}" data-id="${esc(d.e[1])}">Editar</button>`:''}`);
+}
+const DET={
+ p:id=>{const p=S.C.projById[id];if(!p)return null;
+  return {t:p.nombre,e:['edit-p',id],r:[['Proyecto',esc(p.nombre)],['Tipo de proyecto',esc(tipoTxt(p))],
+   ['Fecha de adquisición',esc(adqTxt(p))+(p.fechaAdq?'':' <span class="small warn">solo año</span>')],
+   ['Importe de la compra',money(p.importe,p.moneda)+(p.monedaConfirmada===true?'':' <span class="small warn">moneda sin confirmar</span>')],
+   ['Modalidad de compra',esc(p.modalidad==='otro'?(p.modalidadDetalle||MODALIDADES.otro):MODALIDADES[p.modalidad]||'')],
+   ['Departamento',esc(p.departamento||'')],['Provincia',esc(p.provincia||'')],['Distrito',esc(p.distrito||'')],['Referencia o dirección',esc(p.referencia||'')],
+   ['Lotes totales',p.lotesTotal?nf(p.lotesTotal):''],['Lotes registrados (manzana/etapa y número)',ldet(p).length?nf(ldet(p).length)+' de '+nf(num(p.lotesTotal)||0):''],['Año de inicio de ventas',esc(p.anioInicio||'')],
+   ['Escrituras sin inscribir',p.pendienteRegistro?'Sí, hay escrituras sin inscribir en Registros Públicos':'No'],
+   ['Observaciones',esc(p.obs||'')],['Observación del cuadro de lotes',esc(p.obsLotes||'')]]}},
+ lt:id=>{const p=S.C.projById[id],m=p&&S.C.M[id];if(!p||!m)return null;
+  return {t:p.nombre+' · lotes',e:['edit-p',id],r:[['Ubicación',esc(ubic(p))],['Lotes totales',m.total?nf(m.total):''],['Año de inicio',esc(num(p.anioInicio)||num(p.anioAdq)||'')],
+   ...years().map(y=>['Lotes vendidos '+yearLabel(y),nf(m.byY[y]||0)]),['Sin año',nf(m.sin)],
+   ['Vendidos con escritura',nf(m.vend)],['Pendientes de escritura',nf(m.pend)],['Avance',nf(m.avance*100,1)+'%'],
+   ['Observación',esc(p.obsLotes||'')+(p.pendienteRegistro?' <span class="small warn">sin inscribir en Registros Públicos</span>':'')]]}},
+ e:id=>{const e=S.C.esc.find(x=>x.id===id);if(!e)return null;
+  return {t:'Escritura · lote '+e.lotes,e:['edit-e',id],r:[['Proyecto',esc(S.C.pName(e.proyectoId))],['N.° de escritura',esc(e._nro||'')+(e._grp>1?' <span class="small">'+e._grp+' lotes en esta escritura</span>':'')],
+   ['Fecha de escritura',fdate(e.fecha)+(e._fuera?' <span class="small warn">fuera del periodo</span>':'')],['Manzana / etapa',esc(zonaTxt(e)||'')],['Lote',esc(e._l.join(', '))],
+   ['Importe del lote',money(e._imp)+(e._dev!=null&&Math.abs(e._dev)>.45?` <span class="small warn">${e._dev>0?'+':''}${Math.round(e._dev*100)}% vs prom.</span>`:'')],['Observaciones',esc(e.obs||'')]]}},
+ km:id=>{const m=S.KC.movs.find(x=>x.id===id);if(!m)return null;const r=S.KC.rowBy[kcode(m.codigo)],ent=m.tipo==='ENTRADA';
+  const sus=(m.adjuntos||[]).map(a=>{const lk=(m.adjLinks||{})[a];return `<span class="chip">${lk?`<a href="${esc(lk)}" target="_blank" rel="noopener noreferrer">${esc(a)}</a>`:esc(a)}</span>`}).join(' ')||'<span class="sinsust">SIN SUSTENTO</span>';
+  return {t:(ent?'Compra':'Entrega')+' · ítem '+m._i,e:['k-edit-m',id],r:[['Ítem',m._i],['Fecha',fdate(m.fecha)],['Tipo',ent?'Compra':'Entrega'],['Tipo de sustento',esc(m.sustentoTipo||'')],
+   ['N.° de documento',esc(m.nroDoc||'')],...(ent?[]:[['N.° de acta o constancia',esc(m.nroActa||'')]]),
+   ['Producto',esc(r?r.desc:m.codigo)+' <span class="small mono">'+esc(m.codigo)+(r&&r.marca?' · '+esc(r.marca):'')+'</span>'],
+   ['Ingreso',ent?nf(m._q):''],['Salida',ent?'':nf(m._q)],...(ent?[['Precio unitario',m.precio!=null?money(m.precio,'PEN',2)+(m.incluyeIGV===false?' (sin IGV)':' (con IGV)'):'']]:[]),
+   ['Costo unitario s/IGV',money(m._cost,'PEN',2)],['Valor del movimiento',money(m._val)],['Stock acumulado',nf(m._stock)],
+   ...(ent?[]:[['Proyecto',esc(m.proyecto||'')],['Lote',esc(m.lote||'')],['DNI / RUC del cliente',esc(m.docCliente||'')],['Cliente',esc(m.cliente||'')]]),
+   ['Responsable',esc(m.responsable||'')],['Sustento guardado',sus],['Observación',esc(m.obs||'')]]}},
+ ks:id=>{const r=S.KC.rowBy[kcode(id)];if(!r)return null;
+  return {t:r.desc,e:r.enCat?['k-edit-p',(S.k.cat.find(c=>kcode(c.codigo)===kcode(r.codigo))||{}).id]:null,r:[['Código',esc(r.codigo)],['Producto',esc(r.desc)],['Marca',esc(r.marca||'')],['Unidad',esc(r.unidad||'')],
+   ['Entradas',nf(r.ent)],['Salidas',nf(r.sal)],['Stock actual',nf(r.q)],['Costo promedio',money(r.avg,'PEN',2)],['Valor del stock',money(r.val)],['Stock mínimo',r.enCat?nf(r.min):''],['Estado',estPill(r.est)]]}},
+ kp:id=>{const c=S.k.cat.find(x=>x.id===id);if(!c)return null;const n=S.KC.movs.filter(m=>kcode(m.codigo)===kcode(c.codigo)).length;
+  return {t:c.descripcion,e:['k-edit-p',id],r:[['Código',esc(c.codigo)],['Descripción',esc(c.descripcion)],['Marca',esc(c.marca||'')],['Unidad',esc(c.unidad||'UND')],['Stock mínimo',nf(num(c.stockMin)||0)],['Movimientos',n],['Observación',esc(c.obs||'')]]}},
+ a:id=>{const c=S.AC.byId[id];if(!c)return null;const ad=c.tipoDoc==='ADENDA';
+  return {t:(ad?'Adenda ':'Contrato ')+(c.nro||''),e:['a-edit',id],r:[['Documento',(ad?'Adenda':'Contrato')+' <span class="small mono">'+esc(c.nro||'')+(ad&&S.AC.byId[c.contratoRef]?' → contrato '+esc(S.AC.byId[c.contratoRef].nro||''):'')+'</span>'],
+   ['Detalle',esc(c.detalle||'')],['Arrendador',esc(c.arrendador||'')],['DNI / RUC',esc(c.doc||'')],['Bien',esc(c.bien||'')],['Placa',esc(c.placa||'')],
+   ['Inicio',fdate(c.inicio)],['Meses',c._meses||''],['Término',fdate(c._fin)],['Importe mensual',cur$(c._imp,c.moneda)],['Forma de pago',esc(c.formaPago||'')],
+   ['Vigencia',vigPill(c._vig)],['Pagos realizados',c._pagadas+' de '+c._meses],['Observaciones',esc(c.obs||'')]]}},
+ ap:id=>{const i=id.lastIndexOf('_'),c=S.AC.byId[id.slice(0,i)],n=Number(id.slice(i+1)),q=c&&c.cuotas.find(x=>x.n===n);if(!q)return null;
+  return {t:'Cuota '+q.n+' · '+(c.arrendador||''),e:['a-pago',id],r:[['Cuota',q.n],['Periodo desde',fdate(q.per)],['Renta',cur$(q.renta,c.moneda)],['Devengo',fdate(q.dev)],['Fecha de pago',fdate(q.fechaPago)],
+   ['Tipo de comprobante',esc(q.tipoDoc||'')],['Fecha de emisión',fdate(q.fechaEm)],['Serie-número',esc(q.serie||'')],['Estado','<span class="pill '+cuoCls(q.estado)+'">'+q.estado+'</span>'],['Atraso',q.atraso?q.atraso+' días':'']]}},
+ b:id=>{const m=S.BC.movs.find(x=>x.id===id);if(!m)return null;const e=m.dir==='E';
+  return {t:'Movimiento '+m._cod,e:['b-edit',id],r:[['Código',esc(m._cod)],['Fecha',fdate(m.fecha)],['Operación',esc(m.tipoOp||'')],['N.° de operación',esc(m.nroOp||'')],['Descripción',esc(m.descripcion||'')],['Descripción en el estado de cuenta',esc(m.descEECC||'')],
+   ['Comprobante',m.docTipo?esc(m.docTipo)+' <span class="small mono">'+esc(m.docSerie||'')+'</span>':(sinComp(m)?'<span class="pill a">Sin comprobante</span>':'No requiere')],
+   ['Cliente / proveedor',esc(m.tercNombre||'')],['DNI / RUC',esc(m.tercDoc||'')],['Ingreso',e?'':bm(m._m)],['Egreso',e?bm(m._m):''],['Saldo',bm(m._saldo)],['Observación',esc(m.obs||'')]]}},
+ bj:id=>{const m=S.BC.cj.movs.find(x=>x.id===id);if(!m)return null;const e=m.dir==='E';
+  return {t:'Caja chica · '+m._n,e:['b-editj',id],r:[['N.°',m._n],['Fecha',fdate(m.fecha)],['Descripción',esc(m.desc||'')],['Pendiente de devolución',m.pendiente?'<span class="pill a">Pendiente de devolución</span>':'No'],
+   ['Comprobante',m.docTipo?esc(m.docTipo)+' <span class="small mono">'+esc(m.docSerie||'')+'</span>':'<span class="pill m">Sin comprobante</span>'],['Proveedor / trabajador',esc(m.tercNombre||'')],['DNI / RUC',esc(m.tercDoc||'')],
+   ['Ingreso',e?'':bm(m._m)],['Egreso',e?bm(m._m):''],['Saldo',bm(m._saldo)]]}}
+};
+function closeModal(){$('#modal').innerHTML='';$('#modal2').innerHTML=''}
 function setErr(id,msg){const e=$('#e-'+id);if(e)e.textContent=msg||''}
 function clearErrs(){document.querySelectorAll('#mf .err').forEach(e=>e.textContent='')}
 const gv=id=>{const e=$('#'+id);return e?e.value.trim():''};
@@ -1863,9 +2005,71 @@ function delButtons(kind,id){
   return id?`<button type="button" class="btn danger" data-act="del-ask" data-k="${kind}" data-id="${id}">Eliminar</button>`:'';
 }
 
+function updateLotesSt(){
+  const el=$('#p-lotes-st');if(!el)return;
+  const n=(S.pLotes||[]).length,tot=num(gv('p-lotesTotal'))||0,ok=n>0&&n===tot;
+  el.className='small '+(ok?'':'warn');el.style.color=ok?'var(--ok)':'';
+  el.textContent=(ok?'✔ ':'')+n+' de '+tot+' lotes registrados'+(n&&!ok&&tot?' · faltan '+Math.max(0,tot-n):'');
+  const b=document.querySelector('[data-act=p-lotes]');if(b)b.textContent=n?'Ver o editar lotes':'Registrar lotes';
+}
+function lotRanges(nums){
+  const a=nums.map(Number).filter(Number.isFinite).sort((x,y)=>x-y),out=[];let i=0;
+  while(i<a.length){let j=i;while(j+1<a.length&&a[j+1]===a[j]+1)j++;out.push(j>i?a[i]+'–'+a[j]:String(a[i]));i=j+1}
+  return out.join(', ');
+}
+function openLotesEd(){
+  if(!$('#p-lotesTotal'))return;
+  $('#modal2').innerHTML=`<div class="overlay" id="ov2"><div class="modal" role="dialog" aria-modal="true" aria-label="Lotes del proyecto">
+   <header><h2>Lotes del proyecto</h2><button type="button" class="btn sm ghost" data-act="lot-close">Cerrar</button></header>
+   <div class="body"><div class="preview" id="lot-st" style="grid-column:1/-1"></div>
+    <div class="lotgrid" style="grid-column:1/-1">
+     <div class="fld"><label for="lot-tipo">Ubicación</label><select id="lot-tipo"><option value="">Sin manzana ni etapa</option>${ZONAS.map(z=>`<option>${z}</option>`).join('')}</select></div>
+     <div class="fld"><label for="lot-z">Identificador</label><input id="lot-z" autocomplete="off" disabled style="text-transform:uppercase" placeholder="No aplica"></div>
+     <div class="fld"><label for="lot-d">Lote desde</label><input id="lot-d" type="number" min="1" step="1" inputmode="numeric"></div>
+     <div class="fld"><label for="lot-h">Hasta</label><input id="lot-h" type="number" min="1" step="1" inputmode="numeric" placeholder="igual al inicio"></div>
+     <div class="fld"><button type="button" class="btn primary" data-act="lot-add">Agregar lotes</button></div>
+    </div>
+    <div class="err" id="lot-err" role="alert" style="grid-column:1/-1"></div>
+    <div id="lot-list" style="grid-column:1/-1"></div>
+    <div class="hint" style="grid-column:1/-1">Ejemplo: Manzana A, lote desde 1 hasta 20. Repite para cada manzana o etapa hasta completar el total de lotes del proyecto.</div></div>
+   <footer><div></div><div class="r"><button type="button" class="btn primary" data-act="lot-close">Listo</button></div></footer></div></div>`;
+  renderLotesEd();
+  const t=$('#lot-tipo');t.addEventListener('change',()=>{const z=$('#lot-z');z.disabled=!t.value;if(!t.value)z.value='';z.placeholder=t.value?'Ej.: '+(t.value==='Manzana'?'A':'2'):'No aplica'});
+  t.focus();
+}
+function renderLotesEd(){
+  const L=S.pLotes||[],tot=num(gv('p-lotesTotal'))||0;
+  const st=$('#lot-st');if(!st)return;
+  st.innerHTML=`<b>${L.length}</b> de <b>${tot}</b> lotes registrados${L.length<tot?' · faltan <b>'+(tot-L.length)+'</b>':(L.length===tot&&tot?' · <b style="color:var(--ok)">completo</b>':'')}`;
+  const g=new Map();L.forEach(x=>{const k=x.z?x.t+'|'+x.z:'';if(!g.has(k))g.set(k,{t:x.t,z:x.z,l:[]});g.get(k).l.push(x.l)});
+  $('#lot-list').innerHTML=g.size?[...g.entries()].map(([k,o])=>`<div class="lotgrp"><div><b>${esc(zLbl(o.t,o.z))}</b><div class="rg">Lotes ${esc(lotRanges(o.l))} · ${o.l.length} lote${o.l.length>1?'s':''}</div></div><button type="button" class="btn sm" data-act="lot-del" data-g="${esc(k)}">Quitar</button></div>`).join(''):'<p class="hint">Aún no has registrado lotes.</p>';
+}
+function lotAdd(){
+  const err=m=>{$('#lot-err').textContent=m||''};err('');
+  const t=$('#lot-tipo').value,z=t?$('#lot-z').value.trim().toUpperCase().replace(/\|/g,''):'',d=num($('#lot-d').value);let h=num($('#lot-h').value);if(h==null)h=d;
+  const tot=num(gv('p-lotesTotal'))||0;
+  if(!tot){err('Primero escribe los lotes totales del proyecto.');return}
+  if(t&&!z){err('Escribe el identificador de la '+t.toLowerCase()+'.');return}
+  if(!(d>=1)||!Number.isInteger(d)){err('Indica el número del primer lote.');return}
+  if(!(h>=d)||!Number.isInteger(h)){err('El lote final debe ser igual o mayor que el inicial.');return}
+  const nu=[];for(let i=d;i<=h;i++)nu.push({t:z?t:'',z,l:String(i)});
+  const dup=nu.filter(n=>S.pLotes.some(x=>lkey(x.t,x.z,x.l)===lkey(n.t,n.z,n.l)));
+  if(dup.length){err('Ya están registrados en '+zLbl(t,z).toLowerCase()+': lotes '+lotRanges(dup.map(x=>x.l))+'.');return}
+  if(S.pLotes.length+nu.length>tot){err('Con estos lotes pasarías el total de '+tot+'. Te quedan '+Math.max(0,tot-S.pLotes.length)+' por registrar.');return}
+  S.pLotes.push(...nu);lotSort(S.pLotes);$('#lot-d').value='';$('#lot-h').value='';renderLotesEd();updateLotesSt();$('#lot-d').focus();
+}
+function lotDel(k){
+  const pid=$('#mf').dataset.id;
+  const sold=pid?S.C.esc.filter(e=>e.proyectoId===pid&&(e.mz?zonaTipo(e)+'|'+String(e.mz).trim().toUpperCase():'')===k).flatMap(e=>e._l.map(String)):[];
+  const mine=S.pLotes.filter(x=>(x.z?x.t+'|'+x.z:'')===k);
+  const bloq=mine.filter(x=>sold.includes(String(x.l)));
+  if(bloq.length){$('#lot-err').textContent='No se puede quitar: los lotes '+lotRanges(bloq.map(x=>x.l))+' ya tienen escritura registrada.';return}
+  S.pLotes=S.pLotes.filter(x=>(x.z?x.t+'|'+x.z:'')!==k);$('#lot-err').textContent='';renderLotesEd();updateLotesSt();
+}
 function openProyecto(id){
   const p=id?S.C.projById[id]:{tipos:[],moneda:'PEN',modalidad:'contado',anioInicio:'',monedaConfirmada:false};
   const has=t=>(p.tipos||[]).includes(t);
+  S.pLotes=ldet(p).map(x=>({...x}));
   const body=
    fld('p-nombre','Nombre del proyecto',`<input id="p-nombre" value="${esc(p.nombre||'')}" autocomplete="off">`,'',true)+
    `<div class="fld full"><span class="lb">Tipo de proyecto</span><div class="checks" id="p-tipos">${TIPOS.map(t=>`<label><input type="checkbox" value="${t}" ${has(t)?'checked':''}>${t}</label>`).join('')}</div><div class="err" id="e-p-tipos" role="alert"></div></div>`+
@@ -1876,17 +2080,19 @@ function openProyecto(id){
    fld('p-moneda','Moneda',`<select id="p-moneda"><option value="PEN" ${p.moneda!=='USD'?'selected':''}>Soles (S/)</option><option value="USD" ${p.moneda==='USD'?'selected':''}>Dólares (US$)</option></select>`,'<label style="display:flex;gap:6px;align-items:center;margin-top:4px"><input type="checkbox" id="p-mc" '+(p.monedaConfirmada===true?'checked':'')+' style="width:auto"> Confirmo que esta es la moneda correcta</label>')+
    fld('p-modalidad','Modalidad de compra',`<select id="p-modalidad">${Object.entries(MODALIDADES).map(([k,v])=>`<option value="${k}" ${p.modalidad===k?'selected':''}>${v}</option>`).join('')}</select>`)+
    fld('p-modalidadDetalle','Detalle de la modalidad',`<input id="p-modalidadDetalle" value="${esc(p.modalidadDetalle||'')}">`,'Obligatorio si eliges "Otro".')+
-   fld('p-departamento','Departamento',`<input id="p-departamento" value="${esc(p.departamento||'')}">`)+
-   fld('p-provincia','Provincia',`<input id="p-provincia" value="${esc(p.provincia||'')}">`)+
-   fld('p-distrito','Distrito',`<input id="p-distrito" value="${esc(p.distrito||'')}">`)+
+   fld('p-departamento','Departamento',`<select id="p-departamento">${ubOpts(Object.keys(UBIGEO),p.departamento||'','Selecciona departamento')}</select>`)+
+   fld('p-provincia','Provincia',`<select id="p-provincia" ${p.departamento?'':'disabled'}>${ubOpts(ubProvs(p.departamento),p.provincia||'','Selecciona provincia')}</select>`)+
+   fld('p-distrito','Distrito',`<select id="p-distrito" ${p.provincia?'':'disabled'}>${ubOpts(ubDists(p.departamento,p.provincia),p.distrito||'','Selecciona distrito')}</select>`)+
    fld('p-referencia','Referencia o dirección',`<input id="p-referencia" value="${esc(p.referencia||'')}">`)+
    fld('p-lotesTotal','Lotes totales del proyecto',`<input id="p-lotesTotal" type="number" min="0" step="1" value="${p.lotesTotal==null?'':esc(p.lotesTotal)}">`,'Solo para lotización o habilitación.')+
+   fld('p-lotesdet','Lotes del proyecto',`<div class="lotstat"><button type="button" class="btn" data-act="p-lotes">Registrar lotes</button><span id="p-lotes-st" class="small"></span></div>`,'En lotización o habilitación es obligatorio: indica la manzana o etapa y el número de cada lote. Luego las escrituras se registran eligiendo el lote de esa lista.',true)+
    fld('p-anioInicio','Año de inicio de ventas',`<input id="p-anioInicio" type="number" min="1980" max="2100" value="${esc(p.anioInicio||'')}">`)+
    `<div class="fld full"><label class="checks" style="gap:8px"><input type="checkbox" id="p-reg" ${p.pendienteRegistro?'checked':''} style="width:auto"><span>Hay escrituras firmadas que aún no están inscritas en Registros Públicos</span></label></div>`+
    fld('p-obs','Observaciones del proyecto',`<textarea id="p-obs">${esc(p.obs||'')}</textarea>`,'',true)+
    fld('p-obsLotes','Observación del cuadro de lotes',`<textarea id="p-obsLotes">${esc(p.obsLotes||'')}</textarea>`,'',true);
   openModal(id?'Editar proyecto':'Nuevo proyecto',body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,delButtons('p',id));
   $('#mf').dataset.kind='p';$('#mf').dataset.id=id||'';
+  updateLotesSt();
 }
 function saveProyecto(){
   clearErrs();let ok=true;const id=$('#mf').dataset.id;
@@ -1906,61 +2112,90 @@ function saveProyecto(){
   const lot=tipos.some(t=>t==='Lotización'||t==='Habilitación urbana');
   const tot=num(gv('p-lotesTotal'));
   if(lot&&(tot==null||tot<0||!Number.isInteger(tot))){setErr('p-lotesTotal','Escribe el total de lotes (número entero).');ok=false}
+  const prev0=id?S.C.projById[id]:null,nDet=(S.pLotes||[]).length;
+  if(lot&&(!id||ldet(prev0).length>0)&&tot>0&&nDet!==tot){setErr('p-lotesdet',nDet?'Tienes '+nDet+' lotes registrados y el total es '+tot+'. Deben coincidir.':'Registra los lotes del proyecto (botón "Registrar lotes") antes de guardar.');ok=false}
   if(!ok)return;
   const prev=id?S.C.projById[id]:{ventasAnio:{},sinDesglose:0,orden:S.proyectos.length+1};
   const data={...prev,nombre,tipos,tipoOtro:tipos.includes('Otros')?gv('p-tipoOtro'):'',fechaAdq:fecha,anioAdq:anio,importe:imp,moneda:gv('p-moneda'),monedaConfirmada:$('#p-mc').checked,
     modalidad:mod,modalidadDetalle:mod==='otro'?gv('p-modalidadDetalle'):'',departamento:gv('p-departamento'),provincia:gv('p-provincia'),distrito:gv('p-distrito'),referencia:gv('p-referencia'),
-    lotesTotal:lot?tot:(tot==null?0:tot),anioInicio:num(gv('p-anioInicio'))||anio,pendienteRegistro:$('#p-reg').checked,obs:gv('p-obs'),obsLotes:gv('p-obsLotes')};
+    lotesTotal:lot?tot:(tot==null?0:tot),anioInicio:num(gv('p-anioInicio'))||anio,pendienteRegistro:$('#p-reg').checked,lotesDetalle:(S.pLotes||[]).map(x=>({t:x.t,z:x.z,l:x.l})),obs:gv('p-obs'),obsLotes:gv('p-obsLotes')};
   delete data.id;
   persist(()=>Store.set(COLS.proyectos,id||newId('p_'),data),id?'Proyecto actualizado':'Proyecto agregado');
 }
 
-function openEscritura(id){
-  const e=id?S.C.esc.find(x=>x.id===id):{fecha:'',mz:'',lotes:'',importe:'',obs:'',proyectoId:S.fEsc||''};
+function loteCtl(pid,cur,exceptId){
+  const p=pid?S.C.projById[pid]:null;
+  if(!p)return `<select id="e-lotes" disabled><option value="">Primero elige el proyecto</option></select>`;
+  const det=ldet(p),ck=cur&&cur.l?lkey(cur.t,cur.z,cur.l):'';
+  if(!det.length){
+    if(ck)return `<select id="e-lotes"><option value="${esc(ck)}" selected>${esc((cur.z?zLbl(cur.t,cur.z)+' · ':'')+'Lote '+cur.l)} (el proyecto aún no tiene lista de lotes)</option></select>`;
+    return `<div id="e-lotes-none" class="note warn">Este proyecto aún no tiene sus lotes registrados. <button type="button" class="btn sm" data-act="e-reg-lotes" data-id="${p.id}">Registrar lotes del proyecto</button></div>`;
+  }
+  const used=new Set();
+  S.C.esc.forEach(e=>{if(e.id!==exceptId&&e.proyectoId===pid)(e._l||[]).forEach(l=>used.add(lkey(zonaTipo(e),e.mz,l)))});
+  const g=new Map();det.forEach(d=>{const k=d.z?d.t+'|'+d.z:'';if(!g.has(k))g.set(k,{t:d.t,z:d.z,l:[]});g.get(k).l.push(d)});
+  let h='<option value="">Elige el lote</option>';
+  g.forEach(o=>{h+=`<optgroup label="${esc(zLbl(o.t,o.z))}">`+o.l.map(d=>{const k=lkey(d.t,d.z,d.l),u=used.has(k);return `<option value="${esc(k)}" ${u?'disabled':''} ${k===ck&&!u?'selected':''}>Lote ${esc(d.l)}${u?' · ya vendido':''}</option>`}).join('')+'</optgroup>'});
+  if(ck&&!det.some(d=>lkey(d.t,d.z,d.l)===ck))h+=`<option value="${esc(ck)}" selected>${esc((cur.z?zLbl(cur.t,cur.z)+' · ':'')+'Lote '+cur.l)} (no está en la lista del proyecto)</option>`;
+  return `<select id="e-lotes">${h}</select>`;
+}
+function refreshLotes(){
+  const el=$('#e-lotes')||$('#e-lotes-none');if(!el)return;
+  el.outerHTML=loteCtl(gv('e-proyecto'),null,$('#mf').dataset.id);
+}
+function openEscritura(id,pre){
+  const e=id?S.C.esc.find(x=>x.id===id):{fecha:'',nroEscritura:'',mz:'',lotes:'',importe:'',obs:'',proyectoId:S.fEsc||'',...(pre||{})};
   const popts=`<option value="">Elige un proyecto</option>`+S.proyectos.map(p=>`<option value="${p.id}" ${e.proyectoId===p.id?'selected':''}>${esc(p.nombre)}</option>`).join('');
   const body=
    fld('e-proyecto','Proyecto',`<select id="e-proyecto">${popts}</select>`,'',true)+
    fld('e-fecha','Fecha de la escritura',`<input id="e-fecha" type="date" value="${esc(e.fecha||'')}">`)+
-   fld('e-mz','Manzana (Mz)',`<input id="e-mz" value="${esc(e.mz||'')}" autocomplete="off" style="text-transform:uppercase">`)+
-   fld('e-lotes','Nro. de lote',`<input id="e-lotes" value="${esc(e.lotes||'')}" autocomplete="off">`,'Un lote o varios: 7 · 11 y 12 · 4,5,6,7 · 4-7',true)+
-   fld('e-importe','Importe de la venta (S/)',`<input id="e-importe" type="number" min="0" step="0.01" inputmode="decimal" value="${e.importe==null?'':esc(e.importe)}">`)+
+   fld('e-nro','N.° de escritura',`<input id="e-nro" value="${esc(e.nroEscritura||'')}" autocomplete="off">`,'Opcional. Repítelo en los lotes que se vendieron en la misma escritura.')+
+   fld('e-lotes','Lote (manzana o etapa y número)',loteCtl(e.proyectoId,id&&e.lotes?{t:zonaTipo(e),z:(e.mz||'').toUpperCase(),l:e.lotes}:null,id||''),'Elige el lote de la lista registrada en el proyecto. Un solo lote por registro; los ya vendidos aparecen bloqueados.',true)+
+   fld('e-importe','Importe de la venta de este lote (S/)',`<input id="e-importe" type="number" min="0" step="0.01" inputmode="decimal" value="${e.importe==null?'':esc(e.importe)}">`)+
    fld('e-obs','Observaciones',`<input id="e-obs" value="${esc(e.obs||'')}">`)+
    `<div class="preview" id="e-prev" aria-live="polite"></div>`;
-  openModal(id?'Editar escritura':'Nueva escritura',body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,delButtons('e',id));
+  openModal(id?'Editar escritura':'Nueva escritura',body,`<button type="button" class="btn" data-act="close">Cancelar</button>${id?'':'<button type="button" class="btn" data-act="e-more">Guardar y agregar otro lote</button>'}<button type="submit" class="btn primary">Guardar</button>`,delButtons('e',id));
   $('#mf').dataset.kind='e';$('#mf').dataset.id=id||'';
   updatePreview();
 }
 function escChecks(){
-  const id=$('#mf').dataset.id,pid=gv('e-proyecto'),mz=gv('e-mz').toUpperCase(),lotes=parseLotes(gv('e-lotes'));
+  const id=$('#mf').dataset.id,pid=gv('e-proyecto'),pk=gv('e-lotes')?lkParse(gv('e-lotes')):null,tipo=pk?pk.t:'',mz=pk?pk.z:'',lotes=pk&&pk.l?[pk.l]:[],nro=gv('e-nro');
+  const zk=mz?tipo+'|'+mz:'';
   const dup=[];
-  if(pid&&mz)lotes.forEach(l=>{const o=S.C.esc.find(e=>e.id!==id&&e.proyectoId===pid&&String(e.mz||'').trim().toUpperCase()===mz&&e._l.includes(l));if(o)dup.push({l,o});
+  if(pid)lotes.forEach(l=>{const o=S.C.esc.find(e=>e.id!==id&&e.proyectoId===pid&&zonaKey(e)===zk&&e._l.includes(l));if(o)dup.push({l,o});
     if(lotes.filter(x=>x===l).length>1)dup.push({l,o:null})});
-  return {pid,mz,lotes,dup};
+  const hermanos=(pid&&nro)?S.C.esc.filter(e=>e.id!==id&&e.proyectoId===pid&&e._nro.toUpperCase()===nro.toUpperCase()):[];
+  return {pid,mz,tipo,lotes,dup,nro,hermanos};
 }
 function updatePreview(){
   const box=$('#e-prev');if(!box)return;
-  const {lotes,dup}=escChecks();const imp=num(gv('e-importe'));const f=gv('e-fecha');
+  const zt=$('#e-mztipo'),zv=$('#e-mz');
+  if(zt&&zv){zv.disabled=!zt.value;if(!zt.value)zv.value='';zv.placeholder=zt.value?'Ej.: '+(zt.value==='Manzana'?'A':'2'):'No aplica';const lab=document.querySelector('label[for=e-mz]');if(lab)lab.textContent=zt.value?zt.value:'Identificador'}
+  const {lotes,dup,hermanos,tipo,mz}=escChecks();const imp=num(gv('e-importe'));const f=gv('e-fecha');
   let h='';
-  if(lotes.length){h+=`<div><b>${lotes.length} lote${lotes.length>1?'s':''}</b></div><div class="chips">${lotes.map(l=>`<span class="chip ${dup.some(d=>d.l===l)?'dup':''}">${esc(l)}</span>`).join('')}</div>`;
-    if(imp>0)h+=`<div>Precio por lote: <b class="mono">${money(imp/lotes.length)}</b></div>`}
-  else h='<span class="hint">Escribe los lotes para ver el conteo y el precio por lote.</span>';
+  if(lotes.length===1)h+=`<div>${esc(zLbl(tipo,mz)==='Sin manzana ni etapa'?'':zLbl(tipo,mz)+' · ')}Lote <b>${esc(lotes[0])}</b>${imp>0?` · <b class="mono">${money(imp)}</b>`:''}</div>`;
+  else if(lotes.length>1)h+=`<div style="color:var(--bad)">Escribe un solo lote por registro. Para otro lote de la misma escritura usa “Guardar y agregar otro lote”.</div>`;
+  else h='<span class="hint">Elige el lote para ver el resumen.</span>';
+  if(hermanos.length)h+=`<div>Esta escritura ya tiene ${hermanos.length} lote${hermanos.length>1?'s':''}: ${hermanos.map(o=>esc((zonaTxt(o)?zonaTxt(o)+' · ':'')+'lote '+o.lotes)).join(', ')}.</div>`;
   if(dup.length)h+=`<div style="color:var(--bad)">Ya registrado: ${dup.map(d=>esc(d.l)+(d.o?' (escritura del '+fdate(d.o.fecha)+')':' (repetido)')).join(', ')}.</div>`;
+  if(hermanos.length&&f&&hermanos.some(o=>o.fecha!==f))h+=`<div style="color:var(--hi)">Los otros lotes de esta escritura tienen otra fecha (${fdate(hermanos[0].fecha)}).</div>`;
   if(f&&(f<S.cfg.periodoDesde||f>S.cfg.periodoHasta))h+=`<div style="color:var(--hi)">La fecha está fuera del periodo ${fdate(S.cfg.periodoDesde)} a ${fdate(S.cfg.periodoHasta)}. Se puede guardar y quedará marcada.</div>`;
   box.innerHTML=h;
 }
 function saveEscritura(){
+  const more=!!S.eMore;S.eMore=false;
   clearErrs();let ok=true;const id=$('#mf').dataset.id;
-  const {pid,mz,lotes,dup}=escChecks();
+  const {pid,mz,tipo,lotes,dup,nro,hermanos}=escChecks();
   if(!pid){setErr('e-proyecto','Elige el proyecto.');ok=false}
   if(!gv('e-fecha')){setErr('e-fecha','Indica la fecha de la escritura.');ok=false}
-  if(!mz){setErr('e-mz','Indica la manzana.');ok=false}
-  if(!lotes.length){setErr('e-lotes','Indica al menos un lote.');ok=false}
+  if(!lotes.length){setErr('e-lotes',pid&&!ldet(S.C.projById[pid]).length?'Primero registra los lotes del proyecto.':'Elige el lote.');ok=false}
+  else if(lotes.length>1){setErr('e-lotes','Un solo lote por registro. Agrega los demás con “Guardar y agregar otro lote”.');ok=false}
   else if(dup.length){setErr('e-lotes','Ese lote ya está registrado en esa manzana.');ok=false}
   const imp=num(gv('e-importe'));
   if(!(imp>0)){setErr('e-importe','Escribe un importe mayor que 0.');ok=false}
   if(!ok)return;
-  const data={proyectoId:pid,fecha:gv('e-fecha'),mz,lotes:gv('e-lotes'),importe:imp,obs:gv('e-obs')};
-  persist(()=>Store.set(COLS.escrituras,id||newId('e_'),data),id?'Escritura actualizada':'Escritura agregada');
+  const data={proyectoId:pid,fecha:gv('e-fecha'),nroEscritura:nro,mzTipo:tipo,mz,lotes:lotes[0],importe:imp,obs:gv('e-obs')};
+  persist(()=>Store.set(COLS.escrituras,id||newId('e_'),data),id?'Escritura actualizada':'Lote agregado').then(okp=>{if(okp&&more)openEscritura(null,{proyectoId:pid,fecha:data.fecha,nroEscritura:nro,mzTipo:tipo,mz})});
 }
 
 function openServicio(id){
@@ -2000,7 +2235,7 @@ function saveSettings(){
 
 async function persist(fn,msg){
   const btn=$('#mf button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Guardando…'}
-  try{await fn();closeModal();toast(msg)}
+  try{await fn();closeModal();toast(msg);return true}
   catch(e){if(btn){btn.disabled=false;btn.textContent='Guardar'}
     const code=e&&e.code;toast(code==='42501'||code==='invalid_argument'?'No tienes permiso para guardar cambios en este archivo.':code==='quota_exceeded'?'Se llenó el espacio de datos. Elimina registros que ya no uses.':'No se pudo guardar. Intenta de nuevo.')}
 }
@@ -2076,7 +2311,7 @@ async function exportXlsx(){
   const first=r;
   C.lotProjs.forEach(p=>{const m=C.M[p.id];
     put(sh,r,2,p.nombre,base);put(sh,r,3,ubic(p),base);put(sh,r,4,m.total,base);put(sh,r,5,num(p.anioInicio)||num(p.anioAdq)||'',base);
-    yrs.forEach((y,i)=>{const v=num(p.ventasAnio&&p.ventasAnio[y]);put(sh,r,y0+i,v==null?'':v,base)});
+    yrs.forEach((y,i)=>{put(sh,r,y0+i,m.byY[y]||0,base)});
     if(anySin)put(sh,r,cSin,m.sin||0,base);
     const rng=XLX.colL(y0-1)+r+':'+XLX.colL(cSin-1+(anySin?0:-1))+r;
     put(sh,r,cTot,{v:m.vend,f:'SUM('+rng+')'},base);
@@ -2090,7 +2325,7 @@ async function exportXlsx(){
     put(sh,r,4,{v:C.T.total,f:'SUM(D'+first+':D'+last+')'},tb);
     for(let c=y0;c<=cTot;c++)put(sh,r,c,{v:null,f:'SUM('+XLX.colL(c-1)+first+':'+XLX.colL(c-1)+last+')'},tb);
     // valores en caché
-    yrs.forEach((y,i)=>{sh.rows[r-1][y0+i-1].v=C.lotProjs.reduce((a,p)=>a+(num(p.ventasAnio&&p.ventasAnio[y])||0),0)});
+    yrs.forEach((y,i)=>{sh.rows[r-1][y0+i-1].v=C.lotProjs.reduce((a,p)=>a+(C.M[p.id].byY[y]||0),0)});
     if(anySin)sh.rows[r-1][cSin-1].v=C.lotProjs.reduce((a,p)=>a+(C.M[p.id].sin||0),0);
     sh.rows[r-1][cTot-1].v=C.T.vend;
     put(sh,r,cPen,{v:C.T.pend,f:'D'+r+'-'+XLX.colL(cTot-1)+r},tb);
@@ -2099,11 +2334,11 @@ async function exportXlsx(){
   r+=2;
   put(sh,r,2,'-Cuadro Excel de los proyectos vendidos con Escritura Pública correspondiente al periodo del '+fdate(cfg.periodoDesde)+' al '+fdate(cfg.periodoHasta)+', que contenga la siguiente información:',txt);r++;
   put(sh,r,2,'Nombre del Proyecto, Fecha de la escritura, MZ, y Nro de lote, Importe de la Venta. (Si no se ha realizado escrituras durante el periodo solicitado, nos confirma que no tuvo ventas con escritura)',txt);r+=2;
-  ['N.°','Nombre del Proyecto','Fecha de la Escritura','MZ','Nro. de Lote','Importe de la Venta','Observaciones'].forEach((h,i)=>put(sh,r,2+i,h,hdr));sh.heights[r]=33.75;r++;
+  ['N.°','Nombre del Proyecto','Fecha de la Escritura','MZ / ETAPA','Nro. de Lote','Importe de la Venta','Observaciones'].forEach((h,i)=>put(sh,r,2+i,h,hdr));sh.heights[r]=33.75;r++;
   const e0=r;
   C.esc.forEach((e,i)=>{
-    put(sh,r,2,i+1,base);put(sh,r,3,C.pName(e.proyectoId),base);put(sh,r,4,DT(e.fecha),base);put(sh,r,5,e.mz||'',base);put(sh,r,6,e.lotes||'',base);
-    put(sh,r,7,{v:e._imp,s:{nf:'"S/ "#,##0.00'}},base);put(sh,r,8,e.obs||'',base);sh.heights[r]=18.75;r++;
+    put(sh,r,2,i+1,base);put(sh,r,3,C.pName(e.proyectoId),base);put(sh,r,4,DT(e.fecha),base);put(sh,r,5,zonaTxt(e),base);put(sh,r,6,e.lotes||'',base);
+    put(sh,r,7,{v:e._imp,s:{nf:'"S/ "#,##0.00'}},base);put(sh,r,8,[e._nro?'Escritura N.° '+e._nro:'',e.obs||''].filter(Boolean).join(' · '),base);sh.heights[r]=18.75;r++;
   });
   if(C.esc.length){const tb={...base,font:{sz:14,b:true}};
     put(sh,r,2,'',tb);put(sh,r,3,'TOTAL',tb);put(sh,r,4,'',tb);put(sh,r,5,'',tb);put(sh,r,6,C.T.escN+' lotes',tb);
@@ -2413,6 +2648,12 @@ document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act,id=b.dataset.id;
   if(a==='mod'){setRoute(id);return}
+  if(a==='p-lotes'){openLotesEd();return}
+  if(a==='lot-add'){lotAdd();return}
+  if(a==='lot-del'){lotDel(b.dataset.g);return}
+  if(a==='lot-close'){$('#modal2').innerHTML='';updateLotesSt();return}
+  if(a==='e-reg-lotes'){closeModal();openProyecto(id);openLotesEd();return}
+  if(a==='detail'){openDetail(b.dataset.k,id);return}
   if(a==='ktab'||a.indexOf('k-')===0){kClick(a,b);return}
   if(a==='atab'||a.indexOf('a-')===0){aClick(a,b);return}
   if(a==='btab'||a.indexOf('b-')===0){bClick(a,b);return}
@@ -2420,6 +2661,7 @@ document.addEventListener('click',ev=>{
   if(a==='new-p'){openProyecto();return}
   if(a==='edit-p'){openProyecto(id);return}
   if(a==='new-e'){openEscritura();return}
+  if(a==='e-more'){S.eMore=true;$('#mf').requestSubmit();return}
   if(a==='edit-e'){openEscritura(id);return}
   if(a==='new-s'){openServicio();return}
   if(a==='edit-s'){openServicio(id);return}
@@ -2436,11 +2678,12 @@ document.addEventListener('click',ev=>{
 document.addEventListener('submit',ev=>{
   if(ev.target.id!=='mf')return;ev.preventDefault();
   const k=ev.target.dataset.kind;
-  if(k==='p')saveProyecto();else if(k==='e')saveEscritura();else if(k==='s')saveServicio();else if(k==='c')saveSettings();else if(k==='kp')saveProdK();else if(k==='km')saveMovK();else if(k==='kc')saveSettingsK();else if(k==='ac')saveContratoA();else if(k==='ag')saveSettingsAq();else if(k==='bm')saveMovB();else if(k==='bj')saveMovJ();else if(k==='bg')saveSettingsB();
+  if(k==='p')saveProyecto();else if(k==='e')saveEscritura();else if(k==='s')saveServicio();else if(k==='c')saveSettings();else if(k==='kp')saveProdK();else if(k==='km')saveMovK();else if(k==='kc')saveSettingsK();else if(k==='ac')saveContratoA();else if(k==='ap')savePagoA();else if(k==='ag')saveSettingsAq();else if(k==='bm')saveMovB();else if(k==='bj')saveMovJ();else if(k==='bg')saveSettingsB();
 });
 document.addEventListener('input',ev=>{
   const f=ev.target.closest&&ev.target.closest('#mf');
-  if(f&&f.dataset.kind==='e')updatePreview();
+  if(f&&f.dataset.kind==='p'&&ev.target.id==='p-lotesTotal')updateLotesSt();
+  if(f&&f.dataset.kind==='e'){if(ev.target.id==='e-proyecto')refreshLotes();updatePreview()}
   if(f&&f.dataset.kind==='km')kInput(ev);
   if(f&&f.dataset.kind==='ac')aInput(ev);
   if(f&&f.dataset.kind==='bm')bInput(ev);
@@ -2454,22 +2697,24 @@ document.addEventListener('change',ev=>{
   if(t.closest&&t.closest('#mf')&&$('#mf').dataset.kind==='ac'){aChange(ev);return}
   if(t.closest&&t.closest('#mf')&&$('#mf').dataset.kind==='bm'){bChange(ev);return}
   if(k==='bfmes'||k==='bfdir'||k==='bfsin'||k==='bcfg'){bChangeIn(t,k);return}
-  if(k==='kfprod'||k==='kftipo'||k==='kmin'){kChangeIn(t,k);return}
+  if(k==='kfprod'||k==='kftipo'){kChangeIn(t,k);return}
   if(k==='afvig'||k==='afcon'||k==='apg'){aChangeIn(t,k);return}
+  if((t.id==='p-departamento'||t.id==='p-provincia')&&t.closest&&t.closest('#mf')){ubCascade(t.id);return}
   if(k==='fesc'){S.fEsc=t.value;render();return}
   if(k==='svcon'){Store.update(COLS.config,'proyectos',{serviciosAplica:t.checked}).catch(()=>toast('No se pudo guardar.'));return}
-  if(k==='lot'){
-    const p=S.C.projById[t.dataset.p];if(!p)return;
-    const f=t.dataset.f;let v=t.value===''?null:Number(t.value);
-    if(v!=null&&(!Number.isFinite(v)||v<0)){toast('Escribe un número de 0 en adelante.');render();return}
-    if(v!=null)v=Math.round(v);
-    let cur;
-    if(f==='lotesTotal'){cur=num(p.lotesTotal);if(v==null)v=0;if(cur===v)return;Store.update(COLS.proyectos,p.id,{lotesTotal:v}).catch(()=>toast('No se pudo guardar.'))}
-    else if(f==='sinDesglose'){cur=num(p.sinDesglose)||0;if(v==null)v=0;if(cur===v)return;Store.update(COLS.proyectos,p.id,{sinDesglose:v}).catch(()=>toast('No se pudo guardar.'))}
-    else if(f[0]==='y'){const y=f.slice(1);cur=num(p.ventasAnio&&p.ventasAnio[y]);if(cur===v)return;Store.update(COLS.proyectos,p.id,{ventasAnio:{[y]:v}}).catch(()=>toast('No se pudo guardar.'))}
+});
+document.addEventListener('keydown',ev=>{
+  if(ev.key==='Escape'&&$('#ov2')){$('#modal2').innerHTML='';updateLotesSt();return}
+  if(ev.key==='Escape'&&$('#ov')){closeModal();return}
+  const t=ev.target;
+  if(t&&t.tagName==='INPUT'&&t.type==='number'&&!ev.ctrlKey&&!ev.metaKey&&!ev.altKey){
+    if(ev.key==='ArrowUp'||ev.key==='ArrowDown'){ev.preventDefault();return}
+    if(ev.key==='e'||ev.key==='E'||ev.key==='+')ev.preventDefault();
+    if(ev.key==='-'&&t.min!==''&&Number(t.min)>=0)ev.preventDefault();
+    if((ev.key==='.'||ev.key===',')&&t.step==='1')ev.preventDefault();
   }
 });
-document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&$('#ov'))closeModal()});
+document.addEventListener('wheel',ev=>{const t=document.activeElement;if(t&&t.tagName==='INPUT'&&t.type==='number'&&t===ev.target)t.blur()},{passive:true});
 window.addEventListener('hashchange',()=>{readHash();render()});
 
 /* ---------- arranque ---------- */
