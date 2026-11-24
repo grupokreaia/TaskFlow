@@ -251,6 +251,10 @@ td.act .btn+.btn{margin-left:4px}
 .lotgrp .rg{color:var(--ink2);font-size:12.5px;word-break:break-word}
 #modal2 .overlay{z-index:70}
 .lotstat{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.lbrow{display:flex;align-items:center;gap:7px}
+.qhelp{width:20px;height:20px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);font:700 12px/1 inherit;cursor:pointer;padding:0;flex:none;display:inline-grid;place-items:center}
+.qhelp:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.qpop{position:fixed;z-index:90;max-width:280px;background:#1B2A3F;color:#fff;font-size:13px;line-height:1.45;padding:10px 13px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 </style>
 </head><body>
 <div id="gate"><div class="box"><p>Verificando acceso…</p></div></div>
@@ -1398,6 +1402,13 @@ const bMoneda=()=>S.b.cfg.moneda==='USD'?'USD':'PEN';
 const bm=n=>money(n,bMoneda(),2);
 const mesLbl=k=>{const [y,m]=k.split('-');return MES[Number(m)-1]+' '+y.slice(2)};
 const sinComp=m=>!String(m.docTipo||'').trim()&&!BEXENTO.some(x=>String(m.tipoOp||'').toUpperCase().startsWith(x));
+const itfOf=m=>{
+  if(!m||m.dir!=='E'||m.tipoOp==='ITF')return null;
+  const l=S.b.mov.filter(x=>x.tipoOp==='ITF'&&x.itfDe===m.id);if(l.length)return l[0];
+  const c=itfCalc(num(m.monto)||0);
+  const g=c>0?S.b.mov.filter(x=>x.tipoOp==='ITF'&&!x.itfDe&&x.fecha===m.fecha&&x.cuentaId===m.cuentaId&&x.obs==='Generado automáticamente'&&String(x.nroOp||'')===String(m.nroOp||'')&&Math.abs((num(x.monto)||0)-c)<0.005):[];
+  return g.length===1?g[0]:null;
+};
 const itfCalc=monto=>{const c=S.b.cfg,u=num(c.itfUmbral),p=num(c.itfPct);return (monto>(u==null?1000:u))?Math.round(monto*((p==null?0.005:p)/100)*100)/100:0};
 
 function computeB(){
@@ -1513,7 +1524,7 @@ function bMovs(){
   const list=BC.movs.filter(m=>(!B.fmes||m.fecha.slice(0,7)===B.fmes)&&(!B.fdir||m.dir===B.fdir)&&(!B.fsin||sinComp(m))&&(!q||[m.descripcion,m.descEECC,m.tercNombre,m.tercDoc,m.nroOp,m.docSerie].some(x=>String(x||'').toLowerCase().includes(q))));
   const first=B.fmes||B.fq||B.fdir||B.fsin?'':`<tr><td></td><td></td><td><b>SALDO INICIAL</b></td><td></td><td></td><td class="n"><b>${bm(BC.T.si)}</b></td><td></td></tr>`;
   const rows=list.map(m=>{const e=m.dir==='E';
-    return `<tr><td class="mono">${m._cod}</td><td class="n">${fdate(m.fecha)}</td><td class="wrap">${esc(m.descripcion||'')}<span class="small mono">${esc(m.tipoOp||'')}${m.nroOp?' · '+esc(m.nroOp):''}</span>${sinComp(m)?'<span class="pill a">Sin comprobante</span>':''}</td>
+    return `<tr><td class="mono">${m._cod}</td><td class="n">${fdate(m.fecha)}</td><td class="wrap">${esc(m.descripcion||'')}<span class="small mono">${esc(m.tipoOp||'')}${m.nroOp?' · '+esc(m.nroOp):''}</span>${m.proyectoId?'<span class="small">'+esc(S.C.pName(m.proyectoId))+'</span>':''}${sinComp(m)?'<span class="pill a">Sin comprobante</span>':''}</td>
     <td class="n">${e?'':bm(m._m)}</td><td class="n">${e?bm(m._m):''}</td><td class="n" style="${m._saldo<0?'color:var(--bad);font-weight:600':''}"><b>${bm(m._saldo)}</b></td><td class="act">${detBtn('b',m.id)}<button class="btn sm" data-act="b-edit" data-id="${m.id}">Editar</button></td></tr>`}).join('');
   const ti=list.filter(m=>m.dir==='I').reduce((a,m)=>a+m._m,0),te=list.filter(m=>m.dir==='E').reduce((a,m)=>a+m._m,0);
   return bar+`<div class="scroll"><table><thead><tr><th>Código</th><th class="n">Fecha</th><th>Descripción</th><th class="n">Ingreso</th><th class="n">Egreso</th><th class="n">Saldo</th><th></th></tr></thead><tbody>${first}${rows}</tbody>
@@ -1555,21 +1566,24 @@ function bCalidad(){
 function openMovB(id){
   const BC=S.BC,prev=id?S.b.mov.find(x=>x.id===id):null;
   const m=prev||{fecha:hoy(),tipoOp:'ABONO TRANSFERENCIAS',dir:'I',docTipo:''};
+  const liIni=prev?itfOf(prev):null;
+  const itfIni=liIni?String(liIni.monto):'',itfAuto=!prev?'1':(liIni&&prev&&Math.abs((num(liIni.monto)||0)-itfCalc(num(prev.monto)||0))<0.005?'1':'0');
   const terc=Object.keys(BC.terc).map(d=>`<option value="${esc(d)}">${esc(BC.terc[d])}</option>`).join('');
   const body=
-   fld('bm-fecha','Fecha de operación',`<input id="bm-fecha" type="date" value="${esc(m.fecha||'')}">`)+
-   fld('bm-op','Tipo de operación',`<select id="bm-op">${BOPS.map(([o])=>`<option ${m.tipoOp===o?'selected':''}>${o}</option>`).join('')}</select>`)+
-   fld('bm-dir','Es un',`<select id="bm-dir"><option value="I" ${m.dir!=='E'?'selected':''}>Ingreso (abono)</option><option value="E" ${m.dir==='E'?'selected':''}>Egreso (cargo)</option></select>`,'Se propone según el tipo de operación.')+
-   fld('bm-monto','Importe',`<input id="bm-monto" type="number" min="0" step="0.01" inputmode="decimal" value="${m.monto==null?'':esc(m.monto)}">`)+
-   fld('bm-nro','N.° de operación',`<input id="bm-nro" value="${esc(m.nroOp||'')}" autocomplete="off">`)+
-   fld('bm-eecc','Descripción en el estado de cuenta (EE.CC)',`<input id="bm-eecc" value="${esc(m.descEECC||'')}" autocomplete="off">`,'Tal como aparece en el extracto del banco.',true)+
-   fld('bm-desc','Descripción de la operación',`<input id="bm-desc" value="${esc(m.descripcion||'')}" autocomplete="off">`,'Qué fue realmente el movimiento (para qué, de quién).',true)+
-   fld('bm-doct','Comprobante que lo sustenta',`<select id="bm-doct">${BDOCS.map(d=>`<option value="${d}" ${m.docTipo===d?'selected':''}>${d||'Sin comprobante'}</option>`).join('')}</select>`)+
-   fld('bm-docs','Serie-número',`<input id="bm-docs" value="${esc(m.docSerie||'')}" autocomplete="off">`)+
-   fld('bm-tdoc','DNI o RUC',`<input id="bm-tdoc" list="dl-terc" inputmode="numeric" value="${esc(m.tercDoc||'')}" autocomplete="off"><datalist id="dl-terc">${terc}</datalist>`,'<span id="h-tdoc"></span>')+
-   fld('bm-tnom','Cliente, proveedor o trabajador',`<input id="bm-tnom" value="${esc(m.tercNombre||'')}" autocomplete="off">`,'Se completa solo si el documento ya fue usado.')+
-   fld('bm-obs','Observación',`<input id="bm-obs" value="${esc(m.obs||'')}">`,'',true)+
-   (id?'':`<div class="fld full" id="w-itf" hidden><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bm-itf"> Registrar también el ITF de este egreso</label></div>`)+
+   fld('bm-fecha','Fecha de operación',`<input id="bm-fecha" type="date" value="${esc(m.fecha||'')}">`,'',false,'Día en que el banco hizo la operación, tal como aparece en el estado de cuenta. No es la fecha en que la registras.')+
+   fld('bm-op','Tipo de operación',`<select id="bm-op">${BOPS.map(([o])=>`<option ${m.tipoOp===o?'selected':''}>${o}</option>`).join('')}</select>`,'',false,'Clase de movimiento del banco: transferencia, pago, comisión, ITF, etc. Al elegirla, el sistema propone si es ingreso o egreso.')+
+   fld('bm-dir','Es un',`<select id="bm-dir"><option value="I" ${m.dir!=='E'?'selected':''}>Ingreso (abono)</option><option value="E" ${m.dir==='E'?'selected':''}>Egreso (cargo)</option></select>`,'Se propone según el tipo de operación.',false,'Ingreso si el dinero entra a la cuenta (abono). Egreso si sale (cargo). Se propone según el tipo de operación, pero puedes corregirlo.')+
+   fld('bm-proy','Proyecto',`<select id="bm-proy"><option value="">Elegir proyecto</option>${S.proyectos.slice().sort((a,b)=>cmpTxt(a.nombre,b.nombre)).map(p=>`<option value="${p.id}" ${m.proyectoId===p.id?'selected':''}>${esc(p.nombre)}</option>`).join('')}${m.proyectoId&&!S.C.projById[m.proyectoId]?`<option value="${esc(m.proyectoId)}" selected>(proyecto eliminado)</option>`:''}</select>`,'Opcional.',false,'Proyecto al que pertenece este ingreso o gasto. Es opcional y sirve para saber a qué proyecto se asigna el movimiento. La lista sale de la pestaña Proyectos.')+
+   fld('bm-monto','Importe',`<input id="bm-monto" type="number" min="0" step="0.01" inputmode="decimal" value="${m.monto==null?'':esc(m.monto)}">`,'',false,'Monto del movimiento en soles, sin signo. Si es un egreso, el sistema lo resta del saldo.')+
+   fld('bm-nro','N.° de operación',`<input id="bm-nro" value="${esc(m.nroOp||'')}" autocomplete="off">`,'',false,'Número que el banco asigna a la operación; aparece en el voucher o en el extracto. Sirve para ubicarla y conciliarla.')+
+   fld('bm-eecc','Descripción en el estado de cuenta (EE.CC)',`<input id="bm-eecc" value="${esc(m.descEECC||'')}" autocomplete="off">`,'Tal como aparece en el extracto del banco.',true,'Texto exacto que muestra el extracto del banco. Se usa para conciliar y no se cambia.')+
+   fld('bm-desc','Descripción de la operación',`<input id="bm-desc" value="${esc(m.descripcion||'')}" autocomplete="off">`,'Qué fue realmente el movimiento (para qué, de quién).',true,'Explica con tus palabras qué fue el movimiento: para qué fue el pago o de quién es el abono. Es lo que leerá quien revise el reporte.')+
+   fld('bm-doct','Comprobante que lo sustenta',`<select id="bm-doct">${BDOCS.map(d=>`<option value="${d}" ${m.docTipo===d?'selected':''}>${d||'Sin comprobante'}</option>`).join('')}</select>`,'',false,'Documento que respalda el movimiento: factura, boleta, recibo, etc. Si falta, el movimiento aparece como "Sin comprobante" en Control de calidad.')+
+   fld('bm-docs','Serie-número',`<input id="bm-docs" value="${esc(m.docSerie||'')}" autocomplete="off">`,'',false,'Serie y número impresos en el comprobante, por ejemplo F001-123. Es obligatorio si elegiste un comprobante.')+
+   fld('bm-tdoc','DNI o RUC',`<input id="bm-tdoc" list="dl-terc" inputmode="numeric" value="${esc(m.tercDoc||'')}" autocomplete="off"><datalist id="dl-terc">${terc}</datalist>`,'<span id="h-tdoc"></span>',false,'Documento del cliente, proveedor o trabajador: 8 dígitos si es DNI y 11 si es RUC. Si ya lo usaste antes, el nombre se completa solo.')+
+   fld('bm-tnom','Cliente, proveedor o trabajador',`<input id="bm-tnom" value="${esc(m.tercNombre||'')}" autocomplete="off">`,'Se completa solo si el documento ya fue usado.',false,'Nombre o razón social de quien paga o recibe el dinero. Si ya registraste ese DNI o RUC antes, se completa automáticamente.')+
+   fld('bm-obs','Observación',`<input id="bm-obs" value="${esc(m.obs||'')}">`,'',true,'Cualquier aclaración adicional para quien revise el movimiento. Es opcional.')+
+   `<div class="fld full" id="w-itf" hidden><div class="lbrow"><label for="bm-itf">ITF de este egreso (S/)</label>${qBtn('ITF de este egreso','Impuesto a las Transacciones Financieras que el banco cobra por este egreso. Viene calculado con el porcentaje y el monto mínimo de la información de la sede, y puedes cambiarlo para que coincida con el extracto. Si lo dejas vacío o en 0, no se registra ITF.')}</div><input id="bm-itf" type="number" min="0" step="0.01" inputmode="decimal" value="${itfIni}" data-auto="${itfAuto}"><div class="hint">Calculado con el ITF de la sede (${nf(num(S.b.cfg.itfPct)==null?0.005:num(S.b.cfg.itfPct),3)}% sobre egresos mayores a S/ ${nf(num(S.b.cfg.itfUmbral)==null?1000:num(S.b.cfg.itfUmbral))}). Puedes editarlo; se registra como un movimiento de ITF aparte.</div><div class="err" id="e-bm-itf" role="alert"></div></div>`+
    `<div class="preview" id="bm-prev" aria-live="polite"></div>`;
   openModal(id?'Editar movimiento':'Nuevo movimiento',body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,delButtons('bm',id));
   const f=$('#mf');f.dataset.kind='bm';f.dataset.id=id||'';
@@ -1579,19 +1593,21 @@ function updatePreviewB(){
   const box=$('#bm-prev');if(!box)return;
   const f=$('#mf'),id=f.dataset.id,prev=id?S.b.mov.find(x=>x.id===id):null;
   const monto=num(gv('bm-monto')),dir=gv('bm-dir'),op=gv('bm-op');
-  const w=$('#w-itf');
-  if(!(monto>0)){box.innerHTML='<span class="hint">Escribe el importe para ver el saldo resultante.</span>';if(w)w.hidden=true;return}
+  const w=$('#w-itf'),itfEl=$('#bm-itf'),isE=dir==='E'&&op!=='ITF';
+  if(w)w.hidden=!isE;
+  if(itfEl&&isE&&itfEl.dataset.auto==='1'&&document.activeElement!==itfEl){const c0=itfCalc(monto||0);itfEl.value=c0>0?c0:''}
+  if(!(monto>0)){box.innerHTML='<span class="hint">Escribe el importe para ver el saldo resultante.</span>';return}
   const base=num(S.b.cfg.saldoInicial)||0;
   let saldoSin=base;S.BC.movs.forEach(m=>{if(prev&&m.id===prev.id)return;saldoSin+=m.dir==='I'?m._m:-m._m});
-  const des=saldoSin+(dir==='I'?monto:-monto);
+  const itfV=isE?(num(gv('bm-itf'))||0):0;
+  const des=saldoSin+(dir==='I'?monto:-monto)-itfV;
   let h=`<div>Saldo después de este movimiento: <b class="mono" style="${des<0?'color:var(--bad)':''}">${bm(des)}</b> <span class="hint">(si es el último)</span></div>`;
-  const itf=dir==='E'&&op!=='ITF'?itfCalc(monto):0;
-  if(itf>0)h+=`<div>ITF estimado (${nf(num(S.b.cfg.itfPct)==null?0.005:num(S.b.cfg.itfPct),3)}%): <b class="mono">${bm(itf)}</b></div>`;
-  if(w)w.hidden=!(itf>0);
+  if(itfV>0)h+=`<div>ITF que se registrará: <b class="mono">${bm(itfV)}</b></div>`;
   box.innerHTML=h;
 }
 function bInput(ev){
   const t=ev.target;
+  if(t.id==='bm-itf')t.dataset.auto='0';
   if(t.id==='bm-tdoc'){const v=t.value.trim(),h=$('#h-tdoc'),ty=validDoc(v);
     if(h)h.textContent=!v?'':ty?'Documento válido: '+ty:((v.length===8||v.length===11)?'El número no es válido.':'Escribe 8 dígitos (DNI) u 11 (RUC).');
     if(ty&&!gv('bm-tnom')&&S.BC.terc[v])$('#bm-tnom').value=S.BC.terc[v]}
@@ -1609,15 +1625,19 @@ function saveMovB(){
   if(!(monto>0)){setErr('bm-monto','Escribe un importe mayor que 0.');ok=false}
   if(tdoc&&!validDoc(tdoc)){setErr('bm-tdoc','El DNI o RUC no es válido. Déjalo vacío si no lo tienes.');ok=false}
   if(gv('bm-doct')&&!gv('bm-docs')){setErr('bm-docs','Escribe la serie y número del comprobante.');ok=false}
+  const isE=dir==='E'&&op!=='ITF',itfV=isE?(num(gv('bm-itf'))||0):0;
+  if(itfV<0||(itfV>0&&itfV>monto)){setErr('bm-itf','El ITF no puede ser mayor que el importe del movimiento.');ok=false}
   if(!ok)return;
-  const data={fecha,tipoOp:op,dir,monto:Math.round(monto*100)/100,cuentaId:S.b.cta,nroOp:gv('bm-nro'),descEECC:gv('bm-eecc'),descripcion:gv('bm-desc'),docTipo:gv('bm-doct'),docSerie:gv('bm-docs'),tercDoc:tdoc,tercNombre:gv('bm-tnom'),obs:gv('bm-obs'),ts:prev&&prev.ts?prev.ts:Date.now()};
-  const itfBox=$('#bm-itf'),itf=(!id&&itfBox&&itfBox.checked&&dir==='E'&&op!=='ITF')?itfCalc(monto):0;
+  const data={fecha,tipoOp:op,dir,proyectoId:gv('bm-proy'),monto:Math.round(monto*100)/100,cuentaId:S.b.cta,nroOp:gv('bm-nro'),descEECC:gv('bm-eecc'),descripcion:gv('bm-desc'),docTipo:gv('bm-doct'),docSerie:gv('bm-docs'),tercDoc:tdoc,tercNombre:gv('bm-tnom'),obs:gv('bm-obs'),ts:prev&&prev.ts?prev.ts:Date.now()};
+  const pid=id||newId('b_'),li=prev?itfOf(prev):null;
   persist(async()=>{
-    await Store.set(BCOLS.mov,id||newId('b_'),data);
-    if(itf>0)await Store.set(BCOLS.mov,newId('b_'),{cuentaId:S.b.cta,fecha,tipoOp:'ITF',dir:'E',monto:itf,nroOp:data.nroOp,descripcion:'ITF',docTipo:'',docSerie:'',tercDoc:'',tercNombre:'',obs:'Generado automáticamente',ts:Date.now()+1});
-  },id?'Movimiento actualizado':(itf>0?'Movimiento e ITF registrados':'Movimiento registrado'));
+    await Store.set(BCOLS.mov,pid,data);
+    if(itfV>0){
+      const row={cuentaId:S.b.cta,fecha,tipoOp:'ITF',dir:'E',monto:Math.round(itfV*100)/100,nroOp:data.nroOp,descripcion:'ITF',docTipo:'',docSerie:'',tercDoc:'',tercNombre:'',obs:li?(li.obs||''):'Generado automáticamente',itfDe:pid,proyectoId:data.proyectoId,ts:li&&li.ts?li.ts:Date.now()+1};
+      await Store.set(BCOLS.mov,li?li.id:newId('b_'),row);
+    }else if(li)await Store.del(BCOLS.mov,li.id);
+  },id?'Movimiento actualizado':(itfV>0?'Movimiento e ITF registrados':'Movimiento registrado'));
 }
-
 function openSettingsB(nuevo){
   const c=nuevo?{...BDEF,banco:''}:S.b.cfg;
   openModal(nuevo?'Nueva cuenta o sede':'Ajustes de la cuenta',
@@ -1933,7 +1953,18 @@ function tCalidad(){
 }
 
 /* ---------- formularios (modal) ---------- */
-function fld(id,label,inner,hint,full){return `<div class="fld ${full?'full':''}"><label for="${id}">${label}</label>${inner}${hint?`<div class="hint">${hint}</div>`:''}<div class="err" id="e-${id}" role="alert"></div></div>`}
+const qBtn=(label,h)=>`<button type="button" class="qhelp" data-act="qhelp" data-h="${esc(h)}" aria-label="¿Para qué sirve: ${esc(label)}?">?</button>`;
+function closeQHelp(){const p=document.getElementById('qpop');if(p)p.remove()}
+function qHelp(b){
+  const was=document.getElementById('qpop'),same=was&&was._for===b;closeQHelp();if(same)return;
+  const p=document.createElement('div');p.id='qpop';p.className='qpop';p.setAttribute('role','tooltip');p.textContent=b.dataset.h;p._for=b;document.body.appendChild(p);
+  const r=b.getBoundingClientRect(),w=p.offsetWidth,h=p.offsetHeight;
+  const x=Math.min(Math.max(8,r.left+r.width/2-w/2),window.innerWidth-w-8);let y=r.top-h-10;if(y<8)y=r.bottom+10;
+  p.style.left=x+'px';p.style.top=y+'px';
+}
+document.addEventListener('click',ev=>{if(!ev.target.closest('.qhelp'))closeQHelp()});
+window.addEventListener('scroll',closeQHelp,true);
+function fld(id,label,inner,hint,full,help){return `<div class="fld ${full?'full':''}">${help?`<div class="lbrow"><label for="${id}">${label}</label>${qBtn(label,help)}</div>`:`<label for="${id}">${label}</label>`}${inner}${hint?`<div class="hint">${hint}</div>`:''}<div class="err" id="e-${id}" role="alert"></div></div>`}
 function openModal(title,body,footR,footL=''){
   $('#modal').innerHTML=`<div class="overlay" id="ov"><form class="modal" id="mf" role="dialog" aria-modal="true" aria-label="${esc(title)}" novalidate>
    <header><h2>${esc(title)}</h2><button type="button" class="btn sm ghost" data-act="close" aria-label="Cerrar">Cerrar</button></header>
@@ -1991,7 +2022,7 @@ const DET={
  b:id=>{const m=S.BC.movs.find(x=>x.id===id);if(!m)return null;const e=m.dir==='E';
   return {t:'Movimiento '+m._cod,e:['b-edit',id],r:[['Código',esc(m._cod)],['Fecha',fdate(m.fecha)],['Operación',esc(m.tipoOp||'')],['N.° de operación',esc(m.nroOp||'')],['Descripción',esc(m.descripcion||'')],['Descripción en el estado de cuenta',esc(m.descEECC||'')],
    ['Comprobante',m.docTipo?esc(m.docTipo)+' <span class="small mono">'+esc(m.docSerie||'')+'</span>':(sinComp(m)?'<span class="pill a">Sin comprobante</span>':'No requiere')],
-   ['Cliente / proveedor',esc(m.tercNombre||'')],['DNI / RUC',esc(m.tercDoc||'')],['Ingreso',e?'':bm(m._m)],['Egreso',e?bm(m._m):''],['Saldo',bm(m._saldo)],['Observación',esc(m.obs||'')]]}},
+   ['Proyecto',m.proyectoId?esc(S.C.pName(m.proyectoId)):''],['Cliente / proveedor',esc(m.tercNombre||'')],['DNI / RUC',esc(m.tercDoc||'')],['ITF registrado',(()=>{const raw=S.b.mov.find(x=>x.id===id),li=raw&&itfOf(raw);return li?bm(num(li.monto)||0):''})()],['Ingreso',e?'':bm(m._m)],['Egreso',e?bm(m._m):''],['Saldo',bm(m._saldo)],['Observación',esc(m.obs||'')]]}},
  bj:id=>{const m=S.BC.cj.movs.find(x=>x.id===id);if(!m)return null;const e=m.dir==='E';
   return {t:'Caja chica · '+m._n,e:['b-editj',id],r:[['N.°',m._n],['Fecha',fdate(m.fecha)],['Descripción',esc(m.desc||'')],['Pendiente de devolución',m.pendiente?'<span class="pill a">Pendiente de devolución</span>':'No'],
    ['Comprobante',m.docTipo?esc(m.docTipo)+' <span class="small mono">'+esc(m.docSerie||'')+'</span>':'<span class="pill m">Sin comprobante</span>'],['Proveedor / trabajador',esc(m.tercNombre||'')],['DNI / RUC',esc(m.tercDoc||'')],
@@ -2648,6 +2679,7 @@ document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act,id=b.dataset.id;
   if(a==='mod'){setRoute(id);return}
+  if(a==='qhelp'){qHelp(b);return}
   if(a==='p-lotes'){openLotesEd();return}
   if(a==='lot-add'){lotAdd();return}
   if(a==='lot-del'){lotDel(b.dataset.g);return}
@@ -2673,7 +2705,7 @@ document.addEventListener('click',ev=>{
     else setRoute('proyectos',al.go.tab);return}
   if(a==='del-ask'){b.outerHTML=`<span class="hint" style="align-self:center">¿Eliminar de forma definitiva?</span> <button type="button" class="btn danger" data-act="del-yes" data-k="${b.dataset.k}" data-id="${id}">Sí, eliminar</button>`;return}
   if(a==='del-yes'){const k=b.dataset.k,coll=collFor(k);
-    persist(async()=>{await Store.del(coll,id);if(k==='ac')for(const x of S.a.pag.filter(x=>x.contrato===id))await Store.del(ACOLS.pag,x.id)},'Eliminado');return}
+    persist(async()=>{if(k==='bm'){const pm=S.b.mov.find(x=>x.id===id),li=pm&&itfOf(pm);if(li)await Store.del(coll,li.id)}await Store.del(coll,id);if(k==='ac')for(const x of S.a.pag.filter(x=>x.contrato===id))await Store.del(ACOLS.pag,x.id)},'Eliminado');return}
 });
 document.addEventListener('submit',ev=>{
   if(ev.target.id!=='mf')return;ev.preventDefault();
@@ -2704,6 +2736,7 @@ document.addEventListener('change',ev=>{
   if(k==='svcon'){Store.update(COLS.config,'proyectos',{serviciosAplica:t.checked}).catch(()=>toast('No se pudo guardar.'));return}
 });
 document.addEventListener('keydown',ev=>{
+  if(ev.key==='Escape'&&document.getElementById('qpop')){closeQHelp();return}
   if(ev.key==='Escape'&&$('#ov2')){$('#modal2').innerHTML='';updateLotesSt();return}
   if(ev.key==='Escape'&&$('#ov')){closeModal();return}
   const t=ev.target;
