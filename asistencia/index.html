@@ -48,6 +48,7 @@ textarea{font:inherit;color:var(--text);background:var(--bg);border:1px solid va
 .day .tm{font-size:11px;color:var(--mut)}
 .pl{font-size:13px}.pl .v{text-decoration:line-through;color:var(--mut)}
 @media(max-width:560px){.day{min-height:58px;padding:4px}.day .st{font-size:10px;padding:1px 4px}}.btn.r{color:var(--rd)}.sw{display:flex;align-items:center;gap:6px}.sw input{width:auto}
+.xg{border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:8px}.xu{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:4px 12px;margin:6px 0 0 24px}.xg>label{margin:0}#xPick{max-height:36vh;overflow:auto;margin-bottom:6px}
 </style></head><body>
 <div id="app"></div>
 <script>
@@ -107,6 +108,61 @@ function render(){
 }
 const go=t=>{tab=t;render()};
 
+/* ---------- Exportar marcaje (Excel): todos los usuarios o los que elijas, una fila por día ---------- */
+function expUsers(){
+ const ids=[...new Set(emps.filter(e=>e.active!==false).map(e=>e.user_id))],g={};
+ ids.forEach(id=>{const p=profiles.find(x=>x.id===id)||{},a=areas.find(x=>x.id===p.area_id),k=a?a.id:'_';(g[k]=g[k]||{name:a?a.name:'Sin área',users:[]}).users.push({id,name:p.name||'—'})});
+ return Object.entries(g).sort((a,b)=>a[1].name.localeCompare(b[1].name,'es')).map(([k,v])=>({id:k,name:v.name,users:v.users.sort((x,y)=>x.name.localeCompare(y.name,'es'))}));
+}
+function exportDlg(){
+ const G=expUsers(),t=todayStr();window._xm='all';
+ if(!G.length){modal('<h3>Exportar marcaje</h3><p class="note">No hay colaboradores vinculados al equipo.</p><div class="row"><button class="btn" onclick="closeModal()">Cerrar</button></div>');return}
+ modal(`<h3>Exportar marcaje</h3>
+ <div class="seg" style="margin:6px 0 10px"><button id="xAll" class="on" onclick="expMode('all')">Todos los usuarios</button><button id="xSel" onclick="expMode('sel')">Elegir usuarios</button></div>
+ <div id="xPick" style="display:none"><p class="note" style="margin:0 0 6px">Marca un área completa o elige personas una por una.</p>${G.map(g=>`<div class="xg"><label class="sw"><input type="checkbox" data-area="${esc(g.id)}" onchange="expArea(this)"><b>${esc(g.name)}</b> <span class="note">(${g.users.length})</span></label><div class="xu">${g.users.map(u=>`<label class="sw"><input type="checkbox" class="xuser" data-a="${esc(g.id)}" value="${u.id}" onchange="expSync()">${esc(u.name)}</label>`).join('')}</div></div>`).join('')}</div>
+ <div class="row"><div><label>Desde</label><input type="date" id="xF" value="${t.slice(0,8)}01" max="${t}"></div><div><label>Hasta</label><input type="date" id="xT" value="${t}" max="${t}"></div></div>
+ <p class="note">Columnas: Nombre, Fecha, Entrada, Salida Refrigerio, Entrada Refrigerio, Salida, Tardanzas y Horas laboradas reales. Una fila por día.</p>
+ <div class="err" id="xE"></div><div class="row"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn p" id="xGo" onclick="expRun()">Exportar a Excel</button></div>`);
+}
+function expMode(m){window._xm=m;$('#xAll').classList.toggle('on',m==='all');$('#xSel').classList.toggle('on',m==='sel');$('#xPick').style.display=m==='sel'?'block':'none'}
+function expArea(cb){document.querySelectorAll('.xuser').forEach(c=>{if(c.dataset.a===cb.dataset.area)c.checked=cb.checked})}
+function expSync(){document.querySelectorAll('[data-area]').forEach(a=>{const u=[...document.querySelectorAll('.xuser')].filter(c=>c.dataset.a===a.dataset.area),n=u.filter(c=>c.checked).length;a.checked=n>0&&n===u.length;a.indeterminate=n>0&&n<u.length})}
+const loadXlsx=()=>window.XLSX?Promise.resolve(window.XLSX):new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=()=>ok(window.XLSX);s.onerror=()=>no(new Error('No se pudo cargar el generador de Excel'));document.head.appendChild(s)});
+async function expRun(){
+ const E=$('#xE');E.textContent='';
+ const f=$('#xF').value,t=$('#xT').value;
+ if(!f||!t||f>t){E.textContent='Revisa las fechas: "Desde" no puede ser mayor que "Hasta"';return}
+ if((Date.parse(t)-Date.parse(f))/864e5>92){E.textContent='El rango máximo es de 93 días';return}
+ const ids=window._xm==='sel'?[...document.querySelectorAll('.xuser:checked')].map(c=>c.value):expUsers().flatMap(g=>g.users.map(u=>u.id));
+ if(!ids.length){E.textContent='Elige al menos un usuario';return}
+ const b=$('#xGo');b.disabled=true;b.textContent='Generando…';
+ try{
+  const out=[];
+  for(let i=0;i<ids.length;i+=5){
+   const rs=await Promise.all(ids.slice(i,i+5).map(id=>sb.rpc('att_daily',{p_user:id,p_from:f,p_to:t}).then(r=>({id,r}))));
+   for(const {id,r} of rs){
+    if(r.error)throw new Error(nameOf(id)+': '+r.error.message);
+    for(const d of r.data||[]){
+     if(d.day_type!=='workday'&&!d.punches)continue;
+     out.push([nameOf(id),d.work_date,dow(d.work_date)+' '+d.work_date.split('-').reverse().join('/'),d.entrada?ft(d.entrada):'',d.salida_refri?ft(d.salida_refri):'',d.ingreso_refri?ft(d.ingreso_refri):'',d.salida?ft(d.salida):'',d.day_type==='workday'&&d.entrada?fm(d.late_min||0):'',d.worked_min!=null?fm(d.worked_min):'']);
+    }
+   }
+  }
+  if(!out.length)throw new Error('No hay días laborables ni marcajes en ese rango');
+  out.sort((a,c)=>a[0].localeCompare(c[0],'es')||a[1].localeCompare(c[1]));
+  const head=['Nombre','Fecha','Entrada','Salida Refrigerio','Entrada Refrigerio','Salida','Tardanzas','Horas laboradas reales'],rows=out.map(r=>[r[0],...r.slice(2)]),name='Marcajes_'+f+'_a_'+t;
+  try{
+   const X=await loadXlsx(),ws=X.utils.aoa_to_sheet([head,...rows]);
+   ws['!cols']=[{wch:34},{wch:16},{wch:10},{wch:18},{wch:19},{wch:10},{wch:12},{wch:24}];
+   const wb=X.utils.book_new();X.utils.book_append_sheet(wb,ws,'Marcajes');X.writeFile(wb,name+'.xlsx');
+  }catch(x){ // si no carga el generador de Excel, se descarga como CSV (se abre en Excel)
+   const csv='﻿'+[head,...rows].map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=name+'.csv';document.body.appendChild(a);a.click();a.remove();
+  }
+  closeModal();
+ }catch(x){E.textContent=x.message;b.disabled=false;b.textContent='Exportar a Excel'}
+}
+
 /* ---------- Mi asistencia: hoy / mes en calendario / detalle del día ---------- */
 const todayStr=()=>new Date().toLocaleDateString('sv',{timeZone:TZ});
 const pad=n=>String(n).padStart(2,'0');
@@ -129,7 +185,7 @@ async function viewMine(){
  const opts=visible.map(id=>`<option value="${id}" ${id===viewUser?'selected':''}>${esc(nameOf(id))}${id===me.id?' (yo)':''}</option>`).join('');
  $('#v').innerHTML=`<div class="card row">${visible.length>1?`<select id="who" onchange="viewUser=this.value;selDay=null;viewMine()">${opts}</select>`:''}
  <div class="seg"><button class="${mode==='today'?'on':''}" onclick="mode='today';selDay=null;viewMine()">Hoy</button><button class="${mode==='month'?'on':''}" onclick="mode='month';viewMine()">Todo el mes</button></div>
- ${mode==='month'?`<input id="mo" type="month" value="${month}" onchange="month=this.value;selDay=null;viewMine()">`:''}<span class="note" id="pinNote"></span></div><div id="res"><div class="empty">Cargando…</div></div>`;
+ ${mode==='month'?`<input id="mo" type="month" value="${month}" onchange="month=this.value;selDay=null;viewMine()">`:''}<span class="note" id="pinNote"></span>${isAdmin()||visible.length>1?'<button class="btn" style="margin-left:auto" onclick="exportDlg()">⬇ Exportar marcaje</button>':''}</div><div id="res"><div class="empty">Cargando…</div></div>`;
  const pin=pinOf(viewUser);$('#pinNote').textContent=pin?'ID en el equipo: '+pin:'Sin ID del equipo vinculado';
  if(mode==='today'){selDay=todayStr();$('#res').innerHTML='<div id="dd"></div>';return dayDetail(selDay)}
  const first=month+'-01',last=monthLast(month);
