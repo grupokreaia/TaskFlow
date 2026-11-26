@@ -241,6 +241,7 @@ td.act{white-space:nowrap;text-align:right}
  .rec td.act{justify-content:flex-start;flex-wrap:wrap;gap:6px;padding-top:8px;border-top:1px solid var(--line);margin-top:4px}
  .rec td.act::before{display:none}
  .rec td:empty{display:none}
+ .rec td>.sdot{margin-left:auto;align-self:center}
  .rec tfoot tr{display:flex;flex-wrap:wrap;gap:4px 14px;background:var(--surface2);border-radius:10px;padding:8px 12px}
  .rec tfoot td{display:block;padding:0;text-align:left}
 }
@@ -252,8 +253,18 @@ td.act .btn+.btn{margin-left:4px}
 #modal2 .overlay{z-index:70}
 .lotstat{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .lbrow{display:flex;align-items:center;gap:7px}
-.qhelp{width:20px;height:20px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);font:700 12px/1 inherit;cursor:pointer;padding:0;flex:none;display:inline-grid;place-items:center}
+.chid{display:none!important}
+.tight .wrap{min-width:110px}
+.tight td.act{white-space:normal}
+.sdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle;flex:none;cursor:help;background:#E5B422}
+.sdot.ok{background:#2FB36B}
+.qhelp{width:13px;height:13px;border:0;background:none;padding:0;flex:none;display:inline-flex;cursor:help;border-radius:50%;--qb:#fff;--qs:#13201C;--qi:#13201C}
+.qhelp svg{width:100%;height:100%;display:block;overflow:visible}
+.qhelp .qb{fill:var(--qb);stroke:var(--qs);stroke-width:2;stroke-linejoin:round}
+.qhelp .qi{fill:var(--qi)}
 .qhelp:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .qhelp{--qb:#000;--qs:#8FA39B;--qi:#fff}}
+:root[data-theme="dark"] .qhelp{--qb:#000;--qs:#8FA39B;--qi:#fff}
 .qpop{position:fixed;z-index:90;max-width:280px;background:#1B2A3F;color:#fff;font-size:13px;line-height:1.45;padding:10px 13px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 </style>
 </head><body>
@@ -397,7 +408,7 @@ const SEV={c:{n:'Crítica',o:0},a:{n:'Alta',o:1},m:{n:'Media',o:2},b:{n:'Baja',o
 const MODULES=[
  {id:'proyectos',name:'Proyectos y lotes',live:true},
  {id:'kardex',name:'Kardex de regalos',live:true,desc:'Compras (entradas) y entregas (salidas) de regalos a clientes, con stock, costo promedio, valor entregado y alertas de stock mínimo.',items:['Catálogo de productos','Registro de movimientos con sustento','Stock consolidado y resumen']},
- {id:'alquileres',name:'Alquileres vigentes',live:true,desc:'Contratos y adendas de alquiler, con el calendario de pagos mensuales y el comprobante de cada pago.',items:['Lista de contratos y adendas','Pagos por mes y comprobantes','Vigencia y vencimientos']},
+ {id:'alquileres',name:'Alquileres vigentes',live:true,desc:'Contratos y adendas de alquiler, con el calendario de pagos según su periodicidad y el comprobante de cada pago.',items:['Lista de contratos y adendas','Pagos por mes y comprobantes','Vigencia y vencimientos']},
  {id:'banco',name:'Movimientos bancarios',live:true,desc:'Detalle de movimientos de la cuenta bancaria por mes, con ingresos, egresos, saldos y sustento de cada operación.',items:['Movimientos del mes','Saldos y conciliación','Operaciones sin sustento']}
 ];
 const TABS=[['resumen','Resumen'],['proyectos','Proyectos'],['lotes','Lotes por año'],['escrituras','Escrituras'],['servicios','Servicios'],['calidad','Control de calidad']];
@@ -818,7 +829,7 @@ function kMovs(){
     <td class="wrap"><b>${esc(r?r.desc:m.codigo)}</b><span class="small mono">${esc(m.codigo)}${!ent&&m.cliente?' · '+esc(m.cliente):''}</span></td>
     <td class="n">${ent?nf(m._q):''}</td><td class="n">${ent?'':nf(m._q)}</td><td class="n">${money(m._val)}</td>
     <td>${(m.adjuntos||[]).map(a=>{const lk=(m.adjLinks||{})[a];return `<span class="chip">${lk?`<a href="${esc(lk)}" target="_blank" rel="noopener noreferrer">${esc(a.split(' ')[0])}</a>`:esc(a.split(' ')[0])}</span>`}).join(' ')||'<span class="sinsust">SIN SUSTENTO</span>'}</td>
-    <td class="act">${detBtn('km',m.id)}<button class="btn sm" data-act="k-edit-m" data-id="${m.id}">Editar</button></td></tr>`}).join('');
+    <td class="act">${detBtn('km',m.id)}</td></tr>`}).join('');
   const ei=list.filter(m=>m.tipo==='ENTRADA').reduce((a,m)=>a+m._q,0),es=list.filter(m=>m.tipo==='SALIDA').reduce((a,m)=>a+m._q,0);
   return bar+`<div class="scroll"><table><thead><tr><th class="n">Ítem</th><th class="n">Fecha</th><th>Tipo</th><th>Producto</th><th class="n">Ingreso</th><th class="n">Salida</th><th class="n">Valor</th><th>Sustento</th><th></th></tr></thead><tbody>${rows}</tbody>
   <tfoot><tr><td></td><td colspan="3">Total (${list.length} movimientos)</td><td class="n">${nf(ei)}</td><td class="n">${nf(es)}</td><td colspan="3"></td></tr></tfoot></table></div>`;
@@ -839,7 +850,7 @@ function kCatalogo(){
   const head=`<div class="toolbar"><span class="hint">Lista maestra de regalos. El código identifica al producto en todos los movimientos.</span><button class="btn primary" data-act="k-new-p">Nuevo producto</button></div>`;
   if(!K.cat.length)return kEmpty();
   const rows=K.cat.slice().sort((a,b)=>cmpTxt(a.codigo,b.codigo)).map(c=>{const n=KC.movs.filter(m=>kcode(m.codigo)===kcode(c.codigo)).length;
-    return `<tr><td class="mono">${esc(c.codigo)}</td><td class="wrap"><b>${esc(c.descripcion)}</b>${c.marca?'<span class="small">'+esc(c.marca)+'</span>':''}</td><td class="n">${nf(num(c.stockMin)||0)}</td><td class="n">${n}</td><td class="act">${detBtn('kp',c.id)}<button class="btn sm" data-act="k-edit-p" data-id="${c.id}">Editar</button></td></tr>`}).join('');
+    return `<tr><td class="mono">${esc(c.codigo)}</td><td class="wrap"><b>${esc(c.descripcion)}</b>${c.marca?'<span class="small">'+esc(c.marca)+'</span>':''}</td><td class="n">${nf(num(c.stockMin)||0)}</td><td class="n">${n}</td><td class="act">${detBtn('kp',c.id)}</td></tr>`}).join('');
   return head+`<div class="scroll"><table><thead><tr><th>Código</th><th>Descripción</th><th class="n">Stock mínimo</th><th class="n">Movimientos</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
@@ -903,7 +914,7 @@ function openMovK(tipo,id){
      fld('m-incl','¿El precio incluye IGV?',`<select id="m-incl"><option value="si" ${m.incluyeIGV!==false?'selected':''}>Sí, incluye IGV (${nf(igvRate()*100)}%)</option><option value="no" ${m.incluyeIGV===false?'selected':''}>No incluye IGV</option></select>`,'El costo sin IGV se calcula solo.')
     :
      fld('m-proy','Proyecto',`<select id="m-proy">${proyOpts}</select>`,'La lista sale del panel Proyectos y lotes.')+
-     `<div class="fld" id="w-proyotro" ${otro?'':'hidden'}><label for="m-proyotro">Nombre del proyecto</label><input id="m-proyotro" value="${esc(otro?m.proyecto:'')}"><div class="err" id="e-m-proyotro" role="alert"></div></div>`+
+     `<div class="fld" id="w-proyotro" ${otro?'':'hidden'}>${qLbl("m-proyotro","Nombre del proyecto")}<input id="m-proyotro" value="${esc(otro?m.proyecto:'')}"><div class="err" id="e-m-proyotro" role="alert"></div></div>`+
      fld('m-lote','Lote',`<input id="m-lote" list="dl-lote" value="${esc(m.lote||'')}" autocomplete="off"><datalist id="dl-lote"></datalist>`,'Sugiere los lotes con escritura del proyecto, por ejemplo B-4.')+
      fld('m-dni','DNI o RUC del cliente',`<input id="m-dni" list="dl-dni" inputmode="numeric" value="${esc(m.docCliente||'')}" autocomplete="off"><datalist id="dl-dni">${dni}</datalist>`,'<span id="h-dni"></span>')+
      fld('m-cli','Cliente',`<input id="m-cli" value="${esc(m.cliente||'')}" autocomplete="off">`,'Se completa solo si el DNI o RUC ya fue usado.'))+
@@ -911,7 +922,7 @@ function openMovK(tipo,id){
    fld('m-nrodoc',ent?'N.° de factura o comprobante':'N.° de boleta o documento',`<input id="m-nrodoc" value="${esc(m.nroDoc||'')}" autocomplete="off">`)+
    (ent?'':fld('m-acta','N.° de acta o constancia',`<input id="m-acta" value="${esc(m.nroActa||'')}" autocomplete="off">`,'Si la entrega tiene acta.'))+
    fld('m-resp','Responsable',`<input id="m-resp" value="${esc(m.responsable||'')}" autocomplete="off">`)+
-   `<div class="fld full"><span class="lb">Sustento guardado</span><div id="m-adj">${KADJ.map((a,i)=>{const on=(m.adjuntos||[]).includes(a),lk=(m.adjLinks||{})[a]||'';return `<div class="adjrow"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${a}" ${on?'checked':''} style="width:auto">${a}</label><input type="url" class="adjlink" data-for="${esc(a)}" value="${esc(lk)}" placeholder="Pega el enlace de: ${esc(a)}" autocomplete="off" ${on?'':'hidden'}><div class="err" id="e-m-adj-${i}" role="alert"></div></div>`}).join('')}</div><div class="hint">Marca cada sustento que tienes y pega su enlace. Si no marcas ninguno, el registro quedará como SIN SUSTENTO.</div></div>`+
+   `<div class="fld full"><div class="lbrow"><span class="lb">Sustento guardado</span>${qBtn("Sustento guardado",HELPD["Sustento guardado"])}</div><div id="m-adj">${KADJ.map((a,i)=>{const on=(m.adjuntos||[]).includes(a),lk=(m.adjLinks||{})[a]||'';return `<div class="adjrow"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${a}" ${on?'checked':''} style="width:auto">${a}</label><input type="url" class="adjlink" data-for="${esc(a)}" value="${esc(lk)}" placeholder="Pega el enlace de: ${esc(a)}" autocomplete="off" ${on?'':'hidden'}><div class="err" id="e-m-adj-${i}" role="alert"></div></div>`}).join('')}</div><div class="hint">Marca cada sustento que tienes y pega su enlace. Si no marcas ninguno, el registro quedará como SIN SUSTENTO.</div></div>`+
    fld('m-obs','Observación',`<input id="m-obs" value="${esc(m.obs||'')}">`,'',true)+
    `<div class="preview" id="m-prev" aria-live="polite"></div>`;
   openModal(id?(ent?'Editar compra':'Editar entrega'):(ent?'Nueva compra (entrada)':'Nueva entrega a cliente (salida)'),body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,delButtons('km',id));
@@ -1050,9 +1061,10 @@ function kChangeIn(t,k){
 /* ================= ALQUILERES VIGENTES ================= */
 const ACOLS={con:'alq_contratos',pag:'alq_pagos',cfg:'alq_config'};
 const ADEF={empresa:'',ruc:'',fechaRef:'',diasAlerta:30};
-const ATABS=[['resumen','Resumen'],['contratos','Contratos y adendas'],['pagos','Pagos por mes'],['calidad','Control de calidad']];
+const ATABS=[['resumen','Resumen'],['contratos','Contratos y adendas'],['pagos','Calendario de pagos'],['calidad','Control de calidad']];
 const ABIEN=['Inmueble','Vehículo','Maquinaria','Mueble','Otro'];
-const AFORMA=['Transferencia','Depósito','Efectivo','Cheque','Otro'];
+const APERIOD=['Diario','Semanal','Quincenal','Mensual','Bimestral','Trimestral','Semestral','Anual'];
+const AMETODO=['Transferencia','Depósito','Efectivo','Cheque','Otro'];
 const ADOCS=['FACTURA','RECIBO DE ARRENDAMIENTO','OTRO'];
 S.a={con:[],pag:[],cfg:{...ADEF},ready:{},tab:'resumen',fcon:'',fvig:'',fq:''};
 S.AC=null;
@@ -1064,6 +1076,26 @@ function addM(iso,n){
   const last=new Date(Date.UTC(y,m-1+n+1,0)).getUTCDate();
   return isoOf(new Date(Date.UTC(y,m-1+n,Math.min(d,last))));
 }
+function addD(iso,n){const [y,m,d]=iso.split('-').map(Number);return isoOf(new Date(Date.UTC(y,m-1,d)+n*864e5))}
+/* calendario de cuotas según la forma de pago (periodicidad). Sin periodicidad válida se asume mensual. */
+const APER_M={Mensual:1,Bimestral:2,Trimestral:3,Semestral:6,Anual:12};
+const APER_D={Diario:1,Semanal:7};
+const APER_PL={Diario:'diarias',Semanal:'semanales',Quincenal:'quincenales',Mensual:'mensuales',Bimestral:'bimestrales',Trimestral:'trimestrales',Semestral:'semestrales',Anual:'anuales'};
+function cuotasPlan(ini,meses,imp,forma){
+  const out=[];if(!okIso(ini)||!(meses>0))return out;
+  const r2=x=>Math.round(x*100)/100;
+  if(forma==='Quincenal'){
+    for(let n=1;n<=meses*2;n++){const k=Math.floor((n-1)/2),h=(n-1)%2,m0=addM(ini,k);
+      out.push({n,per:h?addD(m0,15):m0,dev:h?addD(addM(ini,k+1),-1):addD(m0,14),renta:r2(imp/2)})}
+    return out}
+  if(APER_D[forma]){const d=APER_D[forma],fin=addM(ini,meses),cnt=Math.ceil(dDiff(ini,fin)/d),total=r2(imp*meses);let acum=0;
+    for(let n=1;n<=cnt;n++){const per=addD(ini,(n-1)*d),e=addD(per,d-1),ren=n===cnt?r2(total-acum):r2(total/cnt);acum+=ren;
+      out.push({n,per,dev:e<fin?e:addD(fin,-1),renta:ren})}
+    return out}
+  const ms=APER_M[forma]||1,cnt=Math.ceil(meses/ms);
+  for(let n=1;n<=cnt;n++){const k=Math.min(ms,meses-(n-1)*ms),per=addM(ini,(n-1)*ms);
+    out.push({n,per,dev:eom(addM(per,k-1)),renta:r2(imp*k)})}
+  return out}
 function eom(iso){const [y,m]=iso.split('-').map(Number);return isoOf(new Date(Date.UTC(y,m,0)))}
 function dDiff(a,b){const f=s=>{const [y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d)};return Math.round((f(b)-f(a))/864e5)}
 const aRef=()=>okIso(S.a.cfg.fechaRef)?S.a.cfg.fechaRef:hoy();
@@ -1086,15 +1118,15 @@ function computeA(){
       else vig=dDiff(ref,fin)<=dias?'Por vencer':'Vigente';
     }
     const cuotas=[];
-    if(ok)for(let n=1;n<=meses;n++){
-      const per=addM(c.inicio,n-1),dev=eom(per),pg=pagBy[c.id+'_'+n]||{};
+    if(ok)cuotasPlan(c.inicio,meses,imp,c.formaPago).forEach(({n,per,dev,renta})=>{
+      const pg=pagBy[c.id+'_'+n]||{};
       const pagada=okIso(pg.fechaPago);
       const estado=pagada?'Pagada':(dev<ref?'Vencida':'Por pagar');
       const atraso=pagada?Math.max(0,dDiff(dev,pg.fechaPago)):(dev<ref?dDiff(dev,ref):0);
-      cuotas.push({n,per,dev,renta:imp,fechaPago:pg.fechaPago||'',tipoDoc:pg.tipoDoc||'',fechaEm:pg.fechaEmision||'',serie:pg.serie||'',estado,atraso,pagada});
-    }
+      cuotas.push({n,per,dev,renta,fechaPago:pg.fechaPago||'',tipoDoc:pg.tipoDoc||'',fechaEm:pg.fechaEmision||'',serie:pg.serie||'',metodo:pg.metodo||'',estado,atraso,pagada});
+    });
     const pagadas=cuotas.filter(q=>q.pagada).length,venc=cuotas.filter(q=>q.estado==='Vencida');
-    return {...c,_imp:imp,_meses:meses,_fin:fin,_vig:vig,_diasFin:fin?dDiff(ref,fin):null,cuotas,_pagadas:pagadas,_venc:venc,_total:imp*meses,_cobrado:imp*pagadas};
+    return {...c,_imp:imp,_meses:meses,_fin:fin,_vig:vig,_diasFin:fin?dDiff(ref,fin):null,cuotas,_pagadas:pagadas,_venc:venc,_nc:cuotas.length,_total:cuotas.reduce((a,q)=>a+q.renta,0),_cobrado:cuotas.filter(q=>q.pagada).reduce((a,q)=>a+q.renta,0)};
   }).sort((a,b)=>(a.tipoDoc===b.tipoDoc?0:a.tipoDoc==='ADENDA'?1:-1)||cmpTxt(a.nro,b.nro));
   const byId={};con.forEach(c=>{byId[c.id]=c});
   const vigentes=con.filter(c=>c._vig==='Vigente'||c._vig==='Por vencer');
@@ -1172,9 +1204,9 @@ function aResumen(){
    <div class="kpi"><span class="l">Vencidos</span><span class="v" style="color:${T.vc?'var(--bad)':'inherit'}">${T.vc}</span><span class="s">sin renovación</span></div>
    <div class="kpi"><span class="l">Renta mensual vigente</span><span class="v" style="font-size:1.25rem">${rentaTxt(T.renta)}</span><span class="s">suma de vigentes</span></div>
    <div class="kpi"><span class="l">Cuotas vencidas sin pago</span><span class="v" style="color:${T.nVenc?'var(--bad)':'var(--ok)'}">${T.nVenc}</span><span class="s">${T.nVenc?rentaTxt(T.deuda):'todo al día'}</span></div></div>`;
-  const avance=AC.con.filter(c=>c._meses).map(c=>{const pct=c._meses?c._pagadas/c._meses*100:0;
-    return `<div class="prog"><div class="prog-top"><span class="nm">${esc(c.arrendador||'(sin arrendador)')} <span class="hint mono">${esc(c.nro||'')}</span></span><span class="mono">${c._pagadas}/${c._meses} ${vigPill(c._vig)}</span></div>
-    <div class="track" role="img" aria-label="${esc(c.arrendador)}: ${c._pagadas} de ${c._meses} pagos"><div class="fill ${c._venc.length?'over':''}" style="width:${pct}%"></div></div></div>`}).join('');
+  const avance=AC.con.filter(c=>c._nc).map(c=>{const pct=c._nc?c._pagadas/c._nc*100:0;
+    return `<div class="prog"><div class="prog-top"><span class="nm">${esc(c.arrendador||'(sin arrendador)')} <span class="hint mono">${esc(c.nro||'')}</span></span><span class="mono">${c._pagadas}/${c._nc} ${vigPill(c._vig)}</span></div>
+    <div class="track" role="img" aria-label="${esc(c.arrendador)}: ${c._pagadas} de ${c._nc} pagos"><div class="fill ${c._venc.length?'over':''}" style="width:${pct}%"></div></div></div>`}).join('');
   const prox=AC.con.filter(c=>c._fin&&c._vig!=='Vencido').sort((a,b)=>cmpTxt(a._fin,b._fin)).slice(0,6).map(c=>`<tr><td class="wrap"><b>${esc(c.arrendador||'')}</b><span class="small mono">${esc(c.tipoDoc==='ADENDA'?'Adenda ':'Contrato ')}${esc(c.nro||'')}</span></td><td class="n">${fdate(c._fin)}</td><td class="n">${c._diasFin} días</td><td>${vigPill(c._vig)}</td></tr>`).join('');
   const venc=[];AC.con.forEach(c=>c._venc.forEach(q=>venc.push({c,q})));venc.sort((a,b)=>cmpTxt(a.q.dev,b.q.dev));
   const vt=venc.slice(0,8).map(({c,q})=>`<tr><td class="wrap">${esc(c.arrendador||'')}<span class="small mono">cuota ${q.n}</span></td><td class="n">${fdate(q.dev)}</td><td class="n">${q.atraso} d</td><td class="n">${cur$(q.renta,c.moneda)}</td><td><button class="btn sm" data-act="a-go-pagos" data-id="${c.id}">Registrar</button></td></tr>`).join('');
@@ -1193,8 +1225,8 @@ function aContratos(){
   const list=AC.con.filter(c=>(!A.fvig||c._vig===A.fvig)&&(!q||[c.arrendador,c.nro,c.detalle,c.placa,c.doc].some(x=>String(x||'').toLowerCase().includes(q))));
   const rows=list.map(c=>`<tr><td class="wrap"><span class="pill ${c.tipoDoc==='ADENDA'?'i':'b'}">${c.tipoDoc==='ADENDA'?'Adenda':'Contrato'}</span><span class="small mono">${esc(c.nro||'')}${c.tipoDoc==='ADENDA'&&AC.byId[c.contratoRef]?' → '+esc(AC.byId[c.contratoRef].nro||''):''}</span></td>
    <td class="wrap"><b>${esc(c.arrendador||'')}</b><span class="small">${esc(c.bien||'')}${c.placa?' · '+esc(c.placa):''}</span></td>
-   <td class="n">${cur$(c._imp,c.moneda)}</td><td>${vigPill(c._vig)}</td><td class="n">${c._pagadas}/${c._meses}</td>
-   <td class="act">${detBtn('a',c.id)}<button class="btn sm" data-act="a-go-pagos" data-id="${c.id}">Pagos</button><button class="btn sm" data-act="a-edit" data-id="${c.id}">Editar</button></td></tr>`).join('');
+   <td class="n">${cur$(c._imp,c.moneda)}</td><td>${vigPill(c._vig)}</td><td class="n">${c._pagadas}/${c._nc}</td>
+   <td class="act">${detBtn('a',c.id)}<button class="btn sm" data-act="a-go-pagos" data-id="${c.id}">Pagos</button></td></tr>`).join('');
   return bar+`<div class="scroll"><table><thead><tr><th>Documento</th><th>Arrendador</th><th class="n">Importe mensual</th><th>Vigencia</th><th class="n">Pagos</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
@@ -1209,10 +1241,10 @@ function aPagos(){
   const rows=c.cuotas.map(q=>`<tr><td class="n">${q.n}</td><td class="n">${fdate(q.per)}</td><td class="n">${cur$(q.renta,c.moneda)}</td>
     <td class="n">${q.fechaPago?fdate(q.fechaPago):'<span class="small">sin pago</span>'}</td>
     <td><span class="pill ${cuoCls(q.estado)}">${q.estado}</span>${q.atraso?'<span class="small warn">'+q.atraso+' d de atraso</span>':''}</td>
-    <td class="act">${detBtn('ap',c.id+'_'+q.n)}<button class="btn sm ${q.fechaPago?'':'primary'}" data-act="a-pago" data-id="${c.id}_${q.n}">${q.fechaPago?'Editar pago':'Registrar pago'}</button></td></tr>`).join('');
+    <td class="act">${detBtn('ap',c.id+'_'+q.n)}</td></tr>`).join('');
   return bar+`<div class="note">Las cuotas se generan solas desde el contrato. Usa <b>Registrar pago</b> para anotar la fecha de pago (según el voucher) y el comprobante. Para ${esc(c.arrendador||'este arrendador')} corresponde: <b>${sug}</b>.</div>
   <div class="scroll"><table><thead><tr><th class="n">N.°</th><th class="n">Periodo desde</th><th class="n">Renta</th><th class="n">Fecha de pago</th><th>Estado</th><th></th></tr></thead><tbody>${rows}</tbody>
-  <tfoot><tr><td colspan="2">Total contrato</td><td class="n">${cur$(c._total,c.moneda)}</td><td colspan="3">Pagado: ${cur$(c._cobrado,c.moneda)} (${c._pagadas} de ${c._meses}) · Pendiente: ${cur$(c._total-c._cobrado,c.moneda)}</td></tr></tfoot></table></div>`;
+  <tfoot><tr><td colspan="2">Total contrato</td><td class="n">${cur$(c._total,c.moneda)}</td><td colspan="3">Pagado: ${cur$(c._cobrado,c.moneda)} (${c._pagadas} de ${c._nc}) · Pendiente: ${cur$(c._total-c._cobrado,c.moneda)}</td></tr></tfoot></table></div>`;
 }
 
 function openPagoA(pid){
@@ -1220,17 +1252,18 @@ function openPagoA(pid){
   const body=
    `<div class="fld full"><div class="preview">Cuota <b>${q.n}</b> · periodo desde ${fdate(q.per)} · renta <b>${cur$(q.renta,c.moneda)}</b> · devengo ${fdate(q.dev)}</div></div>`+
    fld('ap-fp','Fecha de pago',`<input id="ap-fp" type="date" value="${esc(q.fechaPago||'')}">`,'Según el voucher.')+
+   fld('ap-mp','Método de pago',`<select id="ap-mp"><option value="">Elegir método</option>${AMETODO.map(d=>`<option ${(q.metodo||c.metodoPagoDef||'')===d?'selected':''}>${d}</option>`).join('')}</select>`,'Cómo se pagó esta cuota.')+
    fld('ap-td','Tipo de comprobante',`<select id="ap-td"><option value=""></option>${ADOCS.map(d=>`<option ${q.tipoDoc===d?'selected':''}>${d}</option>`).join('')}</select>`,'Si lo dejas vacío, se propone según el DNI o RUC: '+sugDoc(c.doc)+'.')+
    fld('ap-fe','Fecha de emisión',`<input id="ap-fe" type="date" value="${esc(q.fechaEm||'')}">`)+
    fld('ap-sr','Serie-número',`<input id="ap-sr" value="${esc(q.serie||'')}" autocomplete="off">`);
-  openModal('Pago de la cuota '+q.n+' · '+(c.arrendador||''),body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,q.fechaPago||q.tipoDoc||q.fechaEm||q.serie?`<button type="button" class="btn danger" data-act="a-pago-del" data-id="${pid}">Borrar pago</button>`:'');
+  openModal('Pago de la cuota '+q.n+' · '+(c.arrendador||''),body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,q.fechaPago||q.tipoDoc||q.fechaEm||q.serie||q.metodo?`<button type="button" class="btn danger" data-act="a-pago-del" data-id="${pid}">Borrar pago</button>`:'');
   const f=$('#mf');f.dataset.kind='ap';f.dataset.id=pid;
 }
 function savePagoA(){
   clearErrs();const pid=$('#mf').dataset.id,i=pid.lastIndexOf('_'),cid=pid.slice(0,i),n=Number(pid.slice(i+1)),c=S.AC.byId[cid];if(!c)return;
-  const next={contrato:cid,n,fechaPago:gv('ap-fp'),tipoDoc:gv('ap-td'),fechaEmision:gv('ap-fe'),serie:gv('ap-sr')};
+  const next={contrato:cid,n,fechaPago:gv('ap-fp'),tipoDoc:gv('ap-td'),fechaEmision:gv('ap-fe'),serie:gv('ap-sr'),metodo:gv('ap-mp')};
   if(next.fechaPago&&!next.tipoDoc)next.tipoDoc=sugDoc(c.doc);
-  const empty=!next.fechaPago&&!next.tipoDoc&&!next.fechaEmision&&!next.serie;
+  const empty=!next.fechaPago&&!next.tipoDoc&&!next.fechaEmision&&!next.serie&&!next.metodo;
   persist(()=>empty?Store.del(ACOLS.pag,pid):Store.set(ACOLS.pag,pid,next),'Pago guardado');
 }
 function aCalidad(){
@@ -1249,23 +1282,23 @@ function aCalidad(){
 /* ----- formularios ----- */
 function openContratoA(id,tipo){
   const AC=S.AC,prev=id?S.a.con.find(x=>x.id===id):null;
-  const c=prev||{tipoDoc:tipo||'CONTRATO',moneda:'PEN',bien:'Inmueble',formaPago:'Transferencia',meses:12};
+  const c=prev||{tipoDoc:tipo||'CONTRATO',moneda:'PEN',bien:'Inmueble',formaPago:'Mensual',meses:12};
   const ad=c.tipoDoc==='ADENDA';
   const refOpts='<option value="">Elige el contrato</option>'+AC.con.filter(x=>x.tipoDoc!=='ADENDA'&&x.id!==id).map(x=>`<option value="${x.id}" ${c.contratoRef===x.id?'selected':''}>${esc((x.nro||'s/n')+' · '+(x.arrendador||''))}</option>`).join('');
   const body=
    fld('c-tipo','Tipo de documento',`<select id="c-tipo"><option value="CONTRATO" ${!ad?'selected':''}>Contrato</option><option value="ADENDA" ${ad?'selected':''}>Adenda</option></select>`)+
    fld('c-nro',ad?'N.° de adenda':'N.° de contrato',`<input id="c-nro" value="${esc(c.nro||'')}" autocomplete="off">`)+
-   `<div class="fld full" id="w-ref" ${ad?'':'hidden'}><label for="c-ref">Contrato al que modifica</label><select id="c-ref">${refOpts}</select><div class="err" id="e-c-ref" role="alert"></div></div>`+
+   `<div class="fld full" id="w-ref" ${ad?'':'hidden'}>${qLbl("c-ref","Contrato al que modifica")}<select id="c-ref">${refOpts}</select><div class="err" id="e-c-ref" role="alert"></div></div>`+
    fld('c-det','Detalle',`<input id="c-det" value="${esc(c.detalle||'')}" placeholder="Oficina, almacén, camioneta…" autocomplete="off">`,'',true)+
    fld('c-arr','Arrendador',`<input id="c-arr" value="${esc(c.arrendador||'')}" autocomplete="off">`)+
    fld('c-doc','DNI o RUC',`<input id="c-doc" inputmode="numeric" value="${esc(c.doc||'')}" autocomplete="off">`,'<span id="h-cdoc"></span>')+
    fld('c-bien','Tipo de bien',`<select id="c-bien">${ABIEN.map(b=>`<option ${c.bien===b?'selected':''}>${b}</option>`).join('')}</select>`)+
-   `<div class="fld" id="w-placa" ${c.bien==='Vehículo'?'':'hidden'}><label for="c-placa">Placa</label><input id="c-placa" value="${esc(c.placa||'')}" style="text-transform:uppercase" autocomplete="off"><div class="err" id="e-c-placa" role="alert"></div></div>`+
+   `<div class="fld" id="w-placa" ${c.bien==='Vehículo'?'':'hidden'}>${qLbl("c-placa","Placa")}<input id="c-placa" value="${esc(c.placa||'')}" style="text-transform:uppercase" autocomplete="off"><div class="err" id="e-c-placa" role="alert"></div></div>`+
    fld('c-ini','Fecha de inicio',`<input id="c-ini" type="date" value="${esc(c.inicio||'')}">`)+
    fld('c-meses','N.° de meses',`<input id="c-meses" type="number" min="1" max="120" step="1" inputmode="numeric" value="${esc(c.meses==null?'':c.meses)}">`)+
    fld('c-imp','Importe mensual',`<input id="c-imp" type="number" min="0" step="0.01" inputmode="decimal" value="${c.importe==null?'':esc(c.importe)}">`)+
    fld('c-mon','Moneda',`<select id="c-mon"><option value="PEN" ${c.moneda!=='USD'?'selected':''}>Soles (S/)</option><option value="USD" ${c.moneda==='USD'?'selected':''}>Dólares (US$)</option></select>`)+
-   fld('c-forma','Forma de pago',`<select id="c-forma">${AFORMA.map(b=>`<option ${c.formaPago===b?'selected':''}>${b}</option>`).join('')}</select>`)+
+   fld('c-forma','Forma de pago',`<select id="c-forma"><option value="">Elegir periodicidad</option>${APERIOD.map(b=>`<option ${c.formaPago===b?'selected':''}>${b}</option>`).join('')}</select>`,AMETODO.includes(c.formaPago)?'Este contrato tenía guardado "'+c.formaPago+'" aquí. Elige cada cuánto se paga; el método de pago ahora se indica al registrar cada pago.':'')+
    fld('c-obs','Observación',`<input id="c-obs" value="${esc(c.obs||'')}">`,'',true)+
    `<div class="preview" id="c-prev" aria-live="polite"></div>`;
   openModal(id?(ad?'Editar adenda':'Editar contrato'):(ad?'Nueva adenda':'Nuevo contrato'),body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,delButtons('ac',id));
@@ -1280,7 +1313,7 @@ function updatePreviewAq(){
   if(okIso(ini)&&m>0){
     const fin=addM(ini,m),ref=aRef(),v=ref<ini?'Por iniciar':ref>=fin?'Vencido':'Vigente';
     h+=`<div>Fecha de término: <b class="mono">${fdate(fin)}</b> · Vigencia al ${fdate(ref)}: <b>${v}</b></div>`;
-    if(imp>0)h+=`<div>Total del contrato: <b class="mono">${cur$(imp*m,cur)}</b> en ${m} cuotas</div>`;
+    if(imp>0){const pl=cuotasPlan(ini,m,imp,gv('c-forma')),tt=pl.reduce((a,q)=>a+q.renta,0);h+=`<div>Total del contrato: <b class="mono">${cur$(tt,cur)}</b> en ${pl.length} ${pl.length===1?'cuota':'cuotas'}${APER_PL[gv('c-forma')]?' ('+APER_PL[gv('c-forma')]+')':''}</div>`}
   }else h='<span class="hint">Con la fecha de inicio y los meses se calcula el término y el calendario de pagos.</span>';
   if(ty)h+=`<div>Comprobante que corresponde: <b>${sugDoc(d)}</b></div>`;
   box.innerHTML=h;
@@ -1304,13 +1337,14 @@ function saveContratoA(){
   else if(S.a.con.some(x=>x.id!==id&&x.tipoDoc===tipo&&String(x.nro||'').trim().toUpperCase()===gv('c-nro').toUpperCase())){setErr('c-nro','Ya existe uno con ese número.');ok=false}
   if(ad&&!gv('c-ref')){setErr('c-ref','Elige el contrato que modifica.');ok=false}
   if(!gv('c-arr')){setErr('c-arr','Escribe el arrendador.');ok=false}
+  if(!gv('c-forma')){setErr('c-forma','Elige la forma de pago (periodicidad).');ok=false}
   if(!validDoc(doc)){setErr('c-doc','Escribe un DNI de 8 dígitos o un RUC de 11 dígitos válido.');ok=false}
   if(bien==='Vehículo'&&!gv('c-placa')){setErr('c-placa','Escribe la placa.');ok=false}
   if(!okIso(ini)){setErr('c-ini','Indica la fecha de inicio.');ok=false}
   if(m==null||m<1||m>120||Math.round(m)!==m){setErr('c-meses','Escribe de 1 a 120 meses.');ok=false}
   if(imp==null||!(imp>0)){setErr('c-imp','Escribe el importe mensual.');ok=false}
   if(!ok)return;
-  const data={tipoDoc:tipo,nro:gv('c-nro'),contratoRef:ad?gv('c-ref'):'',detalle:gv('c-det'),arrendador:gv('c-arr'),doc,bien,placa:bien==='Vehículo'?gv('c-placa').toUpperCase():'',inicio:ini,meses:m,importe:imp,moneda:gv('c-mon'),formaPago:gv('c-forma'),obs:gv('c-obs')};
+  const data={tipoDoc:tipo,nro:gv('c-nro'),contratoRef:ad?gv('c-ref'):'',detalle:gv('c-det'),arrendador:gv('c-arr'),doc,bien,placa:bien==='Vehículo'?gv('c-placa').toUpperCase():'',inicio:ini,meses:m,importe:imp,moneda:gv('c-mon'),formaPago:gv('c-forma'),metodoPagoDef:(()=>{const pv=S.a.con.find(x=>x.id===id)||{};return pv.metodoPagoDef||(AMETODO.includes(pv.formaPago)?pv.formaPago:'')})(),obs:gv('c-obs')};
   persist(()=>Store.set(ACOLS.con,id||newId('c_'),data),id?'Guardado':(ad?'Adenda agregada':'Contrato agregado'));
 }
 
@@ -1356,11 +1390,11 @@ function aChangeIn(t,k){
   if(k==='afcon'){A.fcon=t.value;render();return}
   if(k==='apg'){
     const cid=t.dataset.c,n=t.dataset.n,f=t.dataset.f,v=t.value.trim(),id=cid+'_'+n;
-    const cur=A.pag.find(x=>x.id===id)||{},next={contrato:cid,n:Number(n),fechaPago:cur.fechaPago||'',tipoDoc:cur.tipoDoc||'',fechaEmision:cur.fechaEmision||'',serie:cur.serie||''};
+    const cur=A.pag.find(x=>x.id===id)||{},next={contrato:cid,n:Number(n),fechaPago:cur.fechaPago||'',tipoDoc:cur.tipoDoc||'',fechaEmision:cur.fechaEmision||'',serie:cur.serie||'',metodo:cur.metodo||''};
     if((next[f]||'')===v)return;
     next[f]=v;
     if(f==='fechaPago'&&v&&!next.tipoDoc){const c=S.AC.byId[cid];if(c)next.tipoDoc=sugDoc(c.doc)}
-    const empty=!next.fechaPago&&!next.tipoDoc&&!next.fechaEmision&&!next.serie;
+    const empty=!next.fechaPago&&!next.tipoDoc&&!next.fechaEmision&&!next.serie&&!next.metodo;
     (empty?Store.del(ACOLS.pag,id):Store.set(ACOLS.pag,id,next)).catch(()=>{toast('No se pudo guardar.');render()});
   }
 }
@@ -1525,7 +1559,7 @@ function bMovs(){
   const first=B.fmes||B.fq||B.fdir||B.fsin?'':`<tr><td></td><td></td><td><b>SALDO INICIAL</b></td><td></td><td></td><td class="n"><b>${bm(BC.T.si)}</b></td><td></td></tr>`;
   const rows=list.map(m=>{const e=m.dir==='E';
     return `<tr><td class="mono">${m._cod}</td><td class="n">${fdate(m.fecha)}</td><td class="wrap">${esc(m.descripcion||'')}<span class="small mono">${esc(m.tipoOp||'')}${m.nroOp?' · '+esc(m.nroOp):''}</span>${m.proyectoId?'<span class="small">'+esc(S.C.pName(m.proyectoId))+'</span>':''}${sinComp(m)?'<span class="pill a">Sin comprobante</span>':''}</td>
-    <td class="n">${e?'':bm(m._m)}</td><td class="n">${e?bm(m._m):''}</td><td class="n" style="${m._saldo<0?'color:var(--bad);font-weight:600':''}"><b>${bm(m._saldo)}</b></td><td class="act">${detBtn('b',m.id)}<button class="btn sm" data-act="b-edit" data-id="${m.id}">Editar</button></td></tr>`}).join('');
+    <td class="n">${e?'':bm(m._m)}</td><td class="n">${e?bm(m._m):''}</td><td class="n" style="${m._saldo<0?'color:var(--bad);font-weight:600':''}"><b>${bm(m._saldo)}</b></td><td class="act">${detBtn('b',m.id)}</td></tr>`}).join('');
   const ti=list.filter(m=>m.dir==='I').reduce((a,m)=>a+m._m,0),te=list.filter(m=>m.dir==='E').reduce((a,m)=>a+m._m,0);
   return bar+`<div class="scroll"><table><thead><tr><th>Código</th><th class="n">Fecha</th><th>Descripción</th><th class="n">Ingreso</th><th class="n">Egreso</th><th class="n">Saldo</th><th></th></tr></thead><tbody>${first}${rows}</tbody>
   <tfoot><tr><td colspan="3">Total (${list.length} movimientos)</td><td class="n">${bm(ti)}</td><td class="n">${bm(te)}</td><td colspan="2"></td></tr></tfoot></table></div>`;
@@ -1537,8 +1571,8 @@ function bConc(){
   return `<div class="note">Compara el saldo que calcula la app con el saldo que dice el estado de cuenta del banco. Escribe la fecha de corte del estado y su saldo final.</div>
   <div class="card"><h2>Conciliación bancaria ${st}</h2>
    <div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0">
-    <div class="fld"><label for="b-fe">Fecha de corte del estado de cuenta</label><input id="b-fe" type="date" data-act-in="bcfg" data-f="fechaEstado" data-fk="bcfg:fe" value="${esc(c.fechaEstado||'')}"></div>
-    <div class="fld"><label for="b-se">Saldo final según el banco</label><input id="b-se" type="number" step="0.01" inputmode="decimal" data-act-in="bcfg" data-f="saldoEstado" data-fk="bcfg:se" value="${c.saldoEstado===''||c.saldoEstado==null?'':esc(c.saldoEstado)}"></div></div>
+    <div class="fld">${qLbl("b-fe","Fecha de corte del estado de cuenta")}<input id="b-fe" type="date" data-act-in="bcfg" data-f="fechaEstado" data-fk="bcfg:fe" value="${esc(c.fechaEstado||'')}"></div>
+    <div class="fld">${qLbl("b-se","Saldo final según el banco")}<input id="b-se" type="number" step="0.01" inputmode="decimal" data-act-in="bcfg" data-f="saldoEstado" data-fk="bcfg:se" value="${c.saldoEstado===''||c.saldoEstado==null?'':esc(c.saldoEstado)}"></div></div>
    <div class="scroll"><table><tbody>
     <tr><td>Saldo inicial</td><td class="n">${bm(BC.T.si)}</td></tr>
     <tr><td>+ Ingresos hasta ${fdate(BC.fe||hoy())}</td><td class="n">${bm(BC.movs.filter(m=>m.dir==='I'&&(!BC.fe||m.fecha<=BC.fe)).reduce((a,m)=>a+m._m,0))}</td></tr>
@@ -1685,7 +1719,7 @@ function bCaja(){
   if(!CJ.movs.length)return bar+`<div class="empty"><b>Aún no hay movimientos de caja chica</b><span>Registra cada gasto o reposición en efectivo. Salen en la hoja “Detalle movimientos caja chica” del Excel.</span><button class="btn primary" data-act="b-newj">Nuevo movimiento de caja</button></div>`;
   const rows=CJ.movs.map(m=>{const e=m.dir==='E';
     return `<tr><td class="mono">${m._n}</td><td class="n">${fdate(m.fecha)}</td><td class="wrap">${esc(m.desc||'')}${m.pendiente?' <span class="pill a">Pendiente de devolución</span>':''}${m.docTipo?'':'<span class="pill m">Sin comprobante</span>'}</td>
-    <td class="n">${e?'':bm(m._m)}</td><td class="n">${e?bm(m._m):''}</td><td class="n" style="${m._saldo<0?'color:var(--bad);font-weight:600':''}"><b>${bm(m._saldo)}</b></td><td class="act">${detBtn('bj',m.id)}<button class="btn sm" data-act="b-editj" data-id="${m.id}">Editar</button></td></tr>`}).join('');
+    <td class="n">${e?'':bm(m._m)}</td><td class="n">${e?bm(m._m):''}</td><td class="n" style="${m._saldo<0?'color:var(--bad);font-weight:600':''}"><b>${bm(m._saldo)}</b></td><td class="act">${detBtn('bj',m.id)}</td></tr>`}).join('');
   return bar+kpis+`<div class="scroll"><table><thead><tr><th>N.°</th><th class="n">Fecha</th><th>Descripción</th><th class="n">Ingreso</th><th class="n">Egreso</th><th class="n">Saldo</th><th></th></tr></thead><tbody>${rows}</tbody>
   <tfoot><tr><td colspan="3">Total (${CJ.movs.length} movimientos)</td><td class="n">${bm(CJ.ing)}</td><td class="n">${bm(CJ.egr)}</td><td class="n">${bm(CJ.saldo)}</td><td></td></tr></tfoot></table></div>`;
 }
@@ -1778,16 +1812,41 @@ function cardTables(){
     if(!t.querySelector('tbody td.act'))return;
     t.classList.add('rec');
     const hs=[...t.querySelectorAll('thead th')].map(h=>h.textContent.trim());
-    t.querySelectorAll('tbody tr').forEach(tr=>{const c=[...tr.children];if(c.length!==hs.length)return;c.forEach((td,i)=>{if(hs[i])td.setAttribute('data-l',hs[i])})});
+    t.querySelectorAll('tbody tr').forEach(tr=>{const c=[...tr.children];
+      const d=tr.querySelector('button[data-act="detail"]');if(d&&c[0]&&!c[0].querySelector('.sdot')){const h=stDot(d.dataset.k,d.dataset.id);if(h)c[0].insertAdjacentHTML('afterbegin',h)}
+      if(c.length!==hs.length)return;c.forEach((td,i)=>{if(hs[i])td.setAttribute('data-l',hs[i])})});
   });
 }
+/* ---------- columnas adaptables: si la tabla no cabe se ocultan columnas (mínimo 3); el detalle completo está en "Ver detalles" ---------- */
+const COL_LOW=/observ|detalle|tipo|marca|moneda|unidad|modalidad|serie|dni|ruc|referencia|periodo|comprobante|estado|modo|forma/i;
+const COL_HIGH=/fecha|importe|ingreso|egreso|saldo|renta|stock|total|valor|avance|vendid|pendient|descripci|producto|arrendador|documento|cliente|proveedor/i;
+function fitTables(){
+  document.querySelectorAll('#main table').forEach(t=>{
+    t.querySelectorAll('.chid').forEach(x=>x.classList.remove('chid'));
+    const sc=t.closest('.scroll');if(!sc||getComputedStyle(t).display!=='table')return;
+    const ths=[...t.querySelectorAll('thead tr:last-child th')],n=ths.length;if(n<4)return;
+    const fr=t.querySelector('tbody tr'),hasAct=!!(fr&&fr.children.length===n&&fr.children[n-1].classList.contains('act'));
+    const cand=[];for(let i=2;i<(hasAct?n-1:n);i++)cand.push(i);
+    const tx=i=>ths[i].textContent,tier=i=>COL_HIGH.test(tx(i))?3:COL_LOW.test(tx(i))?1:2;
+    const order=[1,2,3].flatMap(k=>cand.filter(i=>tier(i)===k).reverse());
+    t.classList.remove('tight');
+    let vis=n-(hasAct?1:0);
+    for(const i of order){
+      if(sc.scrollWidth<=sc.clientWidth+1||vis<=3)break;
+      t.querySelectorAll('tr').forEach(tr=>{if(tr.children.length===n)tr.children[i].classList.add('chid')});vis--;
+    }
+    if(sc.scrollWidth>sc.clientWidth+1)t.classList.add('tight');
+  });
+}
+let fitRaf=0;window.addEventListener('resize',()=>{cancelAnimationFrame(fitRaf);fitRaf=requestAnimationFrame(fitTables)});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>fitTables());
 function render(){
   const a=document.activeElement;lastFocus=a&&a.dataset&&a.dataset.fk?a.dataset.fk:null;
   S.C=compute();S.KC=computeK();S.AC=computeA();S.BC=computeB();
   renderSide();
   const main=$('#main');
   if(S.mod==='proyectos')main.innerHTML=viewProyectos();else if(S.mod==='kardex')main.innerHTML=viewKardex();else if(S.mod==='alquileres')main.innerHTML=viewAlq();else if(S.mod==='banco')main.innerHTML=viewBanco();else main.innerHTML=viewPending(MODULES.find(m=>m.id===S.mod));
-  cardTables();
+  cardTables();fitTables();
   if(lastFocus){const el=main.querySelector('[data-fk="'+lastFocus+'"]');if(el){el.focus();try{if(el.type==='text'||el.type==='search'){const n=el.value.length;el.setSelectionRange(n,n)}else el.select()}catch(e){}}}
 }
 function renderSide(){
@@ -1883,7 +1942,7 @@ function tProyectos(){
   const rows=S.proyectos.slice().sort((a,b)=>(num(a.orden)||99)-(num(b.orden)||99)||cmpTxt(a.nombre,b.nombre)).map((p,i)=>`<tr>
     <td class="n">${i+1}</td><td class="wrap"><b>${esc(p.nombre)}</b>${esLote(p)&&ldet(p).length!==(num(p.lotesTotal)||0)?'<span class="small warn">Falta registrar los lotes ('+ldet(p).length+' de '+nf(num(p.lotesTotal)||0)+')</span>':''}</td><td class="wrap">${esc(tipoTxt(p))}</td>
     <td class="n">${money(p.importe,p.moneda)}${p.monedaConfirmada===true?'':'<span class="small warn">moneda sin confirmar</span>'}</td>
-    <td class="act">${detBtn('p',p.id)}<button class="btn sm" data-act="edit-p" data-id="${p.id}">Editar</button></td></tr>`).join('');
+    <td class="act">${detBtn('p',p.id)}</td></tr>`).join('');
   const T=C.T;
   return head+`<div class="scroll"><table><thead><tr><th class="n">Ítem</th><th>Proyecto</th><th>Tipo</th><th class="n">Importe de la compra</th><th></th></tr></thead><tbody>${rows}</tbody>
   <tfoot><tr><td></td><td colspan="2">Total (${T.proy} proyectos)</td><td class="n">${money(T.invPEN)}${T.invUSD?'<br>'+money(T.invUSD,'USD'):''}</td><td></td></tr></tfoot></table></div>`;
@@ -1919,7 +1978,7 @@ function tEscrituras(){
     <td class="n">${fdate(e.fecha)}${e._fuera?'<span class="small warn">fuera del periodo</span>':''}</td><td class="mono">${esc(zonaTxt(e))||'<span class="small">–</span>'}</td>
     <td class="wrap"><div class="chips">${e._l.map(l=>`<span class="chip ${e._dup.includes(l)?'dup':''}">${esc(l)}</span>`).join('')}</div></td>
     <td class="n">${money(e._imp)}${e._dev!=null&&Math.abs(e._dev)>.45?`<span class="small warn">${e._dev>0?'+':''}${Math.round(e._dev*100)}% vs prom.</span>`:''}</td>
-    <td class="act">${detBtn('e',e.id)}<button class="btn sm" data-act="edit-e" data-id="${e.id}">Editar</button></td></tr>`).join('');
+    <td class="act">${detBtn('e',e.id)}</td></tr>`).join('');
   const n=list.reduce((a,e)=>a+e._n,0),imp=list.reduce((a,e)=>a+e._imp,0);
   const nEsc=new Set(list.map(e=>e._nro?e.proyectoId+'|'+e._nro.toUpperCase():e.id)).size;
   return bar+`<div class="note">Cada fila es <b>un lote</b>. Si varios lotes se vendieron en la misma escritura, repite su N.° de escritura y su fecha (con "Guardar y agregar otro lote" se copian solos).</div><div class="scroll"><table><thead><tr><th class="n">N.°</th><th>Proyecto</th><th class="n">Fecha</th><th>Manzana / etapa</th><th>Lote</th><th class="n">Importe</th><th></th></tr></thead><tbody>${rows}</tbody>
@@ -1932,7 +1991,7 @@ function tServicios(){
   const sw=`<div class="toolbar"><label class="checks" style="gap:8px"><input type="checkbox" id="svc-on" data-act-in="svcon" ${on?'checked':''}><span><b>La empresa presta servicios</b></span></label>${on?'<button class="btn primary" data-act="new-s">Nuevo servicio</button>':''}</div>`;
   if(!on)return sw+`<div class="empty"><b>No aplica</b><span>El formato indica que no se prestan servicios, así que este cuadro se declara como "NO APLICA".</span></div>`;
   if(!S.servicios.length)return sw+`<div class="empty"><b>Aún no hay servicios</b><span>Registra cada servicio prestado con sus observaciones.</span><button class="btn primary" data-act="new-s">Nuevo servicio</button></div>`;
-  const rows=S.servicios.slice().sort((a,b)=>(num(a.orden)||0)-(num(b.orden)||0)).map((s,i)=>`<tr><td class="n">${i+1}</td><td class="wrap">${esc(s.servicio)}</td><td class="wrap">${esc(s.obs||'')}</td><td><button class="btn sm" data-act="edit-s" data-id="${s.id}">Editar</button></td></tr>`).join('');
+  const rows=S.servicios.slice().sort((a,b)=>(num(a.orden)||0)-(num(b.orden)||0)).map((s,i)=>`<tr><td class="n">${i+1}</td><td class="wrap">${esc(s.servicio)}</td><td class="wrap">${esc(s.obs||'')}</td><td class="act">${detBtn('s',s.id)}</td></tr>`).join('');
   return sw+`<div class="scroll"><table><thead><tr><th class="n">Ítem</th><th>Servicio prestado</th><th>Observaciones</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
@@ -1953,18 +2012,125 @@ function tCalidad(){
 }
 
 /* ---------- formularios (modal) ---------- */
-const qBtn=(label,h)=>`<button type="button" class="qhelp" data-act="qhelp" data-h="${esc(h)}" aria-label="¿Para qué sirve: ${esc(label)}?">?</button>`;
+const HELPD={
+  "Código del producto":"Código interno único del regalo o producto; sirve para encontrarlo rápido y no confundirlo con otro.",
+  "Descripción":"Nombre o descripción del producto tal como quieres verlo en el catálogo y en los reportes.",
+  "Marca":"Marca del producto, si la tiene. Ayuda a diferenciar productos parecidos.",
+  "Unidad":"Unidad en la que se cuenta el producto (unidad, caja, juego, etc.).",
+  "Stock mínimo":"Cantidad mínima que debe quedar en almacén. Si el stock baja de este número, la plataforma lo avisa.",
+  "Observación":"Nota opcional para aclarar algo de este registro. No afecta los cálculos.",
+  "Fecha":"Fecha en que ocurrió el movimiento, no la fecha en que lo estás registrando.",
+  "Producto":"Producto del catálogo al que se refiere este movimiento.",
+  "Cantidad":"Cuántas unidades entran o salen. Debe ser un número mayor que cero.",
+  "Precio unitario":"Precio de una sola unidad. El total se calcula multiplicando por la cantidad.",
+  "¿El precio incluye IGV?":"Indica si el precio que escribes ya trae el IGV incluido o si se le debe sumar.",
+  "Proyecto":"Proyecto al que corresponde este registro. Se elige de la lista de Proyectos y lotes.",
+  "Lote":"Lote del proyecto al que se entregó o se asocia este registro.",
+  "DNI o RUC del cliente":"Documento de identidad del cliente que recibe el regalo. Sirve para ubicarlo y sustentar la entrega.",
+  "Cliente":"Nombre completo del cliente que recibe la entrega.",
+  "Tipo de sustento":"Documento que prueba la entrega o la compra (acta, constancia, comprobante). Sin sustento el registro queda marcado como SIN SUSTENTO.",
+  "N.° de acta o constancia":"Número del acta o constancia que respalda la entrega.",
+  "Responsable":"Persona de la empresa que realizó o autorizó el movimiento.",
+  "Empresa":"Razón social de la empresa a la que pertenece la información de este reporte.",
+  "RUC":"RUC de la empresa; aparece en el encabezado de los reportes.",
+  "IGV (%)":"Porcentaje de IGV que se usa para calcular los precios con y sin IGV.",
+  "Fecha de pago":"Día en que se pagó la cuota.",
+  "Tipo de comprobante":"Tipo de documento que sustenta el pago (recibo por honorarios, factura, etc.).",
+  "Fecha de emisión":"Fecha en que se emitió el comprobante, que puede ser distinta a la fecha de pago.",
+  "Serie-número":"Serie y número del comprobante, con el formato que aparece en el documento (por ejemplo E001-123).",
+  "Método de pago":"Cómo se pagó esta cuota: transferencia, efectivo, cheque, etc.",
+  "Tipo de documento":"Indica si es el contrato original o una adenda que lo modifica.",
+  "Detalle":"Descripción corta de lo que se alquila (oficina, almacén, camioneta…).",
+  "Arrendador":"Nombre de la persona o empresa que alquila el bien a la empresa.",
+  "DNI o RUC":"Documento de identidad o RUC de la persona o empresa. El DNI tiene 8 dígitos y el RUC 11.",
+  "Tipo de bien":"Si lo alquilado es un inmueble, un vehículo u otro bien.",
+  "Fecha de inicio":"Día en que empieza a regir el contrato.",
+  "N.° de meses":"Duración del contrato en meses. De aquí salen las cuotas y la fecha de vencimiento.",
+  "Importe mensual":"Monto de la renta de cada periodo según el contrato.",
+  "Moneda":"Moneda en la que se registran los importes: soles (S/) o dólares (US$).",
+  "Forma de pago":"Cada cuánto tiempo se paga la renta: diario, semanal, quincenal, mensual, etc.",
+  "Fecha de corte":"Fecha hasta la que se calculan los vencimientos y las alertas.",
+  "Avisar vencimiento con (días)":"Cuántos días antes del vencimiento quieres que la plataforma muestre la alerta.",
+  "Fecha de operación":"Fecha en que el banco registró la operación, tal como sale en el estado de cuenta.",
+  "Tipo de operación":"Clase de operación bancaria (transferencia, depósito, comisión, etc.). Según el tipo se propone si es ingreso o egreso.",
+  "Es un":"Indica si el dinero entra a la cuenta (ingreso) o sale de ella (egreso).",
+  "Importe":"Monto de la operación en la moneda de la cuenta, sin signo negativo.",
+  "N.° de operación":"Número de operación que muestra el banco; sirve para conciliar con el estado de cuenta.",
+  "Descripción en el estado de cuenta (EE.CC)":"Texto tal como aparece en el estado de cuenta del banco, para poder ubicar la operación.",
+  "Descripción de la operación":"Explica en palabras propias para qué fue esta operación.",
+  "Comprobante que lo sustenta":"Documento que respalda la operación (factura, boleta, recibo, etc.).",
+  "Cliente, proveedor o trabajador":"Nombre de la persona o empresa con la que se hizo la operación.",
+  "Nombre de la cuenta o sede":"Nombre con el que identificas esta cuenta o sede dentro de la plataforma.",
+  "Banco":"Banco donde está la cuenta.",
+  "N.° de cuenta":"Número de la cuenta bancaria; aparece en el encabezado de los reportes.",
+  "Fecha del saldo inicial":"Fecha desde la cual se cuenta el saldo inicial. Los movimientos parten de aquí.",
+  "Saldo inicial del banco":"Dinero que tenía la cuenta bancaria en la fecha del saldo inicial.",
+  "Saldo inicial de caja chica":"Dinero que tenía la caja chica en la fecha del saldo inicial.",
+  "ITF (%)":"Porcentaje del Impuesto a las Transacciones Financieras que cobra el banco. Se usa para proponer el ITF de cada egreso.",
+  "ITF desde el importe":"Monto a partir del cual el banco cobra ITF. Los egresos menores a este importe no llevan ITF.",
+  "Comprobante":"Documento que sustenta este gasto de caja chica.",
+  "Proveedor o trabajador":"Nombre de quien recibió el dinero de la caja chica.",
+  "Nombre del proyecto":"Nombre con el que se conoce el proyecto en toda la plataforma.",
+  "Otro tipo (detallar)":"Escribe el tipo de proyecto si no está en la lista.",
+  "Fecha de adquisición":"Fecha en que la empresa compró el terreno o el proyecto.",
+  "Año de adquisición":"Año en que se compró el proyecto; se usa cuando no se conoce la fecha exacta.",
+  "Importe de la compra":"Monto pagado por el proyecto, en la moneda elegida.",
+  "Modalidad de compra":"Forma en que se adquirió: contado, crédito, aporte, etc.",
+  "Detalle de la modalidad":"Aclara las condiciones de la modalidad de compra, por ejemplo plazos o socios.",
+  "Departamento":"Departamento donde está el proyecto, según la lista oficial del INEI.",
+  "Provincia":"Provincia del proyecto. Se carga según el departamento elegido.",
+  "Distrito":"Distrito del proyecto. Se carga según la provincia elegida.",
+  "Referencia o dirección":"Dirección o referencia para ubicar el proyecto en campo.",
+  "Lotes totales del proyecto":"Cantidad total de lotes que tendrá el proyecto. Debe coincidir con los lotes que registres.",
+  "Lotes del proyecto":"Registro de cada lote (manzana o etapa y número). Es obligatorio completarlo para que las escrituras solo usen lotes válidos.",
+  "Año de inicio de ventas":"Primer año en que se vendieron lotes de este proyecto.",
+  "Observaciones del proyecto":"Notas generales del proyecto que saldrán en el reporte.",
+  "Observación del cuadro de lotes":"Nota que acompaña al cuadro de lotes vendidos por año.",
+  "Fecha de la escritura":"Fecha en que se firmó la escritura.",
+  "N.° de escritura":"Número de la escritura pública o del kardex notarial.",
+  "Lote (manzana o etapa y número)":"Lote vendido en esta escritura. Solo aparecen los lotes registrados en el proyecto y los ya vendidos salen deshabilitados.",
+  "Importe de la venta de este lote (S/)":"Precio por el que se vendió este lote, en soles.",
+  "Observaciones":"Notas opcionales sobre este registro.",
+  "Servicio prestado":"Servicio que la empresa presta en el proyecto (por ejemplo, habilitación urbana).",
+  "Periodo de escrituras: desde":"Primera fecha de las escrituras que incluirá el reporte.",
+  "Periodo de escrituras: hasta":"Última fecha de las escrituras que incluirá el reporte.",
+  "Primer año del cuadro por año":"Año con el que empieza el cuadro de lotes por año.",
+  "Último año del cuadro por año":"Año con el que termina el cuadro de lotes por año.",
+  "Contrato al que modifica":"Contrato original al que se aplica esta adenda.",
+  "Placa":"Placa del vehículo alquilado.",
+  "Fecha de corte del estado de cuenta":"Fecha hasta la que llega el estado de cuenta del banco que estás conciliando.",
+  "Saldo final según el banco":"Saldo que muestra el banco al cierre del estado de cuenta; se compara con el saldo de la plataforma.",
+  "Ubicación":"Tipo de zona del lote: manzana, etapa u otra. Elige \"Sin manzana ni etapa\" si el proyecto no las usa.",
+  "Identificador":"Letra o número de la manzana o etapa (por ejemplo A, B, 1).",
+  "Lote desde":"Primer número de lote del rango que estás registrando.",
+  "Hasta":"Último número del rango. Si lo dejas vacío se registra solo el lote inicial.",
+  "Tipo de proyecto":"Clase de proyecto. Puedes marcar más de una.",
+  "Sustento guardado":"Marca los documentos de sustento que existen y, si quieres, pega el enlace donde están guardados. El enlace es solo de control interno y no sale en el Excel."
+};
+const QSVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path class="qb" d="M12 2.2C6.6 2.2 2.4 6.2 2.4 11.2c0 2.3.9 4.4 2.5 6L3.4 21.8l5-1.9c1.1.4 2.3.6 3.6.6 5.4 0 9.6-4 9.6-9.3S17.400 2.200 12 2.200z"/><circle class="qi" cx="12" cy="7.2" r="1.7"/><path class="qi" d="M9.6 10.4h3.9c.5 0 .8.4.8.8v4.3c0 .5.4.8.8.8h.9v1.6H9.8v-1.6h1.200c.5 0 .8-.3.8-.8v-2.700h-2.200z"/></svg>';
+const qBtn=(label,h)=>`<span class="qhelp" tabindex="0" role="img" data-h="${esc(h)}" aria-label="¿Para qué sirve: ${esc(label)}? ${esc(h)}">${QSVG}</span>`;
+const qLbl=(id,text)=>`<div class="lbrow"><label for="${id}">${text}</label>${HELPD[text]?qBtn(text,HELPD[text]):''}</div>`;
 function closeQHelp(){const p=document.getElementById('qpop');if(p)p.remove()}
 function qHelp(b){
-  const was=document.getElementById('qpop'),same=was&&was._for===b;closeQHelp();if(same)return;
+  const was=document.getElementById('qpop');if(was&&was._for===b)return;closeQHelp();
   const p=document.createElement('div');p.id='qpop';p.className='qpop';p.setAttribute('role','tooltip');p.textContent=b.dataset.h;p._for=b;document.body.appendChild(p);
   const r=b.getBoundingClientRect(),w=p.offsetWidth,h=p.offsetHeight;
   const x=Math.min(Math.max(8,r.left+r.width/2-w/2),window.innerWidth-w-8);let y=r.top-h-10;if(y<8)y=r.bottom+10;
   p.style.left=x+'px';p.style.top=y+'px';
 }
-document.addEventListener('click',ev=>{if(!ev.target.closest('.qhelp'))closeQHelp()});
+/* la ayuda aparece al pasar el cursor (o al enfocar con teclado) y se oculta al salir; en pantallas táctiles se abre al tocar */
+let qPT='mouse';
+document.addEventListener('pointerdown',ev=>{qPT=ev.pointerType||'mouse'},true);
+document.addEventListener('mouseover',ev=>{const b=ev.target.closest&&ev.target.closest('.qhelp');if(b)qHelp(b)});
+document.addEventListener('mouseout',ev=>{const b=ev.target.closest&&ev.target.closest('.qhelp');if(b&&!(ev.relatedTarget&&b.contains(ev.relatedTarget)))closeQHelp()});
+document.addEventListener('focusin',ev=>{const b=ev.target.closest&&ev.target.closest('.qhelp');if(b)qHelp(b)});
+document.addEventListener('focusout',ev=>{if(ev.target.closest&&ev.target.closest('.qhelp'))closeQHelp()});
+document.addEventListener('click',ev=>{const b=ev.target.closest('.qhelp');
+  if(!b){closeQHelp();return}
+  if(qPT==='touch'||qPT==='pen'){const was=document.getElementById('qpop');if(was&&was._for===b)closeQHelp();else qHelp(b)}
+});
 window.addEventListener('scroll',closeQHelp,true);
-function fld(id,label,inner,hint,full,help){return `<div class="fld ${full?'full':''}">${help?`<div class="lbrow"><label for="${id}">${label}</label>${qBtn(label,help)}</div>`:`<label for="${id}">${label}</label>`}${inner}${hint?`<div class="hint">${hint}</div>`:''}<div class="err" id="e-${id}" role="alert"></div></div>`}
+function fld(id,label,inner,hint,full,help){help=help||HELPD[String(label).replace(/<[^>]*>/g,'').trim()];return `<div class="fld ${full?'full':''}">${help?`<div class="lbrow"><label for="${id}">${label}</label>${qBtn(label,help)}</div>`:`<label for="${id}">${label}</label>`}${inner}${hint?`<div class="hint">${hint}</div>`:''}<div class="err" id="e-${id}" role="alert"></div></div>`}
 function openModal(title,body,footR,footL=''){
   $('#modal').innerHTML=`<div class="overlay" id="ov"><form class="modal" id="mf" role="dialog" aria-modal="true" aria-label="${esc(title)}" novalidate>
    <header><h2>${esc(title)}</h2><button type="button" class="btn sm ghost" data-act="close" aria-label="Cerrar">Cerrar</button></header>
@@ -1976,8 +2142,49 @@ const dv=v=>(v===''||v==null||v===false)?'<span class="small">—</span>':v;
 function openDetail(k,id){
   const fn=DET[k],d=fn&&fn(id);if(!d)return;
   openModal(d.t,`<dl class="dl">${d.r.map(([l,v])=>`<dt>${l}</dt><dd>${dv(v)}</dd>`).join('')}</dl>`,
-    `<button type="button" class="btn" data-act="close">Cerrar</button>${d.e?`<button type="button" class="btn primary" data-act="${d.e[0]}" data-id="${esc(d.e[1])}">Editar</button>`:''}`);
+    `<button type="button" class="btn" data-act="close">Cerrar</button>${d.e?`<button type="button" class="btn primary" data-act="${d.e[0]}" data-id="${esc(d.e[1])}">${d.e[2]||'Editar'}</button>`:''}`);
 }
+/* ---------- estado de cada registro: punto amarillo = incompleto, verde = completo ---------- */
+const hasV=v=>v!=null&&String(v).trim()!=='';
+function recMissing(k,id){
+  const out=[],need=(c,l)=>{if(!c)out.push(l)};
+  if(k==='p'||k==='lt'){const p=S.C.projById[id];if(!p)return null;
+    need(hasV(p.nombre),'nombre');need((p.tipos||[]).length,'tipo de proyecto');need(hasV(p.fechaAdq)||hasV(p.anioAdq),'fecha o año de adquisición');
+    need(num(p.importe)!=null,'importe de la compra');need(hasV(p.modalidad),'modalidad de compra');
+    need(hasV(p.departamento),'departamento');need(hasV(p.provincia),'provincia');need(hasV(p.distrito),'distrito');need(hasV(p.referencia),'referencia o dirección');
+    if(esLote(p)){const t=num(p.lotesTotal)||0;need(t>0,'lotes totales');need(t>0&&ldet(p).length===t,'registro de lotes ('+ldet(p).length+' de '+t+')')}}
+  else if(k==='s'){const v=S.servicios.find(x=>x.id===id);if(!v)return null;need(hasV(v.servicio),'servicio prestado')}
+  else if(k==='e'){const e=S.C.esc.find(x=>x.id===id);if(!e)return null;
+    need(hasV(e.proyectoId),'proyecto');need(hasV(e.fecha),'fecha');need(hasV(e._nro),'n.° de escritura');need(hasV(e.lotes),'lote');need((e._imp||0)>0,'importe')}
+  else if(k==='km'){const m=S.KC.movs.find(x=>x.id===id);if(!m)return null;const ent=m.tipo==='ENTRADA';
+    need(hasV(m.fecha),'fecha');need(hasV(m.codigo),'producto');need((m._q||0)>0,'cantidad');need(hasV(m.nroDoc),'n.° de documento');
+    need(hasV(m.sustentoTipo),'tipo de sustento');need((m.adjuntos||[]).length>0,'sustento guardado');need(hasV(m.responsable),'responsable');
+    if(ent)need(num(m.precio)>0,'precio unitario');else{need(hasV(m.proyecto),'proyecto');need(hasV(m.lote),'lote');need(hasV(m.docCliente),'DNI o RUC del cliente');need(hasV(m.cliente),'cliente')}}
+  else if(k==='ks'||k==='kp'){
+    const c=k==='kp'?S.k.cat.find(x=>x.id===id):(()=>{const r=S.KC.rowBy[kcode(id)];if(!r)return undefined;return r.enCat?(S.k.cat.find(x=>kcode(x.codigo)===kcode(r.codigo))||null):null})();
+    if(c===undefined)return null;
+    if(!c)out.push('registrar el producto en el catálogo');
+    else{need(hasV(c.codigo),'código');need(hasV(c.descripcion),'descripción');need(hasV(c.marca),'marca');need(hasV(c.unidad),'unidad');need(num(c.stockMin)!=null,'stock mínimo')}}
+  else if(k==='a'){const c=S.AC.byId[id];if(!c)return null;
+    need(hasV(c.nro),'n.° de contrato');need(hasV(c.detalle),'detalle');need(hasV(c.arrendador),'arrendador');need(hasV(c.doc),'DNI o RUC');need(hasV(c.bien),'tipo de bien');
+    if(c.bien==='Vehículo')need(hasV(c.placa),'placa');
+    need(hasV(c.inicio),'fecha de inicio');need((c._meses||0)>0,'n.° de meses');need((num(c._imp)||0)>0,'importe mensual');need(hasV(c.moneda),'moneda');need(APERIOD.includes(c.formaPago),'forma de pago (periodicidad)');
+    if(c.tipoDoc==='ADENDA')need(hasV(c.contratoRef),'contrato que modifica')}
+  else if(k==='ap'){const i=id.lastIndexOf('_'),c=S.AC.byId[id.slice(0,i)],q=c&&c.cuotas.find(x=>x.n===Number(id.slice(i+1)));if(!q)return null;
+    need(hasV(q.fechaPago),'fecha de pago');need(hasV(q.metodo),'método de pago');need(hasV(q.tipoDoc),'tipo de comprobante');need(hasV(q.fechaEm),'fecha de emisión');need(hasV(q.serie),'serie-número')}
+  else if(k==='b'){const m=S.BC.movs.find(x=>x.id===id);if(!m)return null;
+    const ex=BEXENTO.some(x=>String(m.tipoOp||'').toUpperCase().startsWith(x)),auto=String(m.tipoOp||'').toUpperCase()==='ITF';
+    need(hasV(m.fecha),'fecha');need(hasV(m.tipoOp),'tipo de operación');need((m._m||0)>0,'importe');need(hasV(m.nroOp),'n.° de operación');need(hasV(m.descripcion),'descripción');
+    if(!auto)need(hasV(m.descEECC),'descripción del estado de cuenta');
+    if(!ex){need(hasV(m.docTipo),'comprobante');need(hasV(m.docSerie),'serie-número');need(hasV(m.tercDoc),'DNI o RUC');need(hasV(m.tercNombre),'cliente o proveedor')}}
+  else if(k==='bj'){const m=S.BC.cj.movs.find(x=>x.id===id);if(!m)return null;
+    need(hasV(m.fecha),'fecha');need(hasV(m.desc),'descripción');need((m._m||0)>0,'importe');need(hasV(m.docTipo),'comprobante');need(hasV(m.docSerie),'serie-número');need(hasV(m.tercDoc),'DNI o RUC');need(hasV(m.tercNombre),'proveedor o trabajador')}
+  else return null;
+  return out;
+}
+const stDot=(k,id)=>{const m=recMissing(k,id);if(!m)return '';
+  const t=m.length?'Incompleto. Falta: '+m.join(', ')+'.':'Completo.';
+  return `<span class="sdot ${m.length?'':'ok'}" role="img" title="${esc(t)}" aria-label="${esc(t)}"></span>`};
 const DET={
  p:id=>{const p=S.C.projById[id];if(!p)return null;
   return {t:p.nombre,e:['edit-p',id],r:[['Proyecto',esc(p.nombre)],['Tipo de proyecto',esc(tipoTxt(p))],
@@ -1988,6 +2195,8 @@ const DET={
    ['Lotes totales',p.lotesTotal?nf(p.lotesTotal):''],['Lotes registrados (manzana/etapa y número)',ldet(p).length?nf(ldet(p).length)+' de '+nf(num(p.lotesTotal)||0):''],['Año de inicio de ventas',esc(p.anioInicio||'')],
    ['Escrituras sin inscribir',p.pendienteRegistro?'Sí, hay escrituras sin inscribir en Registros Públicos':'No'],
    ['Observaciones',esc(p.obs||'')],['Observación del cuadro de lotes',esc(p.obsLotes||'')]]}},
+ s:id=>{const s=S.servicios.find(x=>x.id===id);if(!s)return null;
+  return {t:'Servicio prestado',e:['edit-s',id],r:[['Servicio prestado',esc(s.servicio||'')],['Observaciones',esc(s.obs||'')]]}},
  lt:id=>{const p=S.C.projById[id],m=p&&S.C.M[id];if(!p||!m)return null;
   return {t:p.nombre+' · lotes',e:['edit-p',id],r:[['Ubicación',esc(ubic(p))],['Lotes totales',m.total?nf(m.total):''],['Año de inicio',esc(num(p.anioInicio)||num(p.anioAdq)||'')],
    ...years().map(y=>['Lotes vendidos '+yearLabel(y),nf(m.byY[y]||0)]),['Sin año',nf(m.sin)],
@@ -2015,10 +2224,10 @@ const DET={
   return {t:(ad?'Adenda ':'Contrato ')+(c.nro||''),e:['a-edit',id],r:[['Documento',(ad?'Adenda':'Contrato')+' <span class="small mono">'+esc(c.nro||'')+(ad&&S.AC.byId[c.contratoRef]?' → contrato '+esc(S.AC.byId[c.contratoRef].nro||''):'')+'</span>'],
    ['Detalle',esc(c.detalle||'')],['Arrendador',esc(c.arrendador||'')],['DNI / RUC',esc(c.doc||'')],['Bien',esc(c.bien||'')],['Placa',esc(c.placa||'')],
    ['Inicio',fdate(c.inicio)],['Meses',c._meses||''],['Término',fdate(c._fin)],['Importe mensual',cur$(c._imp,c.moneda)],['Forma de pago',esc(c.formaPago||'')],
-   ['Vigencia',vigPill(c._vig)],['Pagos realizados',c._pagadas+' de '+c._meses],['Observaciones',esc(c.obs||'')]]}},
+   ['Vigencia',vigPill(c._vig)],['Pagos realizados',c._pagadas+' de '+c._nc],['Observaciones',esc(c.obs||'')]]}},
  ap:id=>{const i=id.lastIndexOf('_'),c=S.AC.byId[id.slice(0,i)],n=Number(id.slice(i+1)),q=c&&c.cuotas.find(x=>x.n===n);if(!q)return null;
-  return {t:'Cuota '+q.n+' · '+(c.arrendador||''),e:['a-pago',id],r:[['Cuota',q.n],['Periodo desde',fdate(q.per)],['Renta',cur$(q.renta,c.moneda)],['Devengo',fdate(q.dev)],['Fecha de pago',fdate(q.fechaPago)],
-   ['Tipo de comprobante',esc(q.tipoDoc||'')],['Fecha de emisión',fdate(q.fechaEm)],['Serie-número',esc(q.serie||'')],['Estado','<span class="pill '+cuoCls(q.estado)+'">'+q.estado+'</span>'],['Atraso',q.atraso?q.atraso+' días':'']]}},
+  return {t:'Cuota '+q.n+' · '+(c.arrendador||''),e:['a-pago',id,q.fechaPago?'Editar':'Registrar pago'],r:[['Cuota',q.n],['Periodo desde',fdate(q.per)],['Renta',cur$(q.renta,c.moneda)],['Devengo',fdate(q.dev)],['Fecha de pago',fdate(q.fechaPago)],
+   ['Método de pago',esc(q.metodo||'')],['Tipo de comprobante',esc(q.tipoDoc||'')],['Fecha de emisión',fdate(q.fechaEm)],['Serie-número',esc(q.serie||'')],['Estado','<span class="pill '+cuoCls(q.estado)+'">'+q.estado+'</span>'],['Atraso',q.atraso?q.atraso+' días':'']]}},
  b:id=>{const m=S.BC.movs.find(x=>x.id===id);if(!m)return null;const e=m.dir==='E';
   return {t:'Movimiento '+m._cod,e:['b-edit',id],r:[['Código',esc(m._cod)],['Fecha',fdate(m.fecha)],['Operación',esc(m.tipoOp||'')],['N.° de operación',esc(m.nroOp||'')],['Descripción',esc(m.descripcion||'')],['Descripción en el estado de cuenta',esc(m.descEECC||'')],
    ['Comprobante',m.docTipo?esc(m.docTipo)+' <span class="small mono">'+esc(m.docSerie||'')+'</span>':(sinComp(m)?'<span class="pill a">Sin comprobante</span>':'No requiere')],
@@ -2054,10 +2263,10 @@ function openLotesEd(){
    <header><h2>Lotes del proyecto</h2><button type="button" class="btn sm ghost" data-act="lot-close">Cerrar</button></header>
    <div class="body"><div class="preview" id="lot-st" style="grid-column:1/-1"></div>
     <div class="lotgrid" style="grid-column:1/-1">
-     <div class="fld"><label for="lot-tipo">Ubicación</label><select id="lot-tipo"><option value="">Sin manzana ni etapa</option>${ZONAS.map(z=>`<option>${z}</option>`).join('')}</select></div>
-     <div class="fld"><label for="lot-z">Identificador</label><input id="lot-z" autocomplete="off" disabled style="text-transform:uppercase" placeholder="No aplica"></div>
-     <div class="fld"><label for="lot-d">Lote desde</label><input id="lot-d" type="number" min="1" step="1" inputmode="numeric"></div>
-     <div class="fld"><label for="lot-h">Hasta</label><input id="lot-h" type="number" min="1" step="1" inputmode="numeric" placeholder="igual al inicio"></div>
+     <div class="fld">${qLbl("lot-tipo","Ubicación")}<select id="lot-tipo"><option value="">Sin manzana ni etapa</option>${ZONAS.map(z=>`<option>${z}</option>`).join('')}</select></div>
+     <div class="fld">${qLbl("lot-z","Identificador")}<input id="lot-z" autocomplete="off" disabled style="text-transform:uppercase" placeholder="No aplica"></div>
+     <div class="fld">${qLbl("lot-d","Lote desde")}<input id="lot-d" type="number" min="1" step="1" inputmode="numeric"></div>
+     <div class="fld">${qLbl("lot-h","Hasta")}<input id="lot-h" type="number" min="1" step="1" inputmode="numeric" placeholder="igual al inicio"></div>
      <div class="fld"><button type="button" class="btn primary" data-act="lot-add">Agregar lotes</button></div>
     </div>
     <div class="err" id="lot-err" role="alert" style="grid-column:1/-1"></div>
@@ -2103,7 +2312,7 @@ function openProyecto(id){
   S.pLotes=ldet(p).map(x=>({...x}));
   const body=
    fld('p-nombre','Nombre del proyecto',`<input id="p-nombre" value="${esc(p.nombre||'')}" autocomplete="off">`,'',true)+
-   `<div class="fld full"><span class="lb">Tipo de proyecto</span><div class="checks" id="p-tipos">${TIPOS.map(t=>`<label><input type="checkbox" value="${t}" ${has(t)?'checked':''}>${t}</label>`).join('')}</div><div class="err" id="e-p-tipos" role="alert"></div></div>`+
+   `<div class="fld full"><div class="lbrow"><span class="lb">Tipo de proyecto</span>${qBtn("Tipo de proyecto",HELPD["Tipo de proyecto"])}</div><div class="checks" id="p-tipos">${TIPOS.map(t=>`<label><input type="checkbox" value="${t}" ${has(t)?'checked':''}>${t}</label>`).join('')}</div><div class="err" id="e-p-tipos" role="alert"></div></div>`+
    fld('p-tipoOtro','Otro tipo (detallar)',`<input id="p-tipoOtro" value="${esc(p.tipoOtro||'')}">`,'Solo si marcaste "Otros".',true)+
    fld('p-fechaAdq','Fecha de adquisición',`<input id="p-fechaAdq" type="date" value="${esc(p.fechaAdq||'')}">`,'Fecha de la escritura o contrato de compra.')+
    fld('p-anioAdq','Año de adquisición',`<input id="p-anioAdq" type="number" min="1980" max="2100" value="${esc(p.anioAdq||'')}">`,'Solo si no conoces la fecha completa.')+
@@ -2506,7 +2715,7 @@ async function exportA(){
         put(sh,r,2,c.detalle||'',{...bold,al:{h:'left',v:'center'}});put(sh,r,3,c._meses,norm);put(sh,r,4,DT(c.inicio),norm);
         put(sh,r,5,{v:XLX.serial(c._fin),f:'EDATE(D'+r+',C'+r+')',s:{nf:'dd/mm/yyyy'}},norm);
         put(sh,r,6,c.arrendador||'',norm);put(sh,r,7,{v:c.doc||'',s:{nf:'@'}},norm);put(sh,r,8,String(c.bien||'').toUpperCase(),norm);put(sh,r,9,c.placa||'-',norm);
-        put(sh,r,10,{v:c._imp,s:{nf:'#,##0.00'}},norm);put(sh,r,11,c.moneda==='USD'?'DOLARES':'SOLES',norm);put(sh,r,12,String(c.formaPago||'').toUpperCase(),norm);
+        put(sh,r,10,{v:c._imp,s:{nf:'#,##0.00'}},norm);put(sh,r,11,c.moneda==='USD'?'DOLARES':'SOLES',norm);put(sh,r,12,String(APERIOD.includes(c.formaPago)?c.formaPago:'').toUpperCase(),norm);
       }
       sh.heights[r]=16.5;
     }
@@ -2523,7 +2732,7 @@ async function exportA(){
     put(sh,r,1,c?c.nro:i+1,bold);
     if(c){put(sh,r,2,c.detalle||'',{...bold,al:{h:'left',v:'center'}});put(sh,r,3,c._meses,norm);put(sh,r,4,DT(c.inicio),norm);
       put(sh,r,5,{v:XLX.serial(c._fin),f:'EDATE(D'+r+',C'+r+')',s:{nf:'dd/mm/yyyy'}},norm);put(sh,r,6,c.arrendador||'',norm);put(sh,r,7,{v:c.doc||'',s:{nf:'@'}},norm);
-      put(sh,r,8,String(c.bien||'').toUpperCase(),norm);put(sh,r,9,c.placa||'-',norm);put(sh,r,10,{v:c._imp,s:{nf:'#,##0.00'}},norm);put(sh,r,11,c.moneda==='USD'?'DOLARES':'SOLES',norm);put(sh,r,12,String(c.formaPago||'').toUpperCase(),norm)}
+      put(sh,r,8,String(c.bien||'').toUpperCase(),norm);put(sh,r,9,c.placa||'-',norm);put(sh,r,10,{v:c._imp,s:{nf:'#,##0.00'}},norm);put(sh,r,11,c.moneda==='USD'?'DOLARES':'SOLES',norm);put(sh,r,12,String(APERIOD.includes(c.formaPago)?c.formaPago:'').toUpperCase(),norm)}
     sh.heights[r]=16.5;
   }
   const sheets=[sh];
@@ -2534,7 +2743,7 @@ async function exportA(){
     const t=(c.tipoDoc==='ADENDA'?'ADENDA':'CONTRATO')+' NRO '+(c.nro||'');
     put(ps,1,1,t,{font:{sz:18,b:true,c:'FFFFFF'},fill:BL,al:{v:'center'}});box(ps,1,2,1,9,{fill:BL});ps.heights[1]=23.25;
     put(ps,2,1,(c.arrendador||'')+' · '+(c.detalle||'')+' · '+(c.moneda==='USD'?'US$ ':'S/ ')+nf(c._imp,2)+' mensual',{font:{sz:14,b:true},al:{v:'center'}});ps.heights[2]=18.75;
-    ['N° MESES','PERIODO','RENTA','FECHA DE DEVENGO','FECHA DE PAGO DE ALQUILER','TIPO DE DOCUMENTO','FECHA DE EMISION','SERIE-NUMERO','ESTADO'].forEach((h,i)=>put(ps,3,i+1,h,hdr));ps.heights[3]=18;
+    [(c.formaPago==='Quincenal'||APER_D[c.formaPago]||APER_M[c.formaPago]>1)?'N° CUOTA':'N° MESES','PERIODO','RENTA','FECHA DE DEVENGO','FECHA DE PAGO DE ALQUILER','TIPO DE DOCUMENTO','FECHA DE EMISION','SERIE-NUMERO','ESTADO'].forEach((h,i)=>put(ps,3,i+1,h,hdr));ps.heights[3]=18;
     const EF={'Pagada':'E2EFDA','Vencida':'F8CBAD','Por pagar':'EDEDED'};
     c.cuotas.forEach((q,i)=>{const r=4+i;
       put(ps,r,1,q.n,norm);put(ps,r,2,DT(q.per),norm);put(ps,r,3,{v:q.renta,s:{nf:'#,##0.00'}},norm);put(ps,r,4,DT(q.dev),norm);
@@ -2544,7 +2753,7 @@ async function exportA(){
     const last=3+c.cuotas.length,rt=last+2;
     put(ps,rt,1,'TOTAL',{font:{sz:11,b:true},al:{h:'center'}});
     put(ps,rt,3,{v:c._total,f:'SUM(C4:C'+last+')',s:{nf:'#,##0.00'}},{font:{sz:11,b:true},al:{h:'center'}});
-    put(ps,rt,5,'Pagadas: '+c._pagadas+' de '+c._meses,{font:{sz:11,b:true},al:{h:'center'}});
+    put(ps,rt,5,'Pagadas: '+c._pagadas+' de '+c._nc,{font:{sz:11,b:true},al:{h:'center'}});
     sheets.push(ps);
   });
   sheets.push(sheetCalidad(AC.alerts,hdr,{},{}));
@@ -2679,7 +2888,6 @@ document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act,id=b.dataset.id;
   if(a==='mod'){setRoute(id);return}
-  if(a==='qhelp'){qHelp(b);return}
   if(a==='p-lotes'){openLotesEd();return}
   if(a==='lot-add'){lotAdd();return}
   if(a==='lot-del'){lotDel(b.dataset.g);return}
