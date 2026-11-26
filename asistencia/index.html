@@ -174,6 +174,7 @@ function dayState(r){
  // [clase de color, texto]. En el calendario solo se muestra el color; el texto queda como ayuda al pasar el cursor y en el detalle.
  if(r.day_type==='holiday')return['b','Feriado'];if(r.day_type==='off')return['x','Día libre'];
  if(r.day_type==='none')return r.punches?['o','Sin horario']:['',''];
+ if(['Licencia con goce','Licencia sin goce','Vacaciones','Vacaciones adelantadas','Descanso médico','Inasistencia'].includes(r.status))return[r.status==='Inasistencia'?'z':'b',r.status];
  if(r.status==='Pendiente')return['x','Pendiente'];if(r.status==='Sin entrada aún')return['x','Sin entrada aún'];
  if(r.status==='En curso')return['b','En curso'];
  if(r.status==='Sin registro')return['z','Sin registro'];
