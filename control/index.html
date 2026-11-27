@@ -446,7 +446,8 @@ const Store={
   },
   _emit(coll){(this.listeners[coll]||[]).forEach(f=>f(this.cache[coll]||[]))},
   async _refresh(){
-    for(const coll of Object.keys(this.listeners)){try{await this._load(coll);this._emit(coll)}catch(e){}}
+    const sig=l=>JSON.stringify((l||[]).map(x=>[x.id,x]).sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0));
+    for(const coll of Object.keys(this.listeners)){try{const before=sig(this.cache[coll]);await this._load(coll);if(sig(this.cache[coll])!==before)this._emit(coll)}catch(e){}}
   },
   _later(){clearTimeout(this.timer);this.timer=setTimeout(()=>this._refresh(),300)},
   watch(coll,cb,onErr){
@@ -1819,7 +1820,9 @@ const tAdeList=()=>{const sn=tSnap();return sn?sn.ade:S.t.ade};
 const tPreList=()=>{const sn=tSnap();return sn?sn.pre:S.t.pre};
 const tLock=()=>{if(tClosed()){toast('Este mes está cerrado. Reábrelo para hacer cambios.');return true}return false};
 const tCfg=()=>{const sn=tSnap(),c=(sn?sn.cfg:S.t.cfg)||{};return {...TDEF,...c,afp:{...TDEF.afp,...(c.afp||{})}}};
-const tFic=id=>{const sn=tSnap();return sn?(sn.fic[id]||{}):(S.t.fic.find(x=>x.id===id)||{})};
+const tAsis=id=>{const c=S.t.cache[S.t.month];return c&&(c.sum||[]).find(x=>x.user_id===id)||{}};
+const tFicRaw=id=>S.t.fic.find(x=>x.id===id)||{};
+const tFic=id=>{const sn=tSnap();if(sn)return sn.fic[id]||{};const f=tFicRaw(id),a=tAsis(id);return {...f,dni:a.dni||f.dni||'',cargo:a.cargo||f.cargo||''}};
 const tVar=id=>{const sn=tSnap();return sn?(sn.vars[id]||{}):(S.t.vars.find(x=>x.id===S.t.month+'_'+id)||{})};
 const TTABS=[['planilla','Planilla'],['tareo','Tareo'],['adelantos','Adelantos'],['prestamos','Préstamos'],['horas','Horas extra'],['tardanzas','Tardanzas']];
 const TCODES=[['A','ASISTIO'],['FE','FERIADO'],['FT','FERIADO TRABAJADO'],['D','DESCANSO'],['DT','DESCANSO TRABAJADO'],['NA','NO ASISTIO (INASISTENCIA INJUSTIFICADA)'],
@@ -2003,9 +2006,9 @@ function tNeto(q){
 }
 function tNetoCard(R){
   const N=R.map(q=>({q,c:tNeto(q)})),T=k=>r2(N.reduce((a,x)=>a+(x.c?x.c[k]:0),0));
-  const rows=N.map(({q,c})=>`<tr><td class="mono">${String(q.e.n).padStart(2,'0')}</td><td class="wrap">${esc(String(q.e.name||'').toUpperCase())}</td><td>${esc(q.f.pension||'')}</td>${c?`<td class="n">${nf(c.ing,2)}</td><td class="n">${tMm(c.ob)}</td><td class="n">${tMm(c.co)}</td><td class="n">${tMm(c.pr)}</td><td class="n">${nf(c.ap,2)}</td><td class="n">${tMm(c.desc)}</td><td class="n"><b>${nf(c.neto,2)}</b></td><td class="n">${nf(c.ess,2)}</td><td class="n">${nf(c.sctr,2)}</td>`:`<td colspan="9"><span class="pill a">Falta completar la ficha (sueldo y sistema de pensiones)</span></td>`}</tr>`).join('');
-  return `<div class="card"><h2>Aportes y neto a pagar</h2><div class="scroll"><table data-nofit="1"><thead><tr><th>Orden</th><th>Apellidos y nombres</th><th>Pensión</th><th class="n">Total ingresos</th><th class="n">Aporte obligatorio / ONP</th><th class="n">Comisión AFP</th><th class="n">Prima de seguro</th><th class="n">Total aportes</th><th class="n">Descuentos</th><th class="n">Neto a pagar</th><th class="n">EsSalud (empleador)</th><th class="n">SCTR (empleador)</th></tr></thead>
-  <tbody>${rows}</tbody><tfoot><tr><td colspan="3">TOTALES S/.</td><td class="n">${tMm(T('ing'))}</td><td class="n">${tMm(T('ob'))}</td><td class="n">${tMm(T('co'))}</td><td class="n">${tMm(T('pr'))}</td><td class="n">${tMm(T('ap'))}</td><td class="n">${tMm(T('desc'))}</td><td class="n">${tMm(T('neto'))}</td><td class="n">${tMm(T('ess'))}</td><td class="n">${tMm(T('sctr'))}</td></tr></tfoot></table></div>
+  const rows=N.map(({q,c})=>`<tr><td class="mono">${String(q.e.n).padStart(2,'0')}</td><td class="wrap">${esc(String(q.e.name||'').toUpperCase())}</td><td>${esc(q.f.pension||'')}</td>${c?`<td class="n">${nf(c.ing,2)}</td><td class="n">${tMm(c.ob)}</td><td class="n">${tMm(c.co)}</td><td class="n">${tMm(c.pr)}</td><td class="n">${nf(c.ap,2)}</td><td class="n">${tMm(c.desc)}</td><td class="n"><b>${nf(c.neto,2)}</b></td><td class="n">${nf(c.ess,2)}</td><td class="n">${nf(c.sctr,2)}</td>`:`<td class="n"><span class="pill a" title="Falta completar la ficha (sueldo y sistema de pensiones)">Falta ficha</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>`}</tr>`).join('');
+  return `<div class="card"><h2>Aportes y neto a pagar</h2><div class="scroll"><table><thead><tr><th>Orden</th><th>Apellidos y nombres</th><th>Pensión</th><th class="n">Total ingresos</th><th class="n">Aporte obligatorio / ONP</th><th class="n">Comisión AFP</th><th class="n">Prima de seguro</th><th class="n">Total aportes</th><th class="n">Descuentos</th><th class="n">Neto a pagar</th><th class="n">EsSalud (empleador)</th><th class="n">SCTR (empleador)</th></tr></thead>
+  <tbody>${rows}</tbody><tfoot><tr><td></td><td>TOTALES S/.</td><td></td><td class="n">${tMm(T('ing'))}</td><td class="n">${tMm(T('ob'))}</td><td class="n">${tMm(T('co'))}</td><td class="n">${tMm(T('pr'))}</td><td class="n">${tMm(T('ap'))}</td><td class="n">${tMm(T('desc'))}</td><td class="n">${tMm(T('neto'))}</td><td class="n">${tMm(T('ess'))}</td><td class="n">${tMm(T('sctr'))}</td></tr></tfoot></table></div>
   <p class="hint" style="margin:8px 0 0">Total ingresos = remuneración básica + asignación familiar + bono + movilidad + bono de productividad + comisión + otros. Aportes = ONP, o AFP (aporte obligatorio + comisión + prima de seguro) sobre el total de ingresos. Neto = total ingresos − total aportes − descuentos. EsSalud y SCTR son a cargo del empleador y no se descuentan. Descuentos = adelantos de sueldo y de comisión + cuota de préstamo del mes. No se prorratea el sueldo por inasistencias ni por ingreso o cese en el mes.</p></div>`;
 }
 function tPlan(M){
@@ -2016,9 +2019,9 @@ function tPlan(M){
     <td>${esc(f.modalidad||'')}</td><td>${esc(f.pension||'')}</td><td class="n">${f.ingreso?fdate(f.ingreso):''}</td><td class="n">${tMm(num(v.bono))}</td><td class="n">${tMm(num(v.movilidad))}</td><td class="n">${tMm(num(v.bonoProd))}</td><td class="n">${tMm(num(v.comision))}</td><td class="n">${tMm(num(v.otros))}</td>
     <td class="n">${tMm(r.adS)}</td><td class="n">${tMm(r.adC)}</td><td></td><td></td><td></td><td></td><td class="n">${tMm(r.pre)}</td><td></td><td class="act">${detBtn('tf',e.id)}</td></tr>`}).join('');
   const kp=`<div class="toolbar"><div class="grp"><button class="btn" data-act="tc-open">Parámetros de planilla</button></div><span class="hint">RMV S/ ${nf(C.rmv,2)} · Asig. familiar ${nf(C.asig)}% · ONP ${nf(C.onp)}% · EsSalud ${nf(C.essalud)}% · SCTR ${nf(C.sctr,2)}%</span></div>`;
-  return kp+`<div class="card"><h2>Planilla de ${esc(tMonthTxt(S.t.month))}</h2><div class="scroll"><table data-nofit="1"><thead><tr><th rowspan="2">Orden</th><th rowspan="2">DNI</th><th rowspan="2">Apellidos y nombres</th><th rowspan="2" class="n">Remuneración básica</th><th rowspan="2">Cargo u ocupación</th><th rowspan="2" class="n">Asignación familiar</th><th rowspan="2">Modalidad</th><th rowspan="2">Sistema de pensiones</th><th rowspan="2" class="n">Fecha de ingreso</th><th rowspan="2" class="n">Bono</th><th rowspan="2" class="n">Movilidad</th><th rowspan="2" class="n">Bono de productividad</th><th rowspan="2" class="n">Comisión</th><th rowspan="2" class="n">Otros</th><th colspan="8" style="text-align:center">DESCUENTOS</th><th rowspan="2"></th></tr>
-   <tr><th class="n">Adelantos sueldo</th><th class="n">Adelanto comisión</th><th class="n">Pago de planilla de movilidad</th><th class="n">Pago de vacaciones</th><th class="n">Pago de CTS</th><th class="n">Pago de gratificación</th><th class="n">Préstamos</th><th class="n">Otros</th></tr></thead>
-   <tbody>${rows}</tbody><tfoot><tr><td colspan="3">TOTALES S/. (${R.length})</td><td class="n">${tMm(T(r=>num(r.f.sueldo)))}</td><td></td><td class="n">${tMm(T(r=>r.asig))}</td><td></td><td></td><td></td><td class="n">${tMm(T(r=>num(r.v.bono)))}</td><td class="n">${tMm(T(r=>num(r.v.movilidad)))}</td><td class="n">${tMm(T(r=>num(r.v.bonoProd)))}</td><td class="n">${tMm(T(r=>num(r.v.comision)))}</td><td class="n">${tMm(T(r=>num(r.v.otros)))}</td><td class="n">${tMm(T(r=>r.adS))}</td><td class="n">${tMm(T(r=>r.adC))}</td><td></td><td></td><td></td><td></td><td class="n">${tMm(T(r=>r.pre))}</td><td></td><td></td></tr></tfoot></table></div>
+  return kp+`<div class="card"><h2>Planilla de ${esc(tMonthTxt(S.t.month))}</h2><div class="scroll"><table data-min="2"><thead><tr><th data-p="2">Orden</th><th data-p="1">DNI</th><th data-p="3">Apellidos y nombres</th><th class="n" data-p="3">Remuneración básica</th><th data-p="1">Cargo u ocupación</th><th class="n" data-p="1">Asignación familiar</th><th data-p="0">Modalidad</th><th data-p="1">Sistema de pensiones</th><th class="n" data-p="1">Fecha de ingreso</th><th class="n" data-p="1">Bono</th><th class="n" data-p="1">Movilidad</th><th class="n" data-p="1">Bono de productividad</th><th class="n" data-p="1">Comisión</th><th class="n" data-p="1">Otros</th><th class="n" data-p="2">Desc. adelantos sueldo</th><th class="n" data-p="2">Desc. adelanto comisión</th><th class="n" data-p="0">Desc. pago de planilla de movilidad</th><th class="n" data-p="0">Desc. pago de vacaciones</th><th class="n" data-p="0">Desc. pago de CTS</th><th class="n" data-p="0">Desc. pago de gratificación</th><th class="n" data-p="2">Desc. préstamos</th><th class="n" data-p="0">Desc. otros</th><th></th></tr>
+   </thead>
+   <tbody>${rows}</tbody><tfoot><tr><td></td><td></td><td>TOTALES S/. (${R.length})</td><td class="n">${tMm(T(r=>num(r.f.sueldo)))}</td><td></td><td class="n">${tMm(T(r=>r.asig))}</td><td></td><td></td><td></td><td class="n">${tMm(T(r=>num(r.v.bono)))}</td><td class="n">${tMm(T(r=>num(r.v.movilidad)))}</td><td class="n">${tMm(T(r=>num(r.v.bonoProd)))}</td><td class="n">${tMm(T(r=>num(r.v.comision)))}</td><td class="n">${tMm(T(r=>num(r.v.otros)))}</td><td class="n">${tMm(T(r=>r.adS))}</td><td class="n">${tMm(T(r=>r.adC))}</td><td></td><td></td><td></td><td></td><td class="n">${tMm(T(r=>r.pre))}</td><td></td><td></td></tr></tfoot></table></div>
    <p class="hint" style="margin:8px 0 0">Los datos del colaborador y los ingresos del mes se registran aquí en Control («Ver detalles» → «Editar»). Los adelantos se toman de la hoja Adelantos. Las cuotas de préstamos se toman de la hoja Préstamos. Pago de planilla de movilidad, vacaciones, CTS, gratificación y otros se completan en los siguientes pasos. Los aportes y el neto están en la tabla de abajo.</p></div>`+tNetoCard(R);
 }
 function openFic(uid){
@@ -2026,9 +2029,9 @@ function openFic(uid){
   const e=tEmpList().find(x=>x.id===uid);if(!e)return;const f=tFic(uid),v=tVar(uid),mes=tMonthTxt(S.t.month);
   const inp=(id,val,ex='')=>`<input id="${id}" ${ex} value="${esc(val==null?'':val)}" autocomplete="off">`,numI=(id,val)=>`<input id="${id}" type="number" min="0" step="0.01" inputmode="decimal" value="${val==null?'':esc(val)}">`;
   const body=`<div class="fld full"><label>Colaborador (viene de Asistencia)</label><div><b>${esc(String(e.name||'').toUpperCase())}</b></div></div>`+
-   fld('tf-dni','DNI',inp('tf-dni',f.dni,'inputmode="numeric"'))+
+   `<div class="fld"><label>DNI (viene de Asistencia)</label><div>${f.dni?esc(f.dni):'<span class="hint">Aún no lo envía Asistencia</span>'}</div></div>`+
    fld('tf-sueldo','Remuneración básica (S/)',numI('tf-sueldo',f.sueldo))+
-   fld('tf-cargo','Cargo u ocupación',inp('tf-cargo',f.cargo))+
+   `<div class="fld"><label>Cargo u ocupación (viene de Asistencia)</label><div>${f.cargo?esc(f.cargo):'<span class="hint">Aún no lo envía Asistencia</span>'}</div></div>`+
    fld('tf-modalidad','Modalidad',`<select id="tf-modalidad"><option value="">Elige</option>${TMOD.map(x=>`<option ${f.modalidad===x?'selected':''}>${x}</option>`).join('')}</select>`)+
    fld('tf-pension','Sistema de pensiones',`<select id="tf-pension"><option value="">Elige</option>${TPENS.map(x=>`<option ${f.pension===x?'selected':''}>${x}</option>`).join('')}</select>`)+
    fld('tf-ingreso','Fecha de ingreso',`<input id="tf-ingreso" type="date" value="${esc(f.ingreso||'')}">`)+
@@ -2040,8 +2043,7 @@ function openFic(uid){
   const fm=$('#mf');fm.dataset.kind='tf';fm.dataset.id=uid;
 }
 function saveFic(){
-  clearErrs();let ok=true;const uid=$('#mf').dataset.id,e=tEmpList().find(x=>x.id===uid),dni=gv('tf-dni'),sueldo=num(gv('tf-sueldo'));
-  if(dni&&validDoc(dni)!=='DNI'){setErr('tf-dni','El DNI debe tener 8 dígitos.');ok=false}
+  clearErrs();let ok=true;const uid=$('#mf').dataset.id,e=tEmpList().find(x=>x.id===uid),raw=tFicRaw(uid),sueldo=num(gv('tf-sueldo'));
   if(gv('tf-sueldo')&&!(sueldo>=0)){setErr('tf-sueldo','Escribe un importe válido.');ok=false}
   const ing=gv('tf-ingreso'),ces=gv('tf-cese');
   if(ing&&!okIso(ing)){setErr('tf-ingreso','Fecha no válida.');ok=false}
@@ -2050,7 +2052,7 @@ function saveFic(){
   const vn=id=>{const n=num(gv(id));return n&&n>0?Math.round(n*100)/100:0};
   if(!ok)return;
   persist(()=>Promise.all([
-    Store.set(TCOLS.fic,uid,{userId:uid,name:e?e.name:'',dni,sueldo:sueldo||0,cargo:gv('tf-cargo'),modalidad:gv('tf-modalidad'),pension:gv('tf-pension'),ingreso:ing,cese:ces,asigFam:$('#tf-asig').checked}),
+    Store.set(TCOLS.fic,uid,{userId:uid,name:e?e.name:'',dni:raw.dni||'',cargo:raw.cargo||'',sueldo:sueldo||0,modalidad:gv('tf-modalidad'),pension:gv('tf-pension'),ingreso:ing,cese:ces,asigFam:$('#tf-asig').checked}),
     Store.set(TCOLS.vars,S.t.month+'_'+uid,{userId:uid,month:S.t.month,bono:vn('tf-bono'),movilidad:vn('tf-mov'),bonoProd:vn('tf-bprod'),comision:vn('tf-com'),otros:vn('tf-otros')})]),'Ficha guardada');
 }
 function openCfgT(){
@@ -2333,20 +2335,20 @@ function cardTables(){
 }
 /* ---------- columnas adaptables: si la tabla no cabe se ocultan columnas (mínimo 3); el detalle completo está en "Ver detalles" ---------- */
 const COL_LOW=/observ|detalle|tipo|marca|moneda|unidad|modalidad|serie|dni|ruc|referencia|periodo|comprobante|estado|modo|forma/i;
-const COL_HIGH=/fecha|importe|ingreso|egreso|saldo|renta|stock|total|valor|avance|vendid|pendient|descripci|producto|arrendador|documento|cliente|proveedor/i;
+const COL_HIGH=/apellidos|fecha|importe|ingreso|egreso|saldo|renta|stock|total|valor|avance|vendid|pendient|descripci|producto|arrendador|documento|cliente|proveedor/i;
 function fitTables(){
   document.querySelectorAll('#main table').forEach(t=>{
     t.querySelectorAll('.chid').forEach(x=>x.classList.remove('chid'));
     const sc=t.closest('.scroll');if(!sc||t.dataset.nofit||getComputedStyle(t).display!=='table')return;
-    const ths=[...t.querySelectorAll('thead tr:last-child th')],n=ths.length;if(n<4)return;
+    const ths=[...t.querySelectorAll('thead tr:last-child th')],n=ths.length,mn=Number(t.dataset.min)||3;if(n<4)return;
     const fr=t.querySelector('tbody tr'),hasAct=!!(fr&&fr.children.length===n&&fr.children[n-1].classList.contains('act'));
-    const cand=[];for(let i=2;i<(hasAct?n-1:n);i++)cand.push(i);
-    const tx=i=>ths[i].textContent,tier=i=>COL_HIGH.test(tx(i))?3:COL_LOW.test(tx(i))?1:2;
-    const order=[1,2,3].flatMap(k=>cand.filter(i=>tier(i)===k).reverse());
+    const cand=[];for(let i=(t.dataset.min?0:2);i<(hasAct?n-1:n);i++)cand.push(i);
+    const tx=i=>ths[i].textContent,tier=i=>ths[i].dataset.p!=null?Number(ths[i].dataset.p):ths[i].dataset.lo?0:COL_HIGH.test(tx(i))?3:COL_LOW.test(tx(i))?1:2;
+    const order=[0,1,2,3].flatMap(k=>cand.filter(i=>tier(i)===k).reverse());
     t.classList.remove('tight');
     let vis=n-(hasAct?1:0);
     for(const i of order){
-      if(sc.scrollWidth<=sc.clientWidth+1||vis<=3)break;
+      if(sc.scrollWidth<=sc.clientWidth+1||vis<=mn)break;
       t.querySelectorAll('tr').forEach(tr=>{if(tr.children.length===n)tr.children[i].classList.add('chid')});vis--;
     }
     if(sc.scrollWidth>sc.clientWidth+1)t.classList.add('tight');
@@ -2355,6 +2357,15 @@ function fitTables(){
 let fitRaf=0;window.addEventListener('resize',()=>{cancelAnimationFrame(fitRaf);fitRaf=requestAnimationFrame(fitTables)});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>fitTables());
 function render(){
+  const mainEl=$('#main'),keepSc=[...mainEl.querySelectorAll('.scroll')].map(e=>[e.scrollLeft,e.scrollTop]),keepY=[window.scrollY,mainEl.scrollTop,document.scrollingElement?document.scrollingElement.scrollTop:0],keepMod=S.mod+'|'+(S.mod==='tareo'?S.t.tab:'');
+  try{renderCore()}finally{
+    if(keepMod===S.mod+'|'+(S.mod==='tareo'?S.t.tab:'')){
+      [...mainEl.querySelectorAll('.scroll')].forEach((e,i)=>{if(keepSc[i]){e.scrollLeft=keepSc[i][0];e.scrollTop=keepSc[i][1]}});
+      if(document.scrollingElement)document.scrollingElement.scrollTop=keepY[2];mainEl.scrollTop=keepY[1];
+    }
+  }
+}
+function renderCore(){
   const a=document.activeElement;lastFocus=a&&a.dataset&&a.dataset.fk?a.dataset.fk:null;
   S.C=compute();S.KC=computeK();S.AC=computeA();S.BC=computeB();
   renderSide();
