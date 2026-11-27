@@ -254,6 +254,22 @@ td.act .btn+.btn{margin-left:4px}
 .lotstat{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .lbrow{display:flex;align-items:center;gap:7px}
 .chid{display:none!important}
+.tgrid{border-collapse:separate;border-spacing:0;font-size:12px}
+.tgrid th,.tgrid td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:3px 5px;text-align:center;white-space:nowrap}
+.tgrid thead th{background:var(--surface2,var(--surface));font-weight:600}
+.tgrid th.dd{font-weight:500;min-width:27px;line-height:1.2;padding:3px 2px}
+.tgrid th.dd.sun{color:#D32F2F}
+.tgrid th.v{writing-mode:vertical-rl;transform:rotate(180deg);height:150px;font-weight:500;padding:6px 3px}
+.tgrid .cd{position:sticky;left:0;background:var(--surface);z-index:1;min-width:42px}
+.tgrid .nm{position:sticky;left:42px;background:var(--surface);z-index:1;text-align:left;min-width:230px;box-shadow:1px 0 0 var(--line)}
+.tgrid thead .cd,.tgrid thead .nm{z-index:2}
+.tgrid td.tc.red{background:var(--bad-bg);color:var(--bad);font-weight:600}
+.tgrid td.tc.rev{outline:2px solid #E5B422;outline-offset:-2px}
+.tgrid td.tc.man{text-decoration:underline dotted}
+.tleg{display:grid;grid-template-columns:auto 1fr;gap:0;font-size:13px;max-width:760px}
+.tleg>span{padding:3px 10px;border:1px solid var(--line);margin:0 0 -1px 0}
+.tleg>b{background:#548DD4;color:#fff;text-align:center;padding:3px 12px;border:1px solid var(--line);margin:0 0 -1px 0}
+.tmes{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .tight .wrap{min-width:110px}
 .tight td.act{white-space:normal}
 .sdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle;flex:none;cursor:help;background:#E5B422}
@@ -312,7 +328,7 @@ const XLX=(()=>{
       const bn=norm(s.bd);const bo=bn?add(borders,idx.b,'<border>'+side('left',bn.l)+side('right',bn.r)+side('top',bn.t)+side('bottom',bn.b)+'<diagonal/></border>'):0;
       let nid=0;if(s.nf){if(BUILTIN[s.nf]!=null)nid=BUILTIN[s.nf];else{if(!idx.n.has(s.nf)){fmts.push(s.nf);idx.n.set(s.nf,163+fmts.length)}nid=idx.n.get(s.nf)}}
       const al=s.al||{};
-      const alx=(al.h||al.v||al.w||al.ind)?'<alignment'+(al.h?' horizontal="'+al.h+'"':'')+(al.v?' vertical="'+al.v+'"':'')+(al.w?' wrapText="1"':'')+(al.ind?' indent="'+al.ind+'"':'')+'/>':'';
+      const alx=(al.h||al.v||al.w||al.ind||al.rot)?'<alignment'+(al.h?' horizontal="'+al.h+'"':'')+(al.v?' vertical="'+al.v+'"':'')+(al.rot?' textRotation="'+al.rot+'"':'')+(al.w?' wrapText="1"':'')+(al.ind?' indent="'+al.ind+'"':'')+'/>':'';
       const x='<xf numFmtId="'+nid+'" fontId="'+fo+'" fillId="'+fi+'" borderId="'+bo+'" xfId="0"'+(nid?' applyNumberFormat="1"':'')+' applyFont="1"'+(fi?' applyFill="1"':'')+(bo?' applyBorder="1"':'')+(alx?' applyAlignment="1">'+alx+'</xf>':'/>');
       xfs.push(x);idx.x.set(key,xfs.length-1);return xfs.length-1;
     }
@@ -406,6 +422,7 @@ const SEV={c:{n:'Crítica',o:0},a:{n:'Alta',o:1},m:{n:'Media',o:2},b:{n:'Baja',o
 
 /* ---------- módulos (un panel por proceso) ---------- */
 const MODULES=[
+ {id:'tareo',name:'Tareo',live:true},
  {id:'proyectos',name:'Proyectos y lotes',live:true},
  {id:'kardex',name:'Kardex de regalos',live:true,desc:'Compras (entradas) y entregas (salidas) de regalos a clientes, con stock, costo promedio, valor entregado y alertas de stock mínimo.',items:['Catálogo de productos','Registro de movimientos con sustento','Stock consolidado y resumen']},
  {id:'alquileres',name:'Alquileres vigentes',live:true,desc:'Contratos y adendas de alquiler, con el calendario de pagos según su periodicidad y el comprobante de cada pago.',items:['Lista de contratos y adendas','Pagos por mes y comprobantes','Vigencia y vencimientos']},
@@ -491,7 +508,7 @@ async function loadWho(){
     const {data:{session}}=await sb.auth.getSession();if(!session)return;
     const uid=session.user.id;
     const r=await sb.from('profiles').select('name,color,avatar_url,role,area_id,username').eq('id',uid).maybeSingle();
-    const p=r.data;let name=(p&&p.name)||(session.user.email||'').split('@')[0]||'Usuario',sub='';
+    const p=r.data;S.t.who={uid,name:(p&&p.name)||'',admin:!!(p&&p.role==='admin')};let name=(p&&p.name)||(session.user.email||'').split('@')[0]||'Usuario',sub='';
     if(p){if(p.role==='admin')sub='Administrador';
       else if(p.area_id){const a=await sb.from('areas').select('name').eq('id',p.area_id).maybeSingle();sub=(a.data&&a.data.name)||''}}
     const ini=name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'?';
@@ -663,6 +680,7 @@ S.KC=null;
 const slug=c=>String(c).trim().toUpperCase().replace(/[^A-Z0-9_\-.~:@+]/g,'_');
 const kcode=c=>String(c||'').trim().toUpperCase();
 const hoy=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+S.t={cie:[],who:{},pre:[],fic:[],vars:[],cfg:null,ade:[],rAde:false,dec:false,tab:'tareo',month:hoy().slice(0,7),cache:{},err:{},busy:false};
 const igvRate=()=>{const v=num(S.k.cfg.igv);return (v==null?18:v)/100};
 function validDoc(v){
   v=String(v||'').trim();
@@ -674,7 +692,7 @@ function validDoc(v){
   }
   return null;
 }
-function collFor(k){return k==='bj'?BCOLS.caja:k==='bm'?BCOLS.mov:k==='ac'?ACOLS.con:k==='kp'?KCOLS.cat:k==='km'?KCOLS.mov:k==='p'?COLS.proyectos:k==='e'?COLS.escrituras:COLS.servicios}
+function collFor(k){return k==='tp'?TCOLS.pre:k==='ta'?TCOLS.ade:k==='bj'?BCOLS.caja:k==='bm'?BCOLS.mov:k==='ac'?ACOLS.con:k==='kp'?KCOLS.cat:k==='km'?KCOLS.mov:k==='p'?COLS.proyectos:k==='e'?COLS.escrituras:COLS.servicios}
 function kUsed(id){const c=S.k.cat.find(x=>x.id===id);return !!c&&S.k.mov.some(m=>kcode(m.codigo)===kcode(c.codigo))}
 
 function computeK(){
@@ -1785,13 +1803,508 @@ function bChangeIn(t,k){
   }
 }
 
+
+/* =====================================================================
+   TAREO (solo lectura): todo viene de Asistencia por RPC. Control no lee tablas att_ ni recalcula.
+   ===================================================================== */
+const TCOLS={cie:'tar_cierres',pre:'tar_prestamos',ade:'tar_adelantos',fic:'tar_ficha',vars:'tar_variables',cfg:'tar_config'};
+const TPENS=['ONP','PRIMA','HABITAT','PROFUTURO','INTEGRA'],TAFP=['PRIMA','HABITAT','PROFUTURO','INTEGRA'],TMOD=['FULL TIME','PART TIME'];
+const TDEF={rmv:1230,asig:10,onp:13,essalud:9,sctr:1.25,ruc:'20607732389',empresa:'',afp:{PRIMA:{ap:10,com:0,pri:1.37},HABITAT:{ap:10,com:0,pri:1.37},PROFUTURO:{ap:10,com:0,pri:1.37},INTEGRA:{ap:10,com:0,pri:1.37}}};
+const tSnap=()=>{const d=S.t.cie.find(x=>x.id===S.t.month);return d&&d.estado==='cerrado'&&d.snap?d.snap:null};
+const tLocalDate=iso=>{const d=new Date(iso);return isNaN(d)?'':fdate(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'))};
+const tClosed=()=>!!tSnap();
+const tCieDoc=()=>S.t.cie.find(x=>x.id===S.t.month)||null;
+const tCacheFor=mes=>{if(mes===S.t.month){const sn=tSnap();if(sn)return {rows:sn.rows,sum:sn.sum}}return S.t.cache[mes]};
+const tAdeList=()=>{const sn=tSnap();return sn?sn.ade:S.t.ade};
+const tPreList=()=>{const sn=tSnap();return sn?sn.pre:S.t.pre};
+const tLock=()=>{if(tClosed()){toast('Este mes está cerrado. Reábrelo para hacer cambios.');return true}return false};
+const tCfg=()=>{const sn=tSnap(),c=(sn?sn.cfg:S.t.cfg)||{};return {...TDEF,...c,afp:{...TDEF.afp,...(c.afp||{})}}};
+const tFic=id=>{const sn=tSnap();return sn?(sn.fic[id]||{}):(S.t.fic.find(x=>x.id===id)||{})};
+const tVar=id=>{const sn=tSnap();return sn?(sn.vars[id]||{}):(S.t.vars.find(x=>x.id===S.t.month+'_'+id)||{})};
+const TTABS=[['planilla','Planilla'],['tareo','Tareo'],['adelantos','Adelantos'],['prestamos','Préstamos'],['horas','Horas extra'],['tardanzas','Tardanzas']];
+const TCODES=[['A','ASISTIO'],['FE','FERIADO'],['FT','FERIADO TRABAJADO'],['D','DESCANSO'],['DT','DESCANSO TRABAJADO'],['NA','NO ASISTIO (INASISTENCIA INJUSTIFICADA)'],
+  ['LSG','LICENCIA SIN GOCE DE HABER'],['LCG','LICENCIA CON GOCE DE HABER'],['V','VACACIONES'],['VA','VACACIONES ADELANTADAS'],['DM','DESCANSO MEDICO']];
+const TNOTAS={LSG:'MEDIANTE DOCUEMENTO PARA EL CASO DE LAS LICENCIAS SIN GOCE DE HABER LA EMPRESA DEBE INDICAR SI DICHOS DIAS DE LICENCIA ENTRAN O NO PARA EL CALCULO DE SUS BENEFICISO SOCIALES',
+  LCG:'MEDIANTE DOCUEMENTO SE DEBE OTORGAR LA LICENCIA',V:'MEDIANTE DOCUEMENTO SE DEBE OTORGAR LAS VACACIONES',VA:'MEDIANTE DOCUEMENTO SE DEBE OTORGAR LAS VACACIONES ADELANTADAS',DM:'ADJUNTAR CERTIFICADO MÉDICO'};
+const TSUM=[['LABORABLES','dias_asistidos'],['FERIADO Y DOMINGOS','dias_descanso_feriado'],['FERIADOO DIAS DE DESCANSO LABORADOS','dias_trabajados_descanso'],['LICENCIA SIN GOCE DE HABER','lsg'],['LICENCIA CON GOCE DE HABER','lcg'],
+  ['VACACIONES','vacaciones'],['VACACIONES ADELANTADAS','vacaciones_adelantadas'],['DESCANSO MEDICO','descanso_medico'],['INASISTENCIAS','inasistencias'],['TOTAL DIAS MES','total_dias']];
+const tRed=c=>/[DF]/.test(c||'');
+const tHoras=min=>min==null?'':Math.round(min/60*100)/100;
+const tExt=min=>S.t.dec?tHoras(min):tHM(min);
+const tHM=min=>Math.floor((min||0)/60)+':'+String((min||0)%60).padStart(2,'0');
+const tMonthTxt=m=>MESES_FULL[Number(m.slice(5,7))-1]+' '+m.slice(0,4);
+function tModel(){
+  const c=tCacheFor(S.t.month);if(!c)return null;
+  const [y,m]=S.t.month.split('-').map(Number),nd=new Date(y,m,0).getDate();
+  const days=[...Array(nd)].map((_,i)=>S.t.month+'-'+String(i+1).padStart(2,'0'));
+  const sumBy={};(c.sum||[]).forEach(x=>{sumBy[x.user_id]=x});
+  const by={};(c.rows||[]).forEach(r=>{const e=(by[r.user_id]=by[r.user_id]||{id:r.user_id,name:r.name,d:{}});e.d[String(r.work_date).slice(0,10)]=r});
+  const emps=Object.values(by).sort((a,b)=>cmpTxt(a.name,b.name)).map((e,i)=>({...e,n:i+1,s:sumBy[e.id]||{}}));
+  return {y,m,days,emps};
+}
+function tRevisar(){const c=S.t&&tCacheFor(S.t.month);return c?(c.sum||[]).reduce((a,x)=>a+(x.dias_por_revisar||0),0):0}
+function tErr(e){
+  const m=String((e&&e.message)||e||'');
+  if((e&&e.code==='42501')||/No autorizado|permission/i.test(m))return 'Tu usuario no tiene permiso para ver el tareo. Solo entran el administrador y el área Administración.';
+  if((e&&e.code==='PGRST202')||/Could not find the function|does not exist/i.test(m))return 'Asistencia todavía no tiene instalado el contrato de tareo (SQL 012). Pídele al chat de Asistencia que lo ejecute en Supabase.';
+  return 'No se pudo leer el tareo de Asistencia: '+m;
+}
+async function tLoad(force){
+  const t=S.t,mes=t.month;if(t.busy)return;
+  if(tClosed())return;
+  if(!force&&t.cache[mes])return;
+  t.busy=mes;delete t.err[mes];render();
+  try{
+    const p=mes+'-01';
+    const [a,b]=await Promise.all([sb.rpc('att_tareo_month',{p_month:p}),sb.rpc('att_tareo_summary',{p_month:p})]);
+    if(a.error)throw a.error;if(b.error)throw b.error;
+    t.cache[mes]={rows:a.data||[],sum:b.data||[],ts:Date.now()};
+  }catch(e){t.err[mes]=tErr(e)}
+  t.busy=false;render();
+}
+function tEnsure(){const t=S.t;if(S.mod==='tareo'&&!tClosed()&&!t.busy&&!t.cache[t.month]&&!t.err[t.month]&&Store.mode!=='pending')tLoad()}
+function tSetMonth(v){if(/^\d{4}-\d{2}$/.test(v)){S.t.month=v;render()}}
+function tClick(a,id){
+  const t=S.t;
+  if(a==='tz-close'){openCierre();return}
+  if(a==='tz-open'){openReabrir();return}
+  if(a==='tl-new'){openLic();return}
+  if(a==='tp-new'){openPre();return}
+  if(a==='t-edit-p'){openPre(id);return}
+  if(a==='t-edit-f'){openFic(id);return}
+  if(a==='tc-open'){openCfgT();return}
+  if(a==='ta-new'){openAde();return}
+  if(a==='t-edit-a'){openAde(id);return}
+  if(a==='t-prev'||a==='t-next'){const [y,m]=t.month.split('-').map(Number),d=new Date(y,m-1+(a==='t-next'?1:-1),1);tSetMonth(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));return}
+  if(a==='t-refresh'){delete t.err[t.month];tLoad(true);return}
+  if(a==='t-export'){exportT();return}
+}
+function viewTareo(){
+  const t=S.t,mes=t.month,M=tModel();
+  const cd=tCieDoc(),cerr=tClosed();
+  const tabs=`<div class="tabs" role="tablist">${TTABS.map(([id,n])=>`<button class="tab" role="tab" aria-selected="${t.tab===id}" data-act="ttab" data-id="${id}">${n}</button>`).join('')}</div>`;
+  const bar=`<div class="toolbar"><div class="grp tmes"><button class="btn" data-act="t-prev" aria-label="Mes anterior">‹</button>
+    <input type="month" class="cell-in" style="width:auto" data-act-in="tmes" value="${esc(mes)}" aria-label="Mes del tareo"><button class="btn" data-act="t-next" aria-label="Mes siguiente">›</button>
+    ${cerr?'':'<button class="btn" data-act="t-refresh">Actualizar desde Asistencia</button>'}${M||cerr?(cerr?(S.t.who.admin?'<button class="btn" data-act="tz-open">Reabrir mes</button>':''):'<button class="btn primary" data-act="tz-close">Cerrar mes</button>'):''}</div>
+    <span class="pill ${cerr?'ok':'m'}">${cerr?'Mes cerrado · copia fija del '+esc(tLocalDate(cd.closedAt))+' por '+esc(cd.closedBy||''):'Mes abierto · datos en vivo de Asistencia'}</span></div>`;
+  let body;
+  if(t.err[mes])body=`<div class="note warn">${esc(t.err[mes])}</div>`;
+  else if(t.busy===mes||!M)body='<div class="empty"><b>Cargando el tareo de Asistencia…</b></div>';
+  else if(t.tab==='tareo')body=tTareo(M);
+  else if(t.tab==='planilla')body=tPlan(M);
+  else if(t.tab==='tardanzas')body=tTard(M);
+  else if(t.tab==='horas')body=tExtra(M);
+  else if(t.tab==='adelantos')body=tAde(M);
+  else if(t.tab==='prestamos')body=tPre(M);
+  else body=`<div class="card"><h2>${esc((TTABS.find(x=>x[0]===t.tab)||[])[1]||'')}</h2><p style="margin:0;color:var(--ink2)">Esta hoja se agrega en el siguiente paso.</p></div>`;
+  return `<div class="head"><div><h1>Tareo</h1><p>${esc(tMonthTxt(mes))} · Solo lectura: los datos y los cálculos vienen de Asistencia.</p></div>
+    <div class="actions">${S.canExport&&M?'<button class="btn primary" data-act="t-export">Exportar a Excel</button>':''}</div></div>${tabs}${bar}${body}`;
+}
+function tTareo(M){
+  const {days,emps,y,m}=M;
+  if(!emps.length)return '<div class="empty"><b>No hay colaboradores activos en Asistencia para este mes</b></div>';
+  const DL=['D','L','M','M','J','V','S'];
+  const dh=days.map(d=>{const w=new Date(y,m-1,Number(d.slice(8))).getDay();return `<th class="dd ${w===0?'sun':''}" title="${esc(fdate(d))}">${DL[w]}<br>${Number(d.slice(8))}</th>`}).join('');
+  const sh=TSUM.map(x=>`<th class="v">${esc(x[0])}</th>`).join('');
+  const leg=`<div class="card"><h2>Códigos</h2><div class="tleg">${TCODES.map(([c,n])=>`<b>${c}</b><span>${esc(n)}${TNOTAS[c]?` <span class="hint">· ${esc(TNOTAS[c])}</span>`:''}</span>`).join('')}</div></div>`;
+  const tip=(r)=>{if(!r)return '';const a=[fdate(String(r.work_date).slice(0,10))];if(r.status)a.push(r.status);if(r.late_min)a.push('tardanza '+r.late_min+' min');if(r.extra_min)a.push('extras '+r.extra_min+' min');
+    if(r.manual)a.push('registrado a mano'+(r.note?': '+r.note:''));if(r.flag)a.push(r.flag);if(r.needs_review)a.push('por revisar en Asistencia');return a.join(' · ')};
+  const cls=r=>'tc'+(r&&tRed(r.code)?' red':'')+(r&&r.needs_review?' rev':'')+(r&&r.manual?' man':'');
+  const r1=emps.map(e=>`<tr><td class="cd">${e.n}</td><td class="nm">${esc(String(e.name||'').toUpperCase())}</td>${days.map(d=>{const r=e.d[d];return `<td class="${cls(r)}" title="${esc(tip(r))}">${esc(r&&r.code||'')}</td>`}).join('')}${TSUM.map(x=>`<td>${e.s[x[1]]==null?'':e.s[x[1]]}</td>`).join('')}</tr>`).join('');
+  const r2=emps.map(e=>`<tr><td class="cd">${e.n}</td><td class="nm">${esc(String(e.name||'').toUpperCase())}</td>${days.map(d=>{const r=e.d[d],c=r&&r.code;
+    const v=!c?'':(c==='A'||c==='FT'||c==='DT')?tHoras(r.worked_min):c;return `<td class="${cls(r)}" title="${esc(tip(r))}">${esc(v)}</td>`}).join('')}
+    <td>${tHoras(e.s.requerido_min)}</td><td>${e.s.tardanza_min==null?'':tHM(e.s.tardanza_min)}</td><td>${tHoras(e.s.trabajado_min)}</td></tr>`).join('');
+  const rev=tRevisar();
+  const bar=`<div class="toolbar"><div class="grp"><button class="btn primary" data-act="tl-new">Registrar licencia, vacaciones o descanso médico</button></div><span class="hint">Es lo único que se registra desde Control en Asistencia.</span></div>`;
+  return `${bar}${leg}${rev?`<div class="note warn" style="margin:12px 0">Hay ${rev} día(s) por revisar en Asistencia (marcados con borde amarillo). Se corrigen allá; aquí solo se muestran.</div>`:''}
+  <div class="card"><h2>Tareo: códigos por día</h2><div class="scroll"><table class="tgrid" data-nofit="1"><thead><tr><th class="cd">Cod.</th><th class="nm">Apellidos y nombres</th>${dh}${sh}</tr></thead><tbody>${r1}</tbody></table></div></div>
+  <div class="card"><h2>Tareo: horas por día</h2><div class="scroll"><table class="tgrid" data-nofit="1"><thead><tr><th class="cd">Cod.</th><th class="nm">Apellidos y nombres</th>${dh}<th class="v">TOTAL HORAS</th><th class="v">HORAS TARDANZA</th><th class="v">HORAS LABORADAS</th></tr></thead><tbody>${r2}</tbody></table></div>
+  <p class="hint" style="margin:8px 0 0">Total horas = horas requeridas del mes · Horas laboradas = horas trabajadas · Horas tardanza = tardanza del mes (h:mm). Todo calculado por Asistencia.</p></div>`;
+}
+
+function tDayHead(M){const DL=['D','L','M','M','J','V','S'];return M.days.map(d=>{const w=new Date(M.y,M.m-1,Number(d.slice(8))).getDay();return `<th class="dd ${w===0?'sun':''}" title="${esc(fdate(d))}">${DL[w]}<br>${Number(d.slice(8))}</th>`}).join('')}
+function tTard(M){
+  const {days,emps}=M;
+  if(!emps.length)return '<div class="empty"><b>No hay colaboradores activos en Asistencia para este mes</b></div>';
+  const rows=emps.map(e=>`<tr><td class="cd">${e.n}</td><td class="nm">${esc(String(e.name||'').toUpperCase())}</td>${days.map(d=>{const r=e.d[d],v=r&&r.late_min?r.late_min:'';return `<td class="tc${v?' red':''}" title="${esc(r&&v?fdate(d)+' · tardanza '+v+' min':'')}">${v}</td>`}).join('')}
+    <td><b>${e.s.tardanza_min==null?'':e.s.tardanza_min}</b></td><td>${e.s.tardanza_min==null?'':tHM(e.s.tardanza_min)}</td><td>${e.s.tolerancia_min==null?'':e.s.tolerancia_min}</td><td>${e.s.tardanza_excedida_min==null?'':e.s.tardanza_excedida_min}</td></tr>`).join('');
+  return `<div class="card"><h2>Tardanzas por día (minutos)</h2><div class="scroll"><table class="tgrid" data-nofit="1"><thead><tr><th class="cd">Cod.</th><th class="nm">Apellidos y nombres</th>${tDayHead(M)}<th class="v">TOTAL MINUTOS</th><th class="v">TOTAL HORAS</th><th class="v">TOLERANCIA (MIN)</th><th class="v">EXCEDIDA (MIN)</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="hint" style="margin:8px 0 0">Minutos de tardanza de cada día, tal como los calcula Asistencia. Total horas = total de minutos en h:mm. Tolerancia y minutos excedidos también vienen de Asistencia; Control no los recalcula.</p></div>`;
+}
+
+function tExtra(M){
+  const {days,emps}=M;
+  if(!emps.length)return '<div class="empty"><b>No hay colaboradores activos en Asistencia para este mes</b></div>';
+  const rows=emps.map(e=>`<tr><td class="cd">${e.n}</td><td class="nm">${esc(String(e.name||'').toUpperCase())}</td>${days.map(d=>{const r=e.d[d],v=r&&r.extra_min?tExt(r.extra_min):'';return `<td class="tc" title="${esc(r&&v?fdate(d)+' · extras '+r.extra_min+' min':'')}">${v}</td>`}).join('')}
+    <td><b>${e.s.extras_min==null?'':tExt(e.s.extras_min)}</b></td></tr>`).join('');
+  return `<div class="card"><div class="toolbar" style="margin:0 0 10px"><h2 style="margin:0">Horas extra por día (${S.t.dec?'decimales':'h:mm'})</h2><label class="chk" style="margin-left:auto;display:flex;gap:6px;align-items:center"><input type="checkbox" data-act-in="tdec" ${S.t.dec?'checked':''}> Mostrar en decimales</label></div><div class="scroll"><table class="tgrid" data-nofit="1"><thead><tr><th class="cd">Cod.</th><th class="nm">Apellidos y nombres</th>${tDayHead(M)}<th class="v">TOTAL HORAS</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="hint" style="margin:8px 0 0">Horas extra de cada día, tal como las calcula Asistencia. Por defecto se muestran en h:mm; activa «Mostrar en decimales» para verlas (y exportarlas) como 1.5. El formato elegido se usa también en el Excel. Control no las recalcula.</p></div>`;
+}
+
+const tAdeMes=()=>tAdeList().filter(x=>String(x.fecha||'').slice(0,7)===S.t.month).sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))||cmpTxt(a.name,b.name));
+function tEmpList(){const m={};[...Object.values(S.t.cache),tCacheFor(S.t.month)].filter(Boolean).forEach(c=>(c.rows||[]).forEach(r=>{m[r.user_id]=r.name}));return Object.entries(m).map(([id,name])=>({id,name})).sort((a,b)=>cmpTxt(a.name,b.name))}
+function tAde(M){
+  const {days,emps}=M,L=tAdeMes(),sueldo=L.filter(x=>x.tipo!=='COMISION');
+  const by={};sueldo.forEach(x=>{const k=x.userId+'|'+x.fecha;by[k]=(by[k]||0)+(num(x.monto)||0)});
+  const tot=L.reduce((a,x)=>a+(num(x.monto)||0),0);
+  const bar=`<div class="toolbar"><div class="grp"><button class="btn primary" data-act="ta-new">Registrar adelanto</button></div></div>`;
+  const grid=`<div class="card"><h2>Adelantos de sueldo por día (S/)</h2><div class="scroll"><table class="tgrid" data-nofit="1"><thead><tr><th class="cd">Cod.</th><th class="nm">Apellidos y nombres</th>${tDayHead(M)}<th class="v">TOTAL ADELANTOS</th></tr></thead><tbody>${emps.map(e=>{
+    let t=0;const cells=days.map(d=>{const v=by[e.id+'|'+d]||0;t+=v;return `<td class="tc" title="${v?esc(fdate(d)+' · S/ '+nf(v,2)):''}">${v?nf(v,2):''}</td>`}).join('');
+    return `<tr><td class="cd">${e.n}</td><td class="nm">${esc(String(e.name||'').toUpperCase())}</td>${cells}<td><b>${t?nf(t,2):''}</b></td></tr>`}).join('')}</tbody></table></div>
+    <p class="hint" style="margin:8px 0 0">La hoja del Excel suma solo los adelantos de sueldo; los adelantos de comisión se listan abajo y van a su propia columna en Planilla.</p></div>`;
+  const list=L.length?`<div class="card"><h2>Adelantos registrados en ${esc(tMonthTxt(S.t.month))}</h2><div class="scroll"><table><thead><tr><th class="n">Fecha</th><th>Colaborador</th><th>Tipo</th><th class="n">Importe</th><th></th></tr></thead><tbody>${L.map(x=>`<tr><td class="n">${fdate(x.fecha)}</td><td class="wrap">${esc(x.name||'')}</td><td>${x.tipo==='COMISION'?'Comisión':'Sueldo'}</td><td class="n">${money(num(x.monto)||0,'PEN',2)}</td><td class="act">${detBtn('ta',x.id)}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><td colspan="3">Total (${L.length} adelantos)</td><td class="n">${money(tot,'PEN',2)}</td><td></td></tr></tfoot></table></div></div>`
+    :`<div class="empty"><b>Aún no hay adelantos en este mes</b><span>Registra cada adelanto con su fecha. Salen en la hoja ADELANTOS del Excel.</span></div>`;
+  return bar+grid+list;
+}
+function openAde(id){
+  if(tLock())return;
+  const prev=id?S.t.ade.find(x=>x.id===id):null,mes=S.t.month;
+  const m=prev||{fecha:mes===hoy().slice(0,7)?hoy():mes+'-01',tipo:'SUELDO'};
+  const L=tEmpList();if(prev&&prev.userId&&!L.some(e=>e.id===prev.userId))L.push({id:prev.userId,name:prev.name});
+  if(!L.length){toast('Primero deben cargarse los colaboradores desde Asistencia.');return}
+  const body=
+   fld('ta-fecha','Fecha',`<input id="ta-fecha" type="date" value="${esc(m.fecha||'')}">`)+
+   fld('ta-user','Colaborador',`<select id="ta-user"><option value="">Elige un colaborador</option>${L.map(e=>`<option value="${esc(e.id)}" ${m.userId===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select>`)+
+   fld('ta-tipo','Tipo de adelanto',`<select id="ta-tipo"><option value="SUELDO" ${m.tipo!=='COMISION'?'selected':''}>Adelanto de sueldo</option><option value="COMISION" ${m.tipo==='COMISION'?'selected':''}>Adelanto de comisión</option></select>`)+
+   fld('ta-monto','Importe (S/)',`<input id="ta-monto" type="number" min="0" step="0.01" inputmode="decimal" value="${m.monto==null?'':esc(m.monto)}">`)+
+   fld('ta-obs','Observación',`<input id="ta-obs" value="${esc(m.obs||'')}" autocomplete="off">`,'',true);
+  openModal(id?'Editar adelanto':'Registrar adelanto',body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,delButtons('ta',id));
+  const f=$('#mf');f.dataset.kind='ta';f.dataset.id=id||'';
+}
+function saveAde(){
+  clearErrs();let ok=true;const id=$('#mf').dataset.id,prev=id?S.t.ade.find(x=>x.id===id):null;
+  const fecha=gv('ta-fecha'),monto=num(gv('ta-monto')),uid=gv('ta-user'),L=tEmpList();
+  if(!okIso(fecha)){setErr('ta-fecha','Indica la fecha.');ok=false}
+  if(!uid){setErr('ta-user','Elige al colaborador.');ok=false}
+  if(!(monto>0)){setErr('ta-monto','Escribe un importe mayor que 0.');ok=false}
+  if(!ok)return;
+  const e=L.find(x=>x.id===uid),name=e?e.name:(prev&&prev.userId===uid?prev.name:'');
+  persist(()=>Store.set(TCOLS.ade,id||newId('ad_'),{userId:uid,name,fecha,tipo:gv('ta-tipo'),monto:Math.round(monto*100)/100,obs:gv('ta-obs'),ts:prev&&prev.ts?prev.ts:Date.now()}),id?'Adelanto actualizado':'Adelanto registrado');
+}
+
+const tMm=n=>n?nf(n,2):'';
+function tPlanRows(M){
+  const L=tAdeMes(),sum=(uid,tp)=>L.filter(x=>x.userId===uid&&(tp==='C'?x.tipo==='COMISION':x.tipo!=='COMISION')).reduce((a,x)=>a+(num(x.monto)||0),0),C=tCfg();
+  return M.emps.map(e=>{const f=tFic(e.id),v=tVar(e.id);
+    return {e,f,v,asig:f.asigFam?Math.round(C.rmv*C.asig)/100:0,adS:sum(e.id,'S'),adC:sum(e.id,'C'),pre:r2(tPreList().filter(x=>x.userId===e.id).reduce((a,x)=>{const c=tPreCuota(x,S.t.month);return a+(c?c.monto:0)},0))}});
+}
+
+const r2=n=>Math.round((n+Number.EPSILON)*100)/100;
+function tNeto(q){
+  const C=tCfg(),{f,v}=q,sueldo=num(f.sueldo)||0;
+  if(!(sueldo>0)||!f.pension)return null;
+  const ing=r2(sueldo+q.asig+(num(v.bono)||0)+(num(v.movilidad)||0)+(num(v.bonoProd)||0)+(num(v.comision)||0)+(num(v.otros)||0));
+  let ob=0,co=0,pr=0;
+  if(f.pension==='ONP')ob=r2(ing*C.onp/100);
+  else{const a=C.afp[f.pension]||{ap:0,com:0,pri:0};ob=r2(ing*a.ap/100);co=r2(ing*a.com/100);pr=r2(ing*a.pri/100)}
+  const ap=r2(ob+co+pr),desc=r2(q.adS+q.adC+q.pre);
+  return {ing,ob,co,pr,ap,desc,neto:r2(ing-ap-desc),ess:r2(ing*C.essalud/100),sctr:r2(ing*C.sctr/100)};
+}
+function tNetoCard(R){
+  const N=R.map(q=>({q,c:tNeto(q)})),T=k=>r2(N.reduce((a,x)=>a+(x.c?x.c[k]:0),0));
+  const rows=N.map(({q,c})=>`<tr><td class="mono">${String(q.e.n).padStart(2,'0')}</td><td class="wrap">${esc(String(q.e.name||'').toUpperCase())}</td><td>${esc(q.f.pension||'')}</td>${c?`<td class="n">${nf(c.ing,2)}</td><td class="n">${tMm(c.ob)}</td><td class="n">${tMm(c.co)}</td><td class="n">${tMm(c.pr)}</td><td class="n">${nf(c.ap,2)}</td><td class="n">${tMm(c.desc)}</td><td class="n"><b>${nf(c.neto,2)}</b></td><td class="n">${nf(c.ess,2)}</td><td class="n">${nf(c.sctr,2)}</td>`:`<td colspan="9"><span class="pill a">Falta completar la ficha (sueldo y sistema de pensiones)</span></td>`}</tr>`).join('');
+  return `<div class="card"><h2>Aportes y neto a pagar</h2><div class="scroll"><table data-nofit="1"><thead><tr><th>Orden</th><th>Apellidos y nombres</th><th>Pensión</th><th class="n">Total ingresos</th><th class="n">Aporte obligatorio / ONP</th><th class="n">Comisión AFP</th><th class="n">Prima de seguro</th><th class="n">Total aportes</th><th class="n">Descuentos</th><th class="n">Neto a pagar</th><th class="n">EsSalud (empleador)</th><th class="n">SCTR (empleador)</th></tr></thead>
+  <tbody>${rows}</tbody><tfoot><tr><td colspan="3">TOTALES S/.</td><td class="n">${tMm(T('ing'))}</td><td class="n">${tMm(T('ob'))}</td><td class="n">${tMm(T('co'))}</td><td class="n">${tMm(T('pr'))}</td><td class="n">${tMm(T('ap'))}</td><td class="n">${tMm(T('desc'))}</td><td class="n">${tMm(T('neto'))}</td><td class="n">${tMm(T('ess'))}</td><td class="n">${tMm(T('sctr'))}</td></tr></tfoot></table></div>
+  <p class="hint" style="margin:8px 0 0">Total ingresos = remuneración básica + asignación familiar + bono + movilidad + bono de productividad + comisión + otros. Aportes = ONP, o AFP (aporte obligatorio + comisión + prima de seguro) sobre el total de ingresos. Neto = total ingresos − total aportes − descuentos. EsSalud y SCTR son a cargo del empleador y no se descuentan. Descuentos = adelantos de sueldo y de comisión + cuota de préstamo del mes. No se prorratea el sueldo por inasistencias ni por ingreso o cese en el mes.</p></div>`;
+}
+function tPlan(M){
+  if(!M.emps.length)return '<div class="empty"><b>No hay colaboradores activos en Asistencia para este mes</b></div>';
+  const R=tPlanRows(M),C=tCfg();
+  const T=k=>R.reduce((a,r)=>a+(k(r)||0),0);
+  const rows=R.map(r=>{const {e,f,v}=r;return `<tr><td class="mono">${String(e.n).padStart(2,'0')}</td><td>${esc(f.dni||'')}</td><td class="wrap">${esc(String(e.name||'').toUpperCase())}</td><td class="n">${tMm(num(f.sueldo))}</td><td class="wrap">${esc(f.cargo||'')}</td><td class="n">${tMm(r.asig)}</td>
+    <td>${esc(f.modalidad||'')}</td><td>${esc(f.pension||'')}</td><td class="n">${f.ingreso?fdate(f.ingreso):''}</td><td class="n">${tMm(num(v.bono))}</td><td class="n">${tMm(num(v.movilidad))}</td><td class="n">${tMm(num(v.bonoProd))}</td><td class="n">${tMm(num(v.comision))}</td><td class="n">${tMm(num(v.otros))}</td>
+    <td class="n">${tMm(r.adS)}</td><td class="n">${tMm(r.adC)}</td><td></td><td></td><td></td><td></td><td class="n">${tMm(r.pre)}</td><td></td><td class="act">${detBtn('tf',e.id)}</td></tr>`}).join('');
+  const kp=`<div class="toolbar"><div class="grp"><button class="btn" data-act="tc-open">Parámetros de planilla</button></div><span class="hint">RMV S/ ${nf(C.rmv,2)} · Asig. familiar ${nf(C.asig)}% · ONP ${nf(C.onp)}% · EsSalud ${nf(C.essalud)}% · SCTR ${nf(C.sctr,2)}%</span></div>`;
+  return kp+`<div class="card"><h2>Planilla de ${esc(tMonthTxt(S.t.month))}</h2><div class="scroll"><table data-nofit="1"><thead><tr><th rowspan="2">Orden</th><th rowspan="2">DNI</th><th rowspan="2">Apellidos y nombres</th><th rowspan="2" class="n">Remuneración básica</th><th rowspan="2">Cargo u ocupación</th><th rowspan="2" class="n">Asignación familiar</th><th rowspan="2">Modalidad</th><th rowspan="2">Sistema de pensiones</th><th rowspan="2" class="n">Fecha de ingreso</th><th rowspan="2" class="n">Bono</th><th rowspan="2" class="n">Movilidad</th><th rowspan="2" class="n">Bono de productividad</th><th rowspan="2" class="n">Comisión</th><th rowspan="2" class="n">Otros</th><th colspan="8" style="text-align:center">DESCUENTOS</th><th rowspan="2"></th></tr>
+   <tr><th class="n">Adelantos sueldo</th><th class="n">Adelanto comisión</th><th class="n">Pago de planilla de movilidad</th><th class="n">Pago de vacaciones</th><th class="n">Pago de CTS</th><th class="n">Pago de gratificación</th><th class="n">Préstamos</th><th class="n">Otros</th></tr></thead>
+   <tbody>${rows}</tbody><tfoot><tr><td colspan="3">TOTALES S/. (${R.length})</td><td class="n">${tMm(T(r=>num(r.f.sueldo)))}</td><td></td><td class="n">${tMm(T(r=>r.asig))}</td><td></td><td></td><td></td><td class="n">${tMm(T(r=>num(r.v.bono)))}</td><td class="n">${tMm(T(r=>num(r.v.movilidad)))}</td><td class="n">${tMm(T(r=>num(r.v.bonoProd)))}</td><td class="n">${tMm(T(r=>num(r.v.comision)))}</td><td class="n">${tMm(T(r=>num(r.v.otros)))}</td><td class="n">${tMm(T(r=>r.adS))}</td><td class="n">${tMm(T(r=>r.adC))}</td><td></td><td></td><td></td><td></td><td class="n">${tMm(T(r=>r.pre))}</td><td></td><td></td></tr></tfoot></table></div>
+   <p class="hint" style="margin:8px 0 0">Los datos del colaborador y los ingresos del mes se registran aquí en Control («Ver detalles» → «Editar»). Los adelantos se toman de la hoja Adelantos. Las cuotas de préstamos se toman de la hoja Préstamos. Pago de planilla de movilidad, vacaciones, CTS, gratificación y otros se completan en los siguientes pasos. Los aportes y el neto están en la tabla de abajo.</p></div>`+tNetoCard(R);
+}
+function openFic(uid){
+  if(tLock())return;
+  const e=tEmpList().find(x=>x.id===uid);if(!e)return;const f=tFic(uid),v=tVar(uid),mes=tMonthTxt(S.t.month);
+  const inp=(id,val,ex='')=>`<input id="${id}" ${ex} value="${esc(val==null?'':val)}" autocomplete="off">`,numI=(id,val)=>`<input id="${id}" type="number" min="0" step="0.01" inputmode="decimal" value="${val==null?'':esc(val)}">`;
+  const body=`<div class="fld full"><label>Colaborador (viene de Asistencia)</label><div><b>${esc(String(e.name||'').toUpperCase())}</b></div></div>`+
+   fld('tf-dni','DNI',inp('tf-dni',f.dni,'inputmode="numeric"'))+
+   fld('tf-sueldo','Remuneración básica (S/)',numI('tf-sueldo',f.sueldo))+
+   fld('tf-cargo','Cargo u ocupación',inp('tf-cargo',f.cargo))+
+   fld('tf-modalidad','Modalidad',`<select id="tf-modalidad"><option value="">Elige</option>${TMOD.map(x=>`<option ${f.modalidad===x?'selected':''}>${x}</option>`).join('')}</select>`)+
+   fld('tf-pension','Sistema de pensiones',`<select id="tf-pension"><option value="">Elige</option>${TPENS.map(x=>`<option ${f.pension===x?'selected':''}>${x}</option>`).join('')}</select>`)+
+   fld('tf-ingreso','Fecha de ingreso',`<input id="tf-ingreso" type="date" value="${esc(f.ingreso||'')}">`)+
+   fld('tf-cese','Fecha de cese',`<input id="tf-cese" type="date" value="${esc(f.cese||'')}">`,'Déjala vacía si sigue trabajando.')+
+   `<div class="fld full"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tf-asig" ${f.asigFam?'checked':''}> Le corresponde asignación familiar (RMV × ${nf(tCfg().asig)}%)</label></div>`+
+   `<div class="fld full"><b>Ingresos de ${esc(mes)}</b></div>`+
+   fld('tf-bono','Bono (S/)',numI('tf-bono',v.bono))+fld('tf-mov','Movilidad (S/)',numI('tf-mov',v.movilidad))+fld('tf-bprod','Bono de productividad (S/)',numI('tf-bprod',v.bonoProd))+fld('tf-com','Comisión (S/)',numI('tf-com',v.comision))+fld('tf-otros','Otros ingresos (S/)',numI('tf-otros',v.otros));
+  openModal('Ficha · '+(e.name||''),body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`);
+  const fm=$('#mf');fm.dataset.kind='tf';fm.dataset.id=uid;
+}
+function saveFic(){
+  clearErrs();let ok=true;const uid=$('#mf').dataset.id,e=tEmpList().find(x=>x.id===uid),dni=gv('tf-dni'),sueldo=num(gv('tf-sueldo'));
+  if(dni&&validDoc(dni)!=='DNI'){setErr('tf-dni','El DNI debe tener 8 dígitos.');ok=false}
+  if(gv('tf-sueldo')&&!(sueldo>=0)){setErr('tf-sueldo','Escribe un importe válido.');ok=false}
+  const ing=gv('tf-ingreso'),ces=gv('tf-cese');
+  if(ing&&!okIso(ing)){setErr('tf-ingreso','Fecha no válida.');ok=false}
+  if(ces&&!okIso(ces)){setErr('tf-cese','Fecha no válida.');ok=false}
+  if(ing&&ces&&ces<ing){setErr('tf-cese','El cese no puede ser antes del ingreso.');ok=false}
+  const vn=id=>{const n=num(gv(id));return n&&n>0?Math.round(n*100)/100:0};
+  if(!ok)return;
+  persist(()=>Promise.all([
+    Store.set(TCOLS.fic,uid,{userId:uid,name:e?e.name:'',dni,sueldo:sueldo||0,cargo:gv('tf-cargo'),modalidad:gv('tf-modalidad'),pension:gv('tf-pension'),ingreso:ing,cese:ces,asigFam:$('#tf-asig').checked}),
+    Store.set(TCOLS.vars,S.t.month+'_'+uid,{userId:uid,month:S.t.month,bono:vn('tf-bono'),movilidad:vn('tf-mov'),bonoProd:vn('tf-bprod'),comision:vn('tf-com'),otros:vn('tf-otros')})]),'Ficha guardada');
+}
+function openCfgT(){
+  if(tLock())return;
+  const C=tCfg(),n=(id,v,st='0.01')=>`<input id="${id}" type="number" min="0" step="${st}" inputmode="decimal" value="${esc(v)}">`;
+  const body=fld('tc-rmv','RMV (S/)',n('tc-rmv',C.rmv))+fld('tc-asig','Asignación familiar (% de la RMV)',n('tc-asig',C.asig))+fld('tc-onp','SNP / ONP (%)',n('tc-onp',C.onp))+fld('tc-ess','EsSalud (%)',n('tc-ess',C.essalud))+fld('tc-sctr','SCTR (%)',n('tc-sctr',C.sctr))+
+   fld('tc-ruc','RUC',`<input id="tc-ruc" inputmode="numeric" value="${esc(C.ruc)}" autocomplete="off">`)+fld('tc-emp','Denominación o razón social',`<input id="tc-emp" value="${esc(C.empresa)}" autocomplete="off">`,'',true)+
+   TAFP.map(a=>`<div class="fld full"><b>${a}</b></div>`+fld('tc-ap-'+a,'Aporte obligatorio (%)',n('tc-ap-'+a,C.afp[a].ap))+fld('tc-co-'+a,'Comisión % sobre R.A.',n('tc-co-'+a,C.afp[a].com))+fld('tc-pr-'+a,'Prima de seguro (%)',n('tc-pr-'+a,C.afp[a].pri))).join('');
+  openModal('Parámetros de planilla',body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`);
+  $('#mf').dataset.kind='tc';
+}
+function saveCfgT(){
+  clearErrs();let ok=true;const g=id=>num(gv(id));
+  ['tc-rmv','tc-asig','tc-onp','tc-ess','tc-sctr',...TAFP.flatMap(a=>['tc-ap-'+a,'tc-co-'+a,'tc-pr-'+a])].forEach(id=>{const v=g(id);if(v==null||!(v>=0)){setErr(id,'Escribe un número válido.');ok=false}});
+  const ruc=gv('tc-ruc');if(ruc&&validDoc(ruc)!=='RUC'){setErr('tc-ruc','El RUC no es válido.');ok=false}
+  if(!ok)return;
+  const afp={};TAFP.forEach(a=>{afp[a]={ap:g('tc-ap-'+a),com:g('tc-co-'+a),pri:g('tc-pr-'+a)}});
+  persist(()=>Store.set(TCOLS.cfg,'planilla',{rmv:g('tc-rmv'),asig:g('tc-asig'),onp:g('tc-onp'),essalud:g('tc-ess'),sctr:g('tc-sctr'),ruc,empresa:gv('tc-emp'),afp}),'Parámetros guardados');
+}
+
+const tMesDif=(a,b)=>{const [y1,m1]=a.split('-').map(Number),[y2,m2]=b.split('-').map(Number);return (y2-y1)*12+(m2-m1)};
+const tMesMas=(mes,k)=>{const [y,m]=mes.split('-').map(Number),d=new Date(y,m-1+k,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+function tPreCron(x){
+  const n=Math.max(1,Math.round(num(x.cuotas)||1)),monto=num(x.monto)||0,c=r2(monto/n);
+  return [...Array(n)].map((_,i)=>({n:i+1,mes:tMesMas(x.primerMes,i),monto:i===n-1?r2(monto-c*(n-1)):c}));
+}
+function tPreCuota(x,mes){if(!x.primerMes||!/^\d{4}-\d{2}$/.test(x.primerMes))return null;const i=tMesDif(x.primerMes,mes),cr=tPreCron(x);return i>=0&&i<cr.length?cr[i]:null}
+function tPreSaldo(x,mes){return r2(tPreCron(x).filter(c=>c.mes>mes).reduce((a,c)=>a+c.monto,0))}
+function tPre(M){
+  const L=[...tPreList()].sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha))||cmpTxt(a.name,b.name));
+  const bar=`<div class="toolbar"><div class="grp"><button class="btn primary" data-act="tp-new">Registrar préstamo</button></div></div>`;
+  if(!L.length)return bar+`<div class="empty"><b>Aún no hay préstamos registrados</b><span>Registra el monto, las cuotas y el mes de la primera cuota. Cada mes la cuota se descuenta sola en Planilla.</span></div>`;
+  const rows=L.map(x=>{const c=tPreCuota(x,S.t.month),sd=tPreSaldo(x,S.t.month);
+    return `<tr><td class="n">${fdate(x.fecha)}</td><td class="wrap">${esc(x.name||'')}</td><td class="n">${money(num(x.monto)||0,'PEN',2)}</td><td class="n">${esc(x.cuotas||'')}</td><td class="n">${x.primerMes?esc(tMonthTxt(x.primerMes)):''}</td>
+    <td class="n">${c?money(c.monto,'PEN',2)+' <span class="small">('+c.n+'/'+tPreCron(x).length+')</span>':'—'}</td><td class="n">${money(sd,'PEN',2)}</td><td class="act">${detBtn('tp',x.id)}</td></tr>`}).join('');
+  const tc=r2(L.reduce((a,x)=>{const c=tPreCuota(x,S.t.month);return a+(c?c.monto:0)},0));
+  return bar+`<div class="card"><h2>Préstamos</h2><div class="scroll"><table data-nofit="1"><thead><tr><th class="n">Fecha</th><th>Colaborador</th><th class="n">Monto</th><th class="n">Cuotas</th><th class="n">Primera cuota</th><th class="n">Cuota de ${esc(tMonthTxt(S.t.month))}</th><th class="n">Saldo al cierre del mes</th><th></th></tr></thead><tbody>${rows}</tbody>
+  <tfoot><tr><td colspan="5">Cuotas a descontar en ${esc(tMonthTxt(S.t.month))}</td><td class="n">${money(tc,'PEN',2)}</td><td></td><td></td></tr></tfoot></table></div>
+  <p class="hint" style="margin:8px 0 0">Cuotas iguales (la última absorbe el redondeo), una por mes desde el mes de la primera cuota. La cuota del mes se descuenta en la columna Préstamos de Planilla.</p></div>`;
+}
+function openPre(id){
+  if(tLock())return;
+  const prev=id?S.t.pre.find(x=>x.id===id):null,m=prev||{fecha:hoy(),primerMes:S.t.month,cuotas:1};
+  const L=tEmpList();if(prev&&prev.userId&&!L.some(e=>e.id===prev.userId))L.push({id:prev.userId,name:prev.name});
+  if(!L.length){toast('Primero deben cargarse los colaboradores desde Asistencia.');return}
+  const body=
+   fld('tp-fecha','Fecha del préstamo',`<input id="tp-fecha" type="date" value="${esc(m.fecha||'')}">`)+
+   fld('tp-user','Colaborador',`<select id="tp-user"><option value="">Elige un colaborador</option>${L.map(e=>`<option value="${esc(e.id)}" ${m.userId===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select>`)+
+   fld('tp-monto','Monto (S/)',`<input id="tp-monto" type="number" min="0" step="0.01" inputmode="decimal" value="${m.monto==null?'':esc(m.monto)}">`)+
+   fld('tp-cuotas','N.° de cuotas (meses)',`<input id="tp-cuotas" type="number" min="1" max="60" step="1" inputmode="numeric" value="${esc(m.cuotas||1)}">`)+
+   fld('tp-mes','Mes de la primera cuota',`<input id="tp-mes" type="month" value="${esc(m.primerMes||'')}">`)+
+   fld('tp-obs','Observación',`<input id="tp-obs" value="${esc(m.obs||'')}" autocomplete="off">`,'',true);
+  openModal(id?'Editar préstamo':'Registrar préstamo',body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Guardar</button>`,delButtons('tp',id));
+  const f=$('#mf');f.dataset.kind='tp';f.dataset.id=id||'';
+}
+function savePre(){
+  clearErrs();let ok=true;const id=$('#mf').dataset.id,prev=id?S.t.pre.find(x=>x.id===id):null;
+  const fecha=gv('tp-fecha'),monto=num(gv('tp-monto')),uid=gv('tp-user'),cu=num(gv('tp-cuotas')),mes=gv('tp-mes'),L=tEmpList();
+  if(!okIso(fecha)){setErr('tp-fecha','Indica la fecha.');ok=false}
+  if(!uid){setErr('tp-user','Elige al colaborador.');ok=false}
+  if(!(monto>0)){setErr('tp-monto','Escribe un monto mayor que 0.');ok=false}
+  if(!(cu>=1&&cu<=60&&Number.isInteger(cu))){setErr('tp-cuotas','Escribe un número entero de 1 a 60.');ok=false}
+  if(!/^\d{4}-\d{2}$/.test(mes)){setErr('tp-mes','Indica el mes de la primera cuota.');ok=false}
+  if(!ok)return;
+  const e=L.find(x=>x.id===uid),name=e?e.name:(prev&&prev.userId===uid?prev.name:'');
+  persist(()=>Store.set(TCOLS.pre,id||newId('pr_'),{userId:uid,name,fecha,monto:r2(monto),cuotas:cu,primerMes:mes,obs:gv('tp-obs'),ts:prev&&prev.ts?prev.ts:Date.now()}),id?'Préstamo actualizado':'Préstamo registrado');
+}
+
+const TLIC=[['LSG','Licencia sin goce de haber'],['LCG','Licencia con goce de haber'],['V','Vacaciones'],['VA','Vacaciones adelantadas'],['DM','Descanso médico']];
+function openLic(){
+  if(tLock())return;
+  const L=tEmpList();if(!L.length){toast('Primero deben cargarse los colaboradores desde Asistencia.');return}
+  const mes=S.t.month,d0=mes===hoy().slice(0,7)?hoy():mes+'-01';
+  const body=
+   fld('tl-user','Colaborador',`<select id="tl-user"><option value="">Elige un colaborador</option>${L.map(e=>`<option value="${esc(e.id)}">${esc(e.name)}</option>`).join('')}</select>`)+
+   fld('tl-code','Qué registrar',`<select id="tl-code">${TLIC.map(([c,n])=>`<option value="${c}">${c} · ${n}</option>`).join('')}<option value="-">Quitar lo registrado (vuelve al cálculo automático de Asistencia)</option></select>`,'',true)+
+   fld('tl-from','Desde',`<input id="tl-from" type="date" value="${esc(d0)}">`)+
+   fld('tl-to','Hasta',`<input id="tl-to" type="date" value="${esc(d0)}">`,'Máximo 93 días por registro.')+
+   fld('tl-note','Nota',`<input id="tl-note" placeholder="Documento, certificado médico, etc." autocomplete="off">`,'',true);
+  openModal('Licencia, vacaciones o descanso médico',body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Registrar en Asistencia</button>`);
+  $('#mf').dataset.kind='tl';
+}
+async function saveLic(){
+  clearErrs();let ok=true;const uid=gv('tl-user'),code=gv('tl-code'),f=gv('tl-from'),t=gv('tl-to');
+  if(!uid){setErr('tl-user','Elige al colaborador.');ok=false}
+  if(!okIso(f)){setErr('tl-from','Indica la fecha de inicio.');ok=false}
+  if(!okIso(t)){setErr('tl-to','Indica la fecha final.');ok=false}
+  if(ok&&t<f){setErr('tl-to','La fecha final no puede ser antes del inicio.');ok=false}
+  if(ok&&dDiff(f,t)+1>93){setErr('tl-to','El rango no puede pasar de 93 días.');ok=false}
+  if(!ok)return;
+  const btn=$('#mf button[type=submit]');btn.disabled=true;btn.textContent='Registrando…';
+  try{
+    const r=await sb.rpc('att_set_day_code',{p_user:uid,p_from:f,p_to:t,p_code:code==='-'?null:code,p_note:gv('tl-note')||null});
+    if(r.error)throw r.error;
+    S.t.cache={};S.t.err={};closeModal();
+    toast((code==='-'?'Se quitó el registro de ':'Registrado en ')+(r.data==null?'':r.data+' ')+'día(s) en Asistencia.');
+    tLoad(true);
+  }catch(e){btn.disabled=false;btn.textContent='Registrar en Asistencia';toast(tErr(e).replace('No se pudo leer el tareo de Asistencia','No se pudo registrar en Asistencia'))}
+}
+
+function openCierre(){
+  const M=tModel();if(!M||tClosed())return;
+  const nrev=tRevisar(),R=tPlanRows(M),inc=R.filter(q=>!tNeto(q)).length;
+  const body=`<div class="fld full"><p style="margin:0">Se guardará una <b>copia fija</b> de ${esc(tMonthTxt(S.t.month))}: tareo, resumen, fichas, adelantos, préstamos y parámetros. Aunque después cambie algo en Asistencia, este mes seguirá mostrando y exportando esa copia.</p></div>`+
+   (nrev?`<div class="fld full"><div class="note warn">Hay ${nrev} día(s) por revisar en Asistencia.</div></div>`:'')+
+   (inc?`<div class="fld full"><div class="note warn">${inc} colaborador(es) tienen la ficha incompleta (sin sueldo o sin sistema de pensiones): su neto saldrá sin calcular.</div></div>`:'')+
+   `<div class="fld full"><p class="hint" style="margin:0">Solo el administrador puede reabrir un mes cerrado. Con el mes cerrado no se pueden registrar adelantos, fichas ni licencias.</p></div>`;
+  openModal('Cerrar '+tMonthTxt(S.t.month),body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Cerrar mes</button>`);
+  $('#mf').dataset.kind='tz';
+}
+function saveCierre(){
+  const M=tModel();if(!M||tClosed())return;const mes=S.t.month,c=S.t.cache[mes];if(!c){toast('Primero deben cargarse los datos de Asistencia.');return}
+  const keep=['user_id','name','work_date','code','manual','note','status','flag','late_min','extra_min','worked_min','required_min','needs_review'];
+  const rows=c.rows.map(r=>{const o={};keep.forEach(k=>{if(r[k]!=null&&r[k]!==''&&r[k]!==false)o[k]=r[k]});o.user_id=r.user_id;o.name=r.name;o.work_date=String(r.work_date).slice(0,10);return o});
+  const fic={},vars={};M.emps.forEach(e=>{fic[e.id]={...tFic(e.id)};delete fic[e.id].id;vars[e.id]={...tVar(e.id)};delete vars[e.id].id});
+  const ade=S.t.ade.filter(x=>String(x.fecha||'').slice(0,7)===mes).map(x=>({...x}));
+  const pre=S.t.pre.map(x=>({...x}));
+  const prev=tCieDoc(),w=S.t.who||{},now=new Date().toISOString();
+  const hist=[...((prev&&prev.history)||[]),{accion:'Cerrado',por:w.name||'',fecha:now}];
+  const cfg=(()=>{const x=tCfg();return JSON.parse(JSON.stringify(x))})();
+  persist(()=>Store.set(TCOLS.cie,mes,{month:mes,estado:'cerrado',closedBy:w.name||'',closedAt:now,history:hist,snap:{rows,sum:c.sum,fic,vars,ade,pre,cfg}}),'Mes cerrado');
+}
+function openReabrir(){
+  if(!S.t.who.admin){toast('Solo el administrador puede reabrir un mes.');return}
+  const body=`<div class="fld full"><p style="margin:0">Al reabrir ${esc(tMonthTxt(S.t.month))} se descarta la copia fija y el mes vuelve a mostrar los datos en vivo de Asistencia y Control. Quedará registrado quién lo reabrió y cuándo.</p></div>`;
+  openModal('Reabrir '+tMonthTxt(S.t.month),body,`<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn danger">Reabrir mes</button>`);
+  $('#mf').dataset.kind='tr';
+}
+function saveReabrir(){
+  if(!S.t.who.admin)return;const mes=S.t.month,prev=tCieDoc();if(!prev)return;const w=S.t.who,now=new Date().toISOString();
+  persist(()=>Store.set(TCOLS.cie,mes,{month:mes,estado:'abierto',closedBy:prev.closedBy||'',closedAt:prev.closedAt||'',reopenedBy:w.name||'',reopenedAt:now,history:[...(prev.history||[]),{accion:'Reabierto',por:w.name||'',fecha:now}],snap:null}),'Mes reabierto').then(()=>{delete S.t.cache[mes];render()});
+}
+async function exportT(){
+  const M=tModel();if(!M||!M.emps.length){toast('No hay datos para exportar.');return}
+  const {days,emps,y,m}=M,N=emps.length;
+  const xf=(sheet,r,e,full)=>{const f=tFic(e.id),b={font:{sz:11},bd:'thin',al:{h:'center'}};
+    put(sheet,r,3,f.ingreso?DT(f.ingreso,b):null,b);put(sheet,r,4,f.cese?DT(f.cese,b):null,b);
+    if(full===true||full===false){put(sheet,r,5,num(f.sueldo)>0?{v:num(f.sueldo),s:{nf:'#,##0.00'}}:null,b);if(full)put(sheet,r,6,num(f.sueldo)>0?{v:Math.round(num(f.sueldo)/30*100)/100,s:{nf:'#,##0.00'}}:null,b);else put(sheet,r,6,null,b)}};
+  const sh=newSheet('TAREO',{zoom:95,landscape:true});
+  const bd='thin',BLU='548DD4',base={font:{sz:11},bd,al:{h:'center'}};
+  const cols=[];cols[0]=8.43;cols[1]=49.86;cols[2]=13.13;cols[3]=45.66;cols[4]=13.53;cols[5]=15.86;
+  for(let i=0;i<31;i++)cols[6+i]=3.66;cols[9]=5.13;cols[27]=5.13;cols[37]=7.13;for(let i=38;i<46;i++)cols[i]=5.66;cols[46]=5.53;sh.cols=cols;
+  // leyenda
+  TCODES.forEach(([c,n],i)=>{const r=2+i;put(sh,r,3,c,{font:{sz:11,b:true,c:'FFFFFF'},fill:BLU,bd,al:{h:'center'}});put(sh,r,4,n,base);
+    if(TNOTAS[c])put(sh,r,5,TNOTAS[c],{font:{sz:11},bd,al:{h:'left'}})});
+  merge(sh,8,5,8,47,{font:{sz:11},bd,al:{h:'left'}});merge(sh,9,5,9,31,{font:{sz:11},bd,al:{h:'left'}});merge(sh,10,5,10,31,{font:{sz:11},bd,al:{h:'left'}});merge(sh,11,5,11,31,{font:{sz:11},bd,al:{h:'left'}});merge(sh,12,5,12,12,{font:{sz:11},bd,al:{h:'left'}});
+  sh.heights[14]=10.5;
+  const NF='[$-F800]dddd\\,\\ mmmm\\ dd\\,\\ yyyy',rot={h:'center',v:'center',rot:90};
+  const header=(r,fixed,tail)=>{
+    put(sh,r,1,'Cod.',{font:{sz:11,b:true},bd,al:{h:'center',v:'bottom'}});put(sh,r,2,'Apellidos y Nombres',{font:{sz:11,b:true},bd,al:{h:'center',v:'bottom'}});
+    put(sh,r,3,'Fecha Ingreso Lab.',{font:{sz:11,b:true},bd,al:rot});put(sh,r,4,'FECHA DE CESE',{font:{sz:11,b:true},bd,al:rot});
+    put(sh,r,5,'REMUNERACION  BASICA',{font:{sz:11},bd,al:rot});if(fixed)put(sh,r,6,'REMUNERACION  DIARIA',{font:{sz:11},bd,al:rot});else put(sh,r,6,null,{bd});
+    days.forEach((d,i)=>{const w=new Date(y,m-1,i+1).getDay();put(sh,r,7+i,{v:XLX.serial(d),s:{nf:NF}},{font:{sz:11,c:w===0?'FF0000':undefined},bd,al:rot})});
+    tail.forEach((h,i)=>put(sh,r,38+i,h,{font:{sz:11},bd,al:rot}));
+  };
+  const H1=16;header(H1,true,TSUM.map(x=>x[0]));sh.heights[H1]=181.5;
+  const cell=(r,c,v,r0)=>put(sh,r,c,v,r0&&tRed(r0.code)?{font:{sz:11,c:'9C0006'},fill:'FFC7CE',bd,al:{h:'center'}}:base);
+  emps.forEach((e,i)=>{const r=H1+1+i;
+    put(sh,r,1,e.n,base);put(sh,r,2,String(e.name||'').toUpperCase(),base);xf(sh,r,e,true);
+    days.forEach((d,k)=>{const x=e.d[d];cell(r,7+k,x&&x.code||'',x)});
+    TSUM.forEach((x,k)=>put(sh,r,38+k,e.s[x[1]]==null?'':e.s[x[1]],base));sh.heights[r]=14.25;
+  });
+  const H2=H1+N+2;header(H2,false,['TOTAL HORAS','HORAS TARDANZA','HORAS LABORADAS']);sh.heights[H2]=192.75;
+  emps.forEach((e,i)=>{const r=H2+1+i;
+    put(sh,r,1,e.n,base);put(sh,r,2,String(e.name||'').toUpperCase(),base);xf(sh,r,e,false);
+    days.forEach((d,k)=>{const x=e.d[d],c=x&&x.code;const v=!c?'':(c==='A'||c==='FT'||c==='DT')?tHoras(x.worked_min):c;cell(r,7+k,v,x)});
+    put(sh,r,38,tHoras(e.s.requerido_min),base);
+    put(sh,r,39,e.s.tardanza_min==null?'':{v:e.s.tardanza_min/1440,s:{nf:'h:mm'}},base);
+    put(sh,r,40,tHoras(e.s.trabajado_min),base);sh.heights[r]=14.25;
+  });
+  const st=newSheet('TARDANZAS',{});const sc=[];sc[0]=6.33;sc[1]=33.53;sc[2]=13.13;sc[3]=8.43;for(let i=0;i<31;i++)sc[4+i]=4.53;st.cols=sc;
+  const rot2={h:'center',v:'center',rot:90};
+  put(st,2,1,'Cod.',{font:{sz:11,b:true},bd,al:{h:'center',v:'bottom'}});put(st,2,2,'Apellidos y Nombres',{font:{sz:11,b:true},bd,al:{h:'center',v:'bottom'}});
+  put(st,2,3,'Fecha Ingreso Lab.',{font:{sz:11},bd,al:rot2});put(st,2,4,'FECHA DE CESE',{font:{sz:11},bd,al:rot2});
+  days.forEach((d,i)=>{const w=new Date(y,m-1,i+1).getDay();put(st,2,5+i,{v:XLX.serial(d),s:{nf:NF}},{font:{sz:11,c:w===0?'FF0000':undefined},bd,al:rot2})});
+  put(st,2,36,null,{bd});put(st,2,37,'TOTAL HORAS',{font:{sz:11},bd,al:rot2});st.heights[2]=153.75;
+  emps.forEach((e,i)=>{const r=3+i;put(st,r,1,e.n,base);put(st,r,2,String(e.name||'').toUpperCase(),base);xf(st,r,e,'x');
+    days.forEach((d,k)=>{const x=e.d[d];put(st,r,5+k,x&&x.late_min?x.late_min:null,base)});
+    put(st,r,36,e.s.tardanza_min==null?null:e.s.tardanza_min,base);put(st,r,37,e.s.tardanza_min==null?null:{v:e.s.tardanza_min/1440,s:{nf:'h:mm'}},base)});
+  const sx=newSheet('HORAS EXTRA',{});const xc=[];xc[0]=5;xc[1]=33.5;xc[2]=13.13;xc[3]=8.43;for(let i=0;i<31;i++)xc[4+i]=4.5;sx.cols=xc;
+  put(sx,2,1,'Cod.',{font:{sz:11,b:true},bd,al:{h:'center',v:'bottom'}});put(sx,2,2,'Apellidos y Nombres',{font:{sz:11,b:true},bd,al:{h:'center',v:'bottom'}});
+  put(sx,2,3,'Fecha Ingreso Lab.',{font:{sz:11},bd,al:rot2});put(sx,2,4,'FECHA DE CESE',{font:{sz:11},bd,al:rot2});
+  days.forEach((d,i)=>{const w=new Date(y,m-1,i+1).getDay();put(sx,2,5+i,{v:XLX.serial(d),s:{nf:NF}},{font:{sz:11,c:w===0?'FF0000':undefined},bd,al:rot2})});
+  put(sx,2,36,'TOTAL HORAS',{font:{sz:11},bd,al:rot2});sx.heights[2]=153.75;
+  emps.forEach((e,i)=>{const r=3+i;put(sx,r,1,e.n,base);put(sx,r,2,String(e.name||'').toUpperCase(),base);xf(sx,r,e,'x');
+    days.forEach((d,k)=>{const x=e.d[d];put(sx,r,5+k,x&&x.extra_min?(S.t.dec?tHoras(x.extra_min):{v:x.extra_min/1440,s:{nf:'h:mm'}}):null,base)});
+    put(sx,r,36,e.s.extras_min==null?null:(S.t.dec?tHoras(e.s.extras_min):{v:e.s.extras_min/1440,s:{nf:'[h]:mm'}}),base)});
+  const sa=newSheet('ADELANTOS',{});const ac=[];ac[1]=26.1;ac[3]=8.3;ac[4]=5.3;sa.cols=ac;
+  const byA={};tAdeMes().filter(x=>x.tipo!=='COMISION').forEach(x=>{const k=x.userId+'|'+x.fecha;byA[k]=(byA[k]||0)+(num(x.monto)||0)});
+  put(sa,2,1,'Cod.',{font:{sz:11,b:true},bd,al:{h:'center',v:'bottom'}});put(sa,2,2,'Apellidos y Nombres',{font:{sz:11,b:true},bd,al:{h:'center',v:'bottom'}});
+  put(sa,2,3,'Fecha Ingreso Lab.',{font:{sz:11},bd,al:rot2});put(sa,2,4,'FECHA DE CESE',{font:{sz:11},bd,al:rot2});put(sa,2,5,null,{bd});
+  days.forEach((d,i)=>{const w=new Date(y,m-1,i+1).getDay();put(sa,2,6+i,{v:XLX.serial(d),s:{nf:NF}},{font:{sz:11,c:w===0?'FF0000':undefined},bd,al:rot2})});
+  put(sa,2,37,'TOTAL ADELANTOS',{font:{sz:11},bd,al:rot2});sa.heights[2]=153.75;
+  const MNF='_ * #,##0.00_ ;_ * \\-#,##0.00_ ;_ * "-"??_ ;_ @_ ';
+  emps.forEach((e,i)=>{const r=3+i;let tt=0;put(sa,r,1,e.n,base);put(sa,r,2,String(e.name||'').toUpperCase(),base);xf(sa,r,e,'x');put(sa,r,5,null,base);
+    days.forEach((d,k)=>{const v=byA[e.id+'|'+d]||0;tt+=v;put(sa,r,6+k,v?v:null,base)});
+    put(sa,r,37,{v:Math.round(tt*100)/100,s:{nf:MNF}},base)});
+
+  const sp=newSheet('PLANILLA',{zoom:70,landscape:true,hideGrid:true});const CF=tCfg(),CG='Century Gothic',PINK='F2DCDB',PURP='E4DFEC',LBL='DCE6F1';
+  const pc=[];pc[0]=13.5;pc[1]=7;pc[2]=11;pc[3]=30;pc[4]=14;pc[5]=15.7;pc[6]=13.5;pc[7]=12;pc[8]=22.7;pc[9]=15.3;for(let i=10;i<14;i++)pc[i]=12;pc[14]=12.7;pc[15]=12.5;pc[16]=12.5;pc[17]=15;pc[18]=12.5;pc[19]=12.5;pc[20]=14;pc[21]=12.5;pc[22]=11.7;pc[25]=14;sp.cols=pc;
+  const fb=(sz,b,c)=>({n:CG,sz,b:!!b,c}),hd={font:fb(9,true,'FFFFFF'),fill:BLU,bd:'thin',al:{h:'center',v:'center',w:true}},vl=nfm=>({font:fb(9),bd:'thin',al:{h:'center',v:'center',w:true},nf:nfm}),lb={font:fb(8),bd:'thin',al:{h:'center',v:'center',w:true}};
+  put(sp,2,2,'TAREO',{font:{n:'Calibri',sz:14,b:true,c:'FFFFFF'},fill:BLU,bd:'thin',al:{h:'center',v:'center',w:true}});merge(sp,2,2,2,28,{font:{n:'Calibri',sz:14,b:true,c:'FFFFFF'},fill:BLU,bd:'thin',al:{h:'center',v:'center'}});
+  const MN='_ * #,##0.00_ ;_ * \\-#,##0.00_ ;_ * "-"??_ ;_ @_ ';
+  put(sp,4,2,'RMV',hd);put(sp,5,2,CF.rmv,vl(MN));put(sp,6,2,'A. Familiar',hd);put(sp,7,2,CF.asig/100,{...vl('0%'),font:fb(9,true)});
+  [['APORTE OBLIGATORIO',5],['COMISIÓN % SOBRE R.A.',6],['PRIMA SEGURO',7],['Monto asegurable',8]].forEach(([t,r])=>{put(sp,r,6,t,lb);put(sp,r,7,null,lb)});
+  const ph={...hd,font:fb(8,true,'FFFFFF')};
+  put(sp,4,8,'SNP/ ONP',ph);put(sp,5,8,CF.onp/100,vl('0%'));[6,7,8].forEach(r=>put(sp,r,8,null,lb));
+  [['PRIMA',9],['HABITAT',10],['PROFUTURO',11],['INTEGRA',15]].forEach(([a,c])=>{const q=CF.afp[a];put(sp,4,c,a,ph);put(sp,5,c,q.ap/100,vl('0.00%'));put(sp,6,c,q.com/100,vl('0.00%'));put(sp,7,c,q.pri/100,vl('0.00%'));put(sp,8,c,null,lb)});
+  [12,13,14].forEach(c=>{put(sp,4,c,null,ph);[5,6,7,8].forEach(r=>put(sp,r,c,null,lb))});
+  put(sp,4,26,'ESSALUD',hd);put(sp,5,26,CF.essalud/100,vl('0%'));put(sp,6,26,'SCTR',hd);put(sp,7,26,CF.sctr/100,{...vl('0.00%'),font:fb(9,true)});
+  const hl={font:fb(9,true,'FFFFFF'),fill:BLU,al:{v:'center'}};
+  put(sp,9,2,'PERIODO:',hl);put(sp,9,3,DT(S.t.month+'-01',{font:fb(9,true),al:{h:'center',v:'center'}},'mmm-yy'),{font:fb(9,true),al:{h:'center',v:'center'}});
+  put(sp,10,2,'RUC:',hl);put(sp,10,3,CF.ruc,{font:fb(9,true),al:{v:'center'}});
+  put(sp,11,2,'DENOMINACIÓN O RAZÓN SOCIAL:  ',{...hl,al:{h:'center',v:'center'}});merge(sp,11,2,11,5,{...hl,al:{h:'center',v:'center'}});put(sp,11,6,CF.empresa||null,{font:fb(9,true),al:{v:'center'}});
+  const H={font:fb(8,true),bd:'thin',al:{h:'center',v:'center',w:true}},HP={...H,fill:PINK},HD={...H,fill:LBL};
+  const top=(c,t,st,rot)=>{put(sp,13,c,t,{...(st||H),al:{h:'center',v:'center',w:true,rot}});};
+  [[2,'ORDEN',90],[3,'DNI',90],[4,'APELLIDOS Y NOMBRES'],[5,'REMUNERACION BASICA'],[6,'CARGO U OCUPACIÓN'],[7,'ASIGNACION FAMILIAR'],[8,'MODALIDAD'],[9,'SISTEMA DE PENSIONES']].forEach(([c,t,rt])=>{top(c,t,H,rt);merge(sp,13,c,15,c,{...H,al:{h:'center',v:'center',w:true,rot:rt}})});
+  top(10,'FECHA DE INGRESO');box(sp,14,10,15,10,H);
+  [[11,'BONO'],[12,'MOVILIDAD'],[13,'BONO DE PRODUCTIVIDAD']].forEach(([c,t])=>{top(c,t,HP);merge(sp,13,c,15,c,HP)});
+  put(sp,13,14,null,HP);put(sp,13,15,null,HP);put(sp,14,14,'COMISION ',HP);merge(sp,14,14,15,14,HP);put(sp,14,15,'OTROS',HP);merge(sp,14,15,15,15,HP);
+  put(sp,13,16,'DESCUENTOS',{...H,fill:PURP});merge(sp,13,16,13,23,{...H,fill:PURP});
+  ['ADELANTOS SUELDO','ADELANTO COMISION','PAGO DE PLANILLA DE MOVILIDAD','PAGO DE VACACIONES','PAGO DE CTS','PAGO DE GRATIFICACION','PRESTAMOS ','OTROS'].forEach((t,i)=>{put(sp,14,16+i,t,HD);merge(sp,14,16+i,15,16+i,HD)});
+  sp.heights[2]=18.75;sp.heights[5]=32.25;sp.heights[6]=19.5;sp.heights[13]=26.25;sp.heights[15]=19.5;
+  const R=tPlanRows(M),DB={bd:{all:{s:'dashed'}}},B9={font:fb(9),...DB,al:{h:'center',v:'center',w:true}},MS='"S/"\\ #,##0.00';
+  R.forEach((q,i)=>{const r=16+i,{e,f,v}=q;sp.heights[r]=36;
+    put(sp,r,2,e.n,{...B9,nf:'00'});put(sp,r,3,f.dni||null,B9);put(sp,r,4,String(e.name||'').toUpperCase(),B9);
+    put(sp,r,5,num(f.sueldo)>0?num(f.sueldo):null,{...B9,nf:MS});put(sp,r,6,f.cargo||null,B9);put(sp,r,7,q.asig||null,{...B9,nf:MS});put(sp,r,8,f.modalidad||null,B9);put(sp,r,9,f.pension||null,B9);
+    put(sp,r,10,f.ingreso?DT(f.ingreso,B9,'m/d/yyyy'):null,B9);
+    [[11,v.bono],[12,v.movilidad],[13,v.bonoProd],[14,v.comision],[15,v.otros]].forEach(([c,x])=>put(sp,r,c,num(x)>0?num(x):null,{...B9,fill:PINK,nf:'#,##0.00'}));
+    put(sp,r,16,q.adS||null,{...B9,nf:'#,##0.00'});put(sp,r,17,q.adC||null,{...B9,nf:'#,##0.00'});for(let c=18;c<=23;c++)put(sp,r,c,c===22&&q.pre?q.pre:null,c===22?{...B9,nf:'#,##0.00'}:B9)});
+  const rt=16+R.length,TT={font:fb(9,true),bd:'thin',al:{h:'center',v:'center',w:true}},TS=k=>{const t=R.reduce((a,q)=>a+(k(q)||0),0);return t?{v:Math.round(t*100)/100,s:{nf:'#,##0.00'}}:null};
+  put(sp,rt,2,'TOTALES S/.',TT);merge(sp,rt,2,rt,9,TT);put(sp,rt,5,TS(q=>num(q.f.sueldo)),TT);put(sp,rt,7,TS(q=>q.asig),TT);put(sp,rt,10,null,TT);
+  put(sp,rt,11,TS(q=>num(q.v.bono)),TT);put(sp,rt,12,TS(q=>num(q.v.movilidad)),TT);put(sp,rt,13,TS(q=>num(q.v.bonoProd)),TT);put(sp,rt,14,TS(q=>num(q.v.comision)),TT);put(sp,rt,15,TS(q=>num(q.v.otros)),TT);
+  put(sp,rt,16,TS(q=>q.adS),TT);put(sp,rt,17,TS(q=>q.adC),TT);for(let c=18;c<=23;c++)put(sp,rt,c,c===22?TS(q=>q.pre):null,TT);
+
+  const sn=newSheet('APORTES Y NETO',{});sn.cols=[7,36,12,14,14,12,12,14,12,14,14,14];
+  const NH={font:{sz:11,b:true},bd:'thin',al:{h:'center',v:'center',w:true}},NB={font:{sz:11},bd:'thin',al:{h:'center'}},NM={font:{sz:11},bd:'thin',al:{h:'center'},nf:'#,##0.00'},NT={font:{sz:11,b:true},bd:'thin',al:{h:'center'},nf:'#,##0.00'};
+  put(sn,1,1,'APORTES Y NETO A PAGAR - '+MESES_FULL[m-1]+' '+y,{font:{sz:12,b:true}});
+  ['ORDEN','APELLIDOS Y NOMBRES','PENSION','TOTAL INGRESOS','APORTE OBLIGATORIO / ONP','COMISION AFP','PRIMA DE SEGURO','TOTAL APORTES','DESCUENTOS','NETO A PAGAR','ESSALUD (EMPLEADOR)','SCTR (EMPLEADOR)'].forEach((t,i)=>put(sn,3,1+i,t,NH));sn.heights[3]=32;
+  const tot={ing:0,ob:0,co:0,pr:0,ap:0,desc:0,neto:0,ess:0,sctr:0};
+  R.forEach((q,i)=>{const r=4+i,c=tNeto(q);put(sn,r,1,q.e.n,NB);put(sn,r,2,String(q.e.name||'').toUpperCase(),NB);put(sn,r,3,q.f.pension||null,NB);
+    ['ing','ob','co','pr','ap','desc','neto','ess','sctr'].forEach((k,j)=>{if(c)tot[k]+=c[k];put(sn,r,4+j,c?c[k]:null,NM)})});
+  const rn=4+R.length;put(sn,rn,1,'TOTALES S/.',NT);merge(sn,rn,1,rn,3,NT);['ing','ob','co','pr','ap','desc','neto','ess','sctr'].forEach((k,j)=>put(sn,rn,4+j,r2(tot[k]),NT));
+  await saveBook([sp,sh,sa,sx,st,sn],'TAREO_DE_PLANILLA_'+y+'_-_'+MESES_FULL[m-1]+'.xlsx');
+}
+
 /* ---------- navegación ---------- */
 function setRoute(mod,tab){
   S.mod=mod;if(tab)S.tab=tab;
   if(mod==='kardex'){if(tab)S.k.tab=tab}
   if(mod==='alquileres'){if(tab)S.a.tab=tab}
   if(mod==='banco'){if(tab)S.b.tab=tab}
-  const h=mod==='proyectos'?mod+'-'+S.tab:mod==='kardex'?mod+'-'+S.k.tab:mod==='alquileres'?mod+'-'+S.a.tab:mod==='banco'?mod+'-'+S.b.tab:mod;
+  if(mod==='tareo'){if(tab)S.t.tab=tab}
+  const h=mod==='proyectos'?mod+'-'+S.tab:mod==='kardex'?mod+'-'+S.k.tab:mod==='alquileres'?mod+'-'+S.a.tab:mod==='banco'?mod+'-'+S.b.tab:mod==='tareo'?mod+'-'+S.t.tab:mod;
   if(location.hash.slice(1)!==h)location.hash=h;
   render();
 }
@@ -1803,6 +2316,7 @@ function readHash(){
   if(t&&m==='kardex'&&KTABS.some(x=>x[0]===t))S.k.tab=t;
   if(t&&m==='alquileres'&&ATABS.some(x=>x[0]===t))S.a.tab=t;
   if(t&&m==='banco'&&BTABS.some(x=>x[0]===t))S.b.tab=t;
+  if(t&&m==='tareo'&&TTABS.some(x=>x[0]===t))S.t.tab=t;
 }
 
 /* ---------- render ---------- */
@@ -1823,7 +2337,7 @@ const COL_HIGH=/fecha|importe|ingreso|egreso|saldo|renta|stock|total|valor|avanc
 function fitTables(){
   document.querySelectorAll('#main table').forEach(t=>{
     t.querySelectorAll('.chid').forEach(x=>x.classList.remove('chid'));
-    const sc=t.closest('.scroll');if(!sc||getComputedStyle(t).display!=='table')return;
+    const sc=t.closest('.scroll');if(!sc||t.dataset.nofit||getComputedStyle(t).display!=='table')return;
     const ths=[...t.querySelectorAll('thead tr:last-child th')],n=ths.length;if(n<4)return;
     const fr=t.querySelector('tbody tr'),hasAct=!!(fr&&fr.children.length===n&&fr.children[n-1].classList.contains('act'));
     const cand=[];for(let i=2;i<(hasAct?n-1:n);i++)cand.push(i);
@@ -1845,15 +2359,15 @@ function render(){
   S.C=compute();S.KC=computeK();S.AC=computeA();S.BC=computeB();
   renderSide();
   const main=$('#main');
-  if(S.mod==='proyectos')main.innerHTML=viewProyectos();else if(S.mod==='kardex')main.innerHTML=viewKardex();else if(S.mod==='alquileres')main.innerHTML=viewAlq();else if(S.mod==='banco')main.innerHTML=viewBanco();else main.innerHTML=viewPending(MODULES.find(m=>m.id===S.mod));
+  if(S.mod==='proyectos')main.innerHTML=viewProyectos();else if(S.mod==='kardex')main.innerHTML=viewKardex();else if(S.mod==='alquileres')main.innerHTML=viewAlq();else if(S.mod==='banco')main.innerHTML=viewBanco();else if(S.mod==='tareo'){main.innerHTML=viewTareo();tEnsure()}else main.innerHTML=viewPending(MODULES.find(m=>m.id===S.mod));
   cardTables();fitTables();
   if(lastFocus){const el=main.querySelector('[data-fk="'+lastFocus+'"]');if(el){el.focus();try{if(el.type==='text'||el.type==='search'){const n=el.value.length;el.setSelectionRange(n,n)}else el.select()}catch(e){}}}
 }
 function renderSide(){
   const nA=S.C.alerts.filter(a=>a.sev!=='i').length;
-  const nK=S.KC?S.KC.alerts.filter(a=>a.sev!=='i').length:0,nQ=S.AC?S.AC.alerts.filter(a=>a.sev!=='i').length:0,nB=S.BC?S.BC.alerts.filter(a=>a.sev!=='i').length:0;
+  const nT=tRevisar(),nK=S.KC?S.KC.alerts.filter(a=>a.sev!=='i').length:0,nQ=S.AC?S.AC.alerts.filter(a=>a.sev!=='i').length:0,nB=S.BC?S.BC.alerts.filter(a=>a.sev!=='i').length:0;
   $('#mods').innerHTML=MODULES.map(m=>`<li><button class="mod ${m.live?'live':''}" data-act="mod" data-id="${m.id}" ${S.mod===m.id?'aria-current="page"':''}>
-    <span class="dot"></span><span>${esc(m.name)}</span>${m.live?(((m.id==='kardex'?nK:m.id==='alquileres'?nQ:m.id==='banco'?nB:nA))?`<span class="cnt" title="Hallazgos por revisar">${m.id==='kardex'?nK:m.id==='alquileres'?nQ:m.id==='banco'?nB:nA}</span>`:''):'<span class="tag">Pendiente</span>'}</button></li>`).join('');
+    <span class="dot"></span><span>${esc(m.name)}</span>${m.live?(((m.id==='kardex'?nK:m.id==='alquileres'?nQ:m.id==='banco'?nB:m.id==='tareo'?nT:nA))?`<span class="cnt" title="Hallazgos por revisar">${m.id==='kardex'?nK:m.id==='alquileres'?nQ:m.id==='banco'?nB:m.id==='tareo'?nT:nA}</span>`:''):'<span class="tag">Pendiente</span>'}</button></li>`).join('');
   $('#store').className='store'+(Store.mode==='local'?' local':'');
   $('#store').innerHTML=Store.mode==='pending'?'<i></i><span>Conectando…</span>':Store.mode==='db'?'<i></i><span>Los datos se guardan solos y se ven desde cualquier dispositivo con acceso.</span>':'<i></i><span>Los datos se guardan solo en este navegador.</span>';
 }
@@ -2179,6 +2693,9 @@ function recMissing(k,id){
     if(!ex){need(hasV(m.docTipo),'comprobante');need(hasV(m.docSerie),'serie-número');need(hasV(m.tercDoc),'DNI o RUC');need(hasV(m.tercNombre),'cliente o proveedor')}}
   else if(k==='bj'){const m=S.BC.cj.movs.find(x=>x.id===id);if(!m)return null;
     need(hasV(m.fecha),'fecha');need(hasV(m.desc),'descripción');need((m._m||0)>0,'importe');need(hasV(m.docTipo),'comprobante');need(hasV(m.docSerie),'serie-número');need(hasV(m.tercDoc),'DNI o RUC');need(hasV(m.tercNombre),'proveedor o trabajador')}
+  else if(k==='ta'){const x=tAdeList().find(r=>r.id===id);if(!x)return null;need(hasV(x.fecha),'fecha');need(hasV(x.userId),'colaborador');need((num(x.monto)||0)>0,'importe');need(hasV(x.tipo),'tipo de adelanto')}
+  else if(k==='tp'){const x=tPreList().find(r=>r.id===id);if(!x)return null;need(hasV(x.fecha),'fecha');need(hasV(x.userId),'colaborador');need((num(x.monto)||0)>0,'monto');need((num(x.cuotas)||0)>0,'n.° de cuotas');need(hasV(x.primerMes),'mes de la primera cuota')}
+  else if(k==='tf'){const f=tFic(id);need(hasV(f.dni),'DNI');need((num(f.sueldo)||0)>0,'remuneración básica');need(hasV(f.cargo),'cargo u ocupación');need(hasV(f.modalidad),'modalidad');need(hasV(f.pension),'sistema de pensiones');need(hasV(f.ingreso),'fecha de ingreso')}
   else return null;
   return out;
 }
@@ -2186,6 +2703,15 @@ const stDot=(k,id)=>{const m=recMissing(k,id);if(!m)return '';
   const t=m.length?'Incompleto. Falta: '+m.join(', ')+'.':'Completo.';
   return `<span class="sdot ${m.length?'':'ok'}" role="img" title="${esc(t)}" aria-label="${esc(t)}"></span>`};
 const DET={
+ tp:id=>{const x=tPreList().find(r=>r.id===id);if(!x)return null;const cr=tPreCron(x);
+  return {t:'Préstamo · '+(x.name||''),e:['t-edit-p',id],r:[['Colaborador',esc(String(x.name||'').toUpperCase())],['Fecha del préstamo',fdate(x.fecha)],['Monto',money(num(x.monto)||0,'PEN',2)],['N.° de cuotas',esc(x.cuotas||'')],['Primera cuota',esc(x.primerMes?tMonthTxt(x.primerMes):'')],['Observación',esc(x.obs||'')],
+   ['Cronograma',cr.map(c=>`<div class="small">Cuota ${c.n} de ${cr.length} · ${esc(tMonthTxt(c.mes))} · ${money(c.monto,'PEN',2)}${c.mes===S.t.month?' <b>(mes seleccionado)</b>':''}</div>`).join('')]]}},
+ tf:id=>{const e=tEmpList().find(x=>x.id===id);if(!e)return null;const f=tFic(id),v=tVar(id),mm=x=>num(x)?money(num(x),'PEN',2):'';
+  return {t:'Ficha · '+(e.name||''),e:['t-edit-f',id],r:[['Colaborador (Asistencia)',esc(String(e.name||'').toUpperCase())],['DNI',esc(f.dni||'')],['Remuneración básica',mm(f.sueldo)],['Cargo u ocupación',esc(f.cargo||'')],
+   ['Asignación familiar',f.asigFam?money(tCfg().rmv*tCfg().asig/100,'PEN',2):'No'],['Modalidad',esc(f.modalidad||'')],['Sistema de pensiones',esc(f.pension||'')],['Fecha de ingreso',fdate(f.ingreso)],['Fecha de cese',fdate(f.cese)],
+   ['Bono ('+esc(tMonthTxt(S.t.month))+')',mm(v.bono)],['Movilidad ('+esc(tMonthTxt(S.t.month))+')',mm(v.movilidad)],['Bono de productividad ('+esc(tMonthTxt(S.t.month))+')',mm(v.bonoProd)],['Comisión ('+esc(tMonthTxt(S.t.month))+')',mm(v.comision)],['Otros ingresos ('+esc(tMonthTxt(S.t.month))+')',mm(v.otros)]]}},
+ ta:id=>{const x=tAdeList().find(r=>r.id===id);if(!x)return null;
+  return {t:'Adelanto · '+(x.name||''),e:['t-edit-a',id],r:[['Colaborador',esc(String(x.name||'').toUpperCase())],['Fecha',fdate(x.fecha)],['Tipo',x.tipo==='COMISION'?'Adelanto de comisión':'Adelanto de sueldo'],['Importe',money(num(x.monto)||0,'PEN',2)],['Observación',esc(x.obs||'')]]}},
  p:id=>{const p=S.C.projById[id];if(!p)return null;
   return {t:p.nombre,e:['edit-p',id],r:[['Proyecto',esc(p.nombre)],['Tipo de proyecto',esc(tipoTxt(p))],
    ['Fecha de adquisición',esc(adqTxt(p))+(p.fechaAdq?'':' <span class="small warn">solo año</span>')],
@@ -2888,6 +3414,8 @@ document.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act,id=b.dataset.id;
   if(a==='mod'){setRoute(id);return}
+  if(a==='ttab'){setRoute('tareo',id);return}
+  if(a==='t-prev'||a==='t-next'||a==='t-refresh'||a==='t-export'||a==='ta-new'||a==='t-edit-a'||a==='t-edit-f'||a==='tc-open'||a==='tp-new'||a==='t-edit-p'||a==='tl-new'||a==='tz-close'||a==='tz-open'){tClick(a,id);return}
   if(a==='p-lotes'){openLotesEd();return}
   if(a==='lot-add'){lotAdd();return}
   if(a==='lot-del'){lotDel(b.dataset.g);return}
@@ -2918,7 +3446,7 @@ document.addEventListener('click',ev=>{
 document.addEventListener('submit',ev=>{
   if(ev.target.id!=='mf')return;ev.preventDefault();
   const k=ev.target.dataset.kind;
-  if(k==='p')saveProyecto();else if(k==='e')saveEscritura();else if(k==='s')saveServicio();else if(k==='c')saveSettings();else if(k==='kp')saveProdK();else if(k==='km')saveMovK();else if(k==='kc')saveSettingsK();else if(k==='ac')saveContratoA();else if(k==='ap')savePagoA();else if(k==='ag')saveSettingsAq();else if(k==='bm')saveMovB();else if(k==='bj')saveMovJ();else if(k==='bg')saveSettingsB();
+  if(k==='p')saveProyecto();else if(k==='e')saveEscritura();else if(k==='s')saveServicio();else if(k==='c')saveSettings();else if(k==='kp')saveProdK();else if(k==='km')saveMovK();else if(k==='kc')saveSettingsK();else if(k==='ac')saveContratoA();else if(k==='ap')savePagoA();else if(k==='ag')saveSettingsAq();else if(k==='bm')saveMovB();else if(k==='bj')saveMovJ();else if(k==='ta')saveAde();else if(k==='tp')savePre();else if(k==='tl')saveLic();else if(k==='tz')saveCierre();else if(k==='tr')saveReabrir();else if(k==='tf')saveFic();else if(k==='tc')saveCfgT();else if(k==='bg')saveSettingsB();
 });
 document.addEventListener('input',ev=>{
   const f=ev.target.closest&&ev.target.closest('#mf');
@@ -2936,6 +3464,8 @@ document.addEventListener('change',ev=>{
   if(t.closest&&t.closest('#mf')&&$('#mf').dataset.kind==='km'){kChange(ev);return}
   if(t.closest&&t.closest('#mf')&&$('#mf').dataset.kind==='ac'){aChange(ev);return}
   if(t.closest&&t.closest('#mf')&&$('#mf').dataset.kind==='bm'){bChange(ev);return}
+  if(k==='tmes'){tSetMonth(t.value);return}
+  if(k==='tdec'){S.t.dec=!!t.checked;render();return}
   if(k==='bfmes'||k==='bfdir'||k==='bfsin'||k==='bcfg'){bChangeIn(t,k);return}
   if(k==='kfprod'||k==='kftipo'){kChangeIn(t,k);return}
   if(k==='afvig'||k==='afcon'||k==='apg'){aChangeIn(t,k);return}
@@ -2980,6 +3510,12 @@ function mark(k){S.ready[k]=true;render()}
   Store.watch(ACOLS.cfg,l=>{const d=l.find(x=>x.id==='alquileres');S.a.cfg={...ADEF,...(d||{})};S.a.ready.cfg=true;render()},onErr);
   Store.watch(BCOLS.mov,l=>{S.b.all=l;S.b.ready.mov=true;render()},onErr);
   Store.watch(BCOLS.caja,l=>{S.b.caja=l;S.b.ready.caja=true;render()},onErr);
+  Store.watch(TCOLS.cie,l=>{S.t.cie=l;render()},onErr);
+  Store.watch(TCOLS.pre,l=>{S.t.pre=l;render()},onErr);
+  Store.watch(TCOLS.fic,l=>{S.t.fic=l;render()},onErr);
+  Store.watch(TCOLS.vars,l=>{S.t.vars=l;render()},onErr);
+  Store.watch(TCOLS.cfg,l=>{S.t.cfg=l.find(x=>x.id==='planilla')||null;render()},onErr);
+  Store.watch(TCOLS.ade,l=>{S.t.ade=l;S.t.rAde=true;render()},onErr);
   Store.watch(BCOLS.cfg,l=>{S.b.cfgs=l;S.b.ready.cfg=true;render()},onErr);
   setTimeout(()=>{const r=S.ready;if(!(r.proyectos&&r.escrituras&&r.servicios&&r.config)){S.timeout=true;render()}},10000);
 })();
